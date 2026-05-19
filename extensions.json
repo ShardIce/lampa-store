@@ -2,16 +2,20 @@
   "secuses": true,
   "results": [
     {
-      "title": "Shardice Clean Store",
+      "title": "Shardice Store",
       "results": [
         {
           "name": "Статусы фильмов и сериалов",
-          "descr": "Добавляет личные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Данные хранятся локально на устройстве.",
+          "descr": "Сохраняет локальные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Первый тестовый плагин для сортировки своей медиатеки.",
           "author": "@shardice",
-          "version": "1.0.0",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=2",
-          "img": "https://shardice.github.io/lampa-store/assets/movie-statuses.svg",
-          "icon": "https://shardice.github.io/lampa-store/assets/icon-statuses.svg",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
+          "available_lampa": 1
+        },
+        {
+          "name": "Shardice Store Launcher",
+          "descr": "Кнопка магазина в настройках Lampa. Служебный плагин для открытия каталога.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/store.js",
           "available_lampa": 1
         }
       ]
@@ -20,13 +24,11 @@
       "title": "Скоро",
       "results": [
         {
-          "name": "Чистка интерфейса",
-          "descr": "Будущий плагин для скрытия лишних элементов и настройки главного экрана. Сейчас карточка только для планирования, не устанавливать.",
+          "name": "Очистка интерфейса",
+          "descr": "Будущий плагин для скрытия лишних элементов и упрощения интерфейса.",
           "author": "@shardice",
-          "version": "0.1.0",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=2",
-          "img": "https://shardice.github.io/lampa-store/assets/coming-soon.svg",
-          "available_lampa": 0
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js",
+          "available_lampa": 1
         }
       ]
     }
