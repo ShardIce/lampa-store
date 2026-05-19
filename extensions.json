@@ -15,7 +15,8 @@
           "tag": "Music",
           "accent": "#ff4757",
           "icon": "REC",
-          "subtitle": "Радио в основном меню"
+          "subtitle": "Радио в основном меню",
+          "cover": "record-radio.svg"
         }
       ]
     },
@@ -33,7 +34,8 @@
           "tag": "System",
           "accent": "#00ffd0",
           "icon": "↻",
-          "subtitle": "Перезагрузка после аккаунта"
+          "subtitle": "Перезагрузка после аккаунта",
+          "cover": "reload-button.svg"
         }
       ]
     },
@@ -51,20 +53,22 @@
           "tag": "Library",
           "accent": "#7c5cff",
           "icon": "✓",
-          "subtitle": "Медиатека без премиума"
+          "subtitle": "Медиатека без премиума",
+          "cover": "movie-statuses.svg"
         },
         {
           "id": "plugin_home",
           "name": "Дом плагинов",
-          "version": "1.7.0",
-          "descr": "Магазин автоматически читает extensions.json. Новые плагины появляются без правки store.js.",
+          "version": "1.8.0",
+          "descr": "Автоматический каталог из extensions.json, cover-обложки и кнопки установки.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=170",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=180",
           "available_lampa": 1,
           "tag": "Store",
           "accent": "#00ffd0",
           "icon": "⌂",
-          "subtitle": "Автоматический каталог"
+          "subtitle": "Автоматический каталог",
+          "cover": "plugin-home.svg"
         }
       ]
     },
@@ -77,12 +81,13 @@
           "version": "0.1.0",
           "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=170",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=180",
           "available_lampa": 1,
           "tag": "UI",
           "accent": "#ffcc66",
           "icon": "✦",
-          "subtitle": "Скоро"
+          "subtitle": "Скоро",
+          "cover": "coming-soon.svg"
         }
       ]
     }
