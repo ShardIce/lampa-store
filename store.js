@@ -1,8 +1,8 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.2
- * description: Красивый каталог плагинов для Lampa. Установка происходит внутри магазина без перехода в штатный экран расширений.
+ * version: 1.4.4
+ * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
 (function () {
@@ -17,6 +17,9 @@
     var controllerAdded = false;
     var ignoreOpenUntil = 0;
     var installing = {};
+    var actionPanel = null;
+    var actionIndex = 0;
+    var actionContext = null;
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -41,12 +44,14 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v5').length) return;
+        if ($('#home-plugins-store-style-clean-v7').length) return;
 
-        $('body').append('<style id="home-plugins-store-style-clean-v5">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:5em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.72em!important;height:2.72em!important;max-width:2.72em!important;max-height:2.72em!important;display:block!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v7">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:5em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.72em!important;height:2.72em!important;max-width:2.72em!important;max-height:2.72em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name,[data-component="' + COMPONENT + '"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:radial-gradient(circle at 17% 9%,rgba(0,255,208,.20),transparent 30%),radial-gradient(circle at 88% 0%,rgba(88,107,255,.23),transparent 35%),linear-gradient(135deg,#0d1421,#171d2b 56%,#101522);color:#fff;padding:3.55em 4.2em;box-sizing:border-box;overflow:hidden;}' +
@@ -71,7 +76,17 @@
             '.hps-hint{color:rgba(255,255,255,.62);font-size:.78em;font-weight:750;line-height:1.2;}' +
             '.hps-card--installed .hps-install{background:rgba(105,255,196,.18);color:#6dffc4;box-shadow:inset 0 0 0 1px rgba(105,255,196,.38);}' +
             '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);}' +
+            '.hps-card--disabled .hps-install{background:rgba(255,255,255,.11);color:rgba(255,255,255,.62);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);}' +
             '.hps-empty{padding:2em;border-radius:1.2em;background:rgba(255,255,255,.08);font-weight:850;color:rgba(255,255,255,.72);}' +
+            '.hps-action-shade{position:absolute;z-index:8;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.34);display:flex;justify-content:flex-end;}' +
+            '.hps-action-panel{width:34em;max-width:46vw;height:100%;background:rgba(31,34,38,.98);box-shadow:-2em 0 3em rgba(0,0,0,.30);padding:2em 0;box-sizing:border-box;}' +
+            '.hps-action-title{font-size:2.3em;font-weight:300;margin:0 1.05em 1.2em;line-height:1.1;}' +
+            '.hps-action-plugin{margin:-1.8em 2.45em 1.4em;color:rgba(255,255,255,.48);font-size:.95em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-action-item{font-size:1.28em;font-weight:800;padding:1.05em 2em;min-height:3.2em;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:1em;color:#fff;}' +
+            '.hps-action-item.focus{background:rgba(255,255,255,.10);box-shadow:none!important;transform:none!important;border-color:transparent!important;}' +
+            '.hps-action-item--disabled{opacity:.36;pointer-events:none;}' +
+            '.hps-action-item--danger{color:#ffb3b3;}' +
+            '.hps-action-item-status{font-size:.75em;font-weight:800;color:rgba(255,255,255,.58);white-space:nowrap;}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{border-color:rgba(255,255,255,.42)!important;box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em) scale(1.015);}' +
             '@media(max-width:1280px){.hps-grid{grid-template-columns:repeat(2,1fr)}.hps-screen{padding:3.1em 3.3em}}' +
         '</style>');
@@ -203,21 +218,58 @@
         return Array.isArray(list) ? list : [];
     }
 
-    function isInstalled(plugin) {
+    function findInstalledPlugin(plugin) {
         var url = normalizePluginUrl(plugin.url);
-        if (!url) return false;
+        var list = installedPlugins();
+        var result = null;
 
-        return installedPlugins().some(function (item) {
+        if (!url) return result;
+
+        list.some(function (item, index) {
             var installed = typeof item == 'string' ? item : item && (item.url || item.link);
-            return normalizePluginUrl(installed) == url;
+
+            if (normalizePluginUrl(installed) == url) {
+                if (typeof item == 'string') {
+                    item = { url: item, status: 1 };
+                    list[index] = item;
+                }
+
+                result = {
+                    item: item,
+                    index: index,
+                    list: list
+                };
+
+                return true;
+            }
+
+            return false;
         });
+
+        return result;
+    }
+
+    function isInstalled(plugin) {
+        return !!findInstalledPlugin(plugin);
+    }
+
+    function saveInstalledList(list) {
+        if (Lampa.Plugins && typeof Lampa.Plugins.save === 'function') {
+            Lampa.Plugins.save();
+        } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+            Lampa.Storage.set('plugins', list);
+        }
     }
 
     function updateCardState(card, plugin, state) {
         if (!card || !card.length) return;
 
-        state = state || (isInstalled(plugin) ? 'installed' : 'ready');
-        card.removeClass('hps-card--installed hps-card--installing');
+        if (!state) {
+            var installed = findInstalledPlugin(plugin);
+            state = installed ? (installed.item.status === 0 ? 'disabled' : 'installed') : 'ready';
+        }
+
+        card.removeClass('hps-card--installed hps-card--installing hps-card--disabled');
 
         if (state == 'installing') {
             card.addClass('hps-card--installing');
@@ -227,9 +279,13 @@
             card.addClass('hps-card--installed');
             card.find('.hps-install').text('Установлен');
             card.find('.hps-hint').text('Плагин уже в памяти Lampa');
+        } else if (state == 'disabled') {
+            card.addClass('hps-card--disabled');
+            card.find('.hps-install').text('Отключен');
+            card.find('.hps-hint').text('Можно включить в действиях');
         } else {
             card.find('.hps-install').text('Установить');
-            card.find('.hps-hint').text('OK — установить здесь');
+            card.find('.hps-hint').text('OK — действия');
         }
     }
 
@@ -248,17 +304,19 @@
         }
     }
 
-    function installPlugin(plugin, card) {
+    function installPlugin(plugin, card, complete) {
         var url = plugin.url;
 
         if (!url) {
             if (Lampa.Noty) Lampa.Noty.show('У плагина нет ссылки для установки');
+            if (complete) complete(false);
             return;
         }
 
         if (isInstalled(plugin)) {
             updateCardState(card, plugin, 'installed');
             if (Lampa.Noty) Lampa.Noty.show('Плагин уже установлен');
+            if (complete) complete(true);
             return;
         }
 
@@ -286,13 +344,273 @@
             setTimeout(function () {
                 installing[url] = false;
                 updateCardState(card, plugin, 'installed');
+                if (complete) complete(true);
             }, 350);
         } catch (e) {
             installing[url] = false;
             updateCardState(card, plugin, 'ready');
             console.log('Plugin install error:', e);
             if (Lampa.Noty) Lampa.Noty.show('Не удалось установить плагин');
+            if (complete) complete(false);
         }
+    }
+
+    function statusUrl(url) {
+        var result = url;
+
+        try {
+            if (Lampa.Utils && typeof Lampa.Utils.fixMirrorLink === 'function') result = Lampa.Utils.fixMirrorLink(result);
+            if (Lampa.Utils && typeof Lampa.Utils.rewriteIfHTTPS === 'function') result = Lampa.Utils.rewriteIfHTTPS(result);
+        } catch (e) {}
+
+        return result;
+    }
+
+    function checkPluginStatus(plugin, row) {
+        var url = plugin.url;
+        var status = row.find('.hps-action-item-status');
+
+        if (!url) {
+            status.text('нет ссылки');
+            return;
+        }
+
+        status.text('проверка');
+
+        function display(text) {
+            status.text(text);
+        }
+
+        try {
+            var network = new Lampa.Reguest();
+            if (typeof network.timeout === 'function') network.timeout(5000);
+            network["native"](statusUrl(url), function (str) {
+                display(/Lampa\./.test(str || '') ? '200 рабочий' : '500 не подтверждён');
+            }, function () {
+                display('ошибка');
+            }, false, {
+                dataType: 'text'
+            });
+        } catch (e) {
+            if (window.fetch) {
+                fetch(statusUrl(url))
+                    .then(function (response) { return response.text().then(function (text) { return { response: response, text: text }; }); })
+                    .then(function (result) {
+                        display(/Lampa\./.test(result.text || '') ? result.response.status + ' рабочий' : result.response.status + ' не подтверждён');
+                    })
+                    .catch(function () {
+                        display('ошибка');
+                    });
+            } else {
+                display('недоступно');
+            }
+        }
+    }
+
+    function toggleInstalled(plugin, card) {
+        var found = findInstalledPlugin(plugin);
+        if (!found) return;
+
+        found.item.status = found.item.status === 0 ? 1 : 0;
+        saveInstalledList(found.list);
+
+        if (found.item.status == 1 && Lampa.Plugins && typeof Lampa.Plugins.push === 'function') {
+            Lampa.Plugins.push(found.item);
+        } else if (Lampa.Noty) {
+            Lampa.Noty.show('Для полного отключения может потребоваться перезагрузка');
+        }
+
+        updateCardState(card, plugin);
+        closeActionMenu();
+    }
+
+    function removeInstalled(plugin, card) {
+        var found = findInstalledPlugin(plugin);
+        if (!found) return;
+
+        if (Lampa.Plugins && typeof Lampa.Plugins.remove === 'function') {
+            Lampa.Plugins.remove(found.item);
+        } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+            found.list.splice(found.index, 1);
+            Lampa.Storage.set('plugins', found.list);
+        }
+
+        updateCardState(card, plugin, 'ready');
+        closeActionMenu();
+        if (Lampa.Noty) Lampa.Noty.show('Плагин удалён');
+    }
+
+    function editInstalled(plugin, card, field) {
+        var found = findInstalledPlugin(plugin);
+        if (!found) return;
+
+        var current = field == 'name' ? (found.item.name || plugin.name) : (found.item.url || plugin.url);
+        var title = field == 'name' ? 'Изменить название' : 'Изменить ссылку';
+
+        closeActionMenu();
+
+        function save(value) {
+            value = String(value || '').trim();
+            if (!value) return;
+
+            if (field == 'name') {
+                found.item.name = value;
+                plugin.name = value;
+                card.find('.hps-name').text(value);
+            } else {
+                found.item.url = value;
+                plugin.url = value;
+            }
+
+            saveInstalledList(found.list);
+            updateCardState(card, plugin);
+
+            if (Lampa.Noty) Lampa.Noty.show('Изменения сохранены');
+        }
+
+        if (Lampa.Input && typeof Lampa.Input.edit === 'function') {
+            Lampa.Input.edit({
+                title: title,
+                value: current || '',
+                free: true,
+                nosave: true,
+                nomic: true
+            }, save);
+        } else {
+            save(window.prompt ? window.prompt(title, current || '') : '');
+        }
+    }
+
+    function actionItems() {
+        return actionPanel ? actionPanel.find('.hps-action-item:not(.hps-action-item--disabled)') : $();
+    }
+
+    function setActionFocus(index) {
+        var list = actionItems();
+        if (!list.length) return;
+
+        if (index < 0) index = 0;
+        if (index >= list.length) index = list.length - 1;
+
+        actionIndex = index;
+        actionPanel.find('.hps-action-item').removeClass('focus');
+        list.eq(actionIndex).addClass('focus');
+    }
+
+    function moveAction(direction) {
+        if (direction == 'up') setActionFocus(actionIndex - 1);
+        else if (direction == 'down') setActionFocus(actionIndex + 1);
+        else if (direction == 'left') closeActionMenu();
+    }
+
+    function selectAction() {
+        var item = actionItems().eq(actionIndex);
+        if (item.length) item.trigger('hover:enter');
+    }
+
+    function closeActionMenu() {
+        if (!actionPanel) return;
+
+        actionPanel.remove();
+        actionPanel = null;
+        actionContext = null;
+        setupFocus();
+    }
+
+    function runAction(action, row) {
+        var plugin = actionContext && actionContext.plugin;
+        var card = actionContext && actionContext.card;
+        if (!plugin || !card) return;
+
+        if (action == 'install') {
+            installPlugin(plugin, card, function (ok) {
+                if (ok) closeActionMenu();
+            });
+        } else if (action == 'toggle') {
+            toggleInstalled(plugin, card);
+        } else if (action == 'check') {
+            checkPluginStatus(plugin, row);
+        } else if (action == 'name') {
+            editInstalled(plugin, card, 'name');
+        } else if (action == 'url') {
+            editInstalled(plugin, card, 'url');
+        } else if (action == 'remove') {
+            removeInstalled(plugin, card);
+        }
+    }
+
+    function openActionMenu(plugin, card) {
+        var found = findInstalledPlugin(plugin);
+        var enabled = found && found.item.status !== 0;
+        var items = [];
+
+        closeActionMenu();
+
+        items.push(found ? {
+            title: enabled ? 'Отключить' : 'Включить',
+            action: 'toggle'
+        } : {
+            title: 'Установить',
+            action: 'install'
+        });
+
+        items.push({
+            title: 'Проверить статус',
+            action: 'check',
+            status: ''
+        });
+
+        items.push({
+            title: 'Редактировать',
+            disabled: true
+        });
+
+        if (found) {
+            items.push({ title: 'Изменить название', action: 'name' });
+            items.push({ title: 'Изменить ссылку', action: 'url' });
+            items.push({ title: 'Удалить', action: 'remove', danger: true });
+        }
+
+        actionContext = { plugin: plugin, card: card };
+        actionPanel = $('<div class="hps-action-shade">' +
+            '<div class="hps-action-panel">' +
+                '<div class="hps-action-title">Действие</div>' +
+                '<div class="hps-action-plugin">' + escapeHtml(plugin.name) + '</div>' +
+            '</div>' +
+        '</div>');
+
+        var body = actionPanel.find('.hps-action-panel');
+
+        items.forEach(function (item) {
+            var row = $('<div class="hps-action-item' +
+                (item.disabled ? ' hps-action-item--disabled' : '') +
+                (item.danger ? ' hps-action-item--danger' : '') +
+                '" data-action="' + escapeHtml(item.action || '') + '">' +
+                    '<span>' + escapeHtml(item.title) + '</span>' +
+                    '<span class="hps-action-item-status">' + escapeHtml(item.status || '') + '</span>' +
+                '</div>');
+
+            if (!item.disabled) {
+                row.on('hover:enter click', function (e) {
+                    stopEvent(e);
+                    runAction(item.action, row);
+                });
+
+                row.on('mouseenter.home_plugins_store_clean', function () {
+                    var index = actionItems().index(this);
+                    if (index > -1) setActionFocus(index);
+                });
+            }
+
+            body.append(row);
+        });
+
+        actionPanel.on('click', function (e) {
+            if ($(e.target).hasClass('hps-action-shade')) closeActionMenu();
+        });
+
+        active.append(actionPanel);
+        setTimeout(function () { setActionFocus(0); }, 30);
     }
 
     function render(sections) {
@@ -320,7 +638,7 @@
                     '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +
-                        '<div class="hps-hint">OK — установить здесь</div>' +
+                        '<div class="hps-hint">OK — действия</div>' +
                     '</div>' +
                 '</div>');
 
@@ -328,7 +646,7 @@
 
                 card.on('hover:enter click', function (e) {
                     stopEvent(e);
-                    installPlugin(plugin, card);
+                    openActionMenu(plugin, card);
                 });
 
                 card.on('mouseenter.home_plugins_store_clean', function () {
@@ -477,23 +795,32 @@
 
             if (code == 37) {
                 stopEvent(e);
-                moveFocus('left');
+                if (actionPanel) moveAction('left');
+                else moveFocus('left');
             } else if (code == 39) {
                 stopEvent(e);
-                moveFocus('right');
+                if (actionPanel) moveAction('right');
+                else moveFocus('right');
             } else if (code == 38) {
                 stopEvent(e);
-                moveFocus('up');
+                if (actionPanel) moveAction('up');
+                else moveFocus('up');
             } else if (code == 40) {
                 stopEvent(e);
-                moveFocus('down');
+                if (actionPanel) moveAction('down');
+                else moveFocus('down');
             } else if (code == 13) {
                 stopEvent(e);
-                var el = focusables().eq(focusIndex);
-                if (el.length) el.trigger('hover:enter');
+                if (actionPanel) {
+                    selectAction();
+                } else {
+                    var el = focusables().eq(focusIndex);
+                    if (el.length) el.trigger('hover:enter');
+                }
             } else if (code == 8 || code == 27 || code == 461 || code == 10009) {
                 stopEvent(e);
-                closeScreen(true);
+                if (actionPanel) closeActionMenu();
+                else closeScreen(true);
             }
         });
     }
@@ -520,11 +847,11 @@
             Lampa.Controller.add(CONTROLLER, {
                 toggle: setupFocus,
                 update: setupFocus,
-                left: function () { moveFocus('left'); },
-                right: function () { moveFocus('right'); },
-                up: function () { moveFocus('up'); },
-                down: function () { moveFocus('down'); },
-                back: function () { closeScreen(true); }
+                left: function () { if (actionPanel) moveAction('left'); else moveFocus('left'); },
+                right: function () { if (actionPanel) moveAction('right'); else moveFocus('right'); },
+                up: function () { if (actionPanel) moveAction('up'); else moveFocus('up'); },
+                down: function () { if (actionPanel) moveAction('down'); else moveFocus('down'); },
+                back: function () { if (actionPanel) closeActionMenu(); else closeScreen(true); }
             });
 
             controllerAdded = true;
@@ -584,6 +911,7 @@
 
     function closeScreen(backToSettings) {
         ignoreOpenUntil = Date.now() + 900;
+        closeActionMenu();
         $('.hps-screen').remove();
         active = null;
         unbindKeys();
