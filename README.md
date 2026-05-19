@@ -1,17 +1,18 @@
-# Lampa Store v20 safe reset
+# lampa-store-clean-v1
 
-Кнопка Reload Button удалена из каталога, потому что она грузила систему и вставала поверх часов.
+Чистый старт.
 
-Порядок восстановления:
-1. Загрузить файлы на GitHub.
-2. В Lampa установить и запустить:
-   https://shardice.github.io/lampa-store/reset-shardice.js
-3. После перезагрузки установить:
-   https://shardice.github.io/lampa-store/store.js
+Что внутри:
+- store.js — красивый магазин с тем дизайном, но установка открывает родной экран Lampa для подтверждения.
+- extensions.json — пока только один первый плагин: Reload Lampa Button.
+- catalog/reload-button.json — одиночный каталог для родной установки Lampa.
+- plugins/reload-button.js — лёгкая кнопка перезагрузки без постоянного setInterval.
+- covers/reload-button.svg — чистый cover без текста.
 
-Новый store.js:
-- без кастомной страницы;
-- без colStep;
-- без plugin-card;
-- без reload-кнопки;
-- только Lampa.Extensions.show.
+Порядок проверки:
+1. Удалить старые store.js?v=... из Lampa.
+2. Загрузить файлы на GitHub.
+3. Установить: https://shardice.github.io/lampa-store/store.js
+4. Открыть Дом плагинов.
+5. Навигация: стрелки/джойстик/мышь.
+6. OK на карточке Reload Button открывает родной экран Lampa для установки.
