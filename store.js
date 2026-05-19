@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.4
+ * version: 1.4.5
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -646,7 +646,8 @@
 
                 card.on('hover:enter click', function (e) {
                     stopEvent(e);
-                    openActionMenu(plugin, card);
+                    if (isInstalled(plugin)) openActionMenu(plugin, card);
+                    else installPlugin(plugin, card);
                 });
 
                 card.on('mouseenter.home_plugins_store_clean', function () {

@@ -1,0 +1,26 @@
+{
+  "secuses": true,
+  "results": [
+    {
+      "title": "No Shots",
+      "results": [
+        {
+          "id": "no_shots",
+          "name": "No Shots",
+          "title": "No Shots",
+          "version": "1.0.0",
+          "descr": "Убирает Shots из меню, карточек, рядов контента и панели плеера Lampa.",
+          "description": "Убирает Shots из меню, карточек, рядов контента и панели плеера Lampa.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/no-shots.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/no-shots.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/no-shots.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/no-shots.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/no-shots.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/no-shots.json"
+        }
+      ]
+    }
+  ]
+}
