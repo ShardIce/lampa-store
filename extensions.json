@@ -83,6 +83,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/custom-favs.svg",
           "image": "https://shardice.github.io/lampa-store/covers/custom-favs.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/custom-favs.json"
+        },
+        {
+          "id": "bwarc",
+          "name": "BwaRC",
+          "title": "BwaRC",
+          "version": "1.6.9",
+          "descr": "Плагин для просмотра онлайн сериалов и фильмов.",
+          "description": "Плагин для просмотра онлайн сериалов и фильмов.",
+          "author": "@bwa",
+          "link": "https://shardice.github.io/lampa-store/plugins/bwarc.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/bwarc.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/bwarc.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/bwarc.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/bwarc.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/bwarc.json"
         }
       ]
     },

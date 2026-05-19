@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.8
+ * version: 1.4.9
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -20,6 +20,7 @@
     var actionPanel = null;
     var actionIndex = 0;
     var actionContext = null;
+    var lastMoveDirection = '';
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -44,12 +45,13 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v10').length) return;
+        if ($('#home-plugins-store-style-clean-v11').length) return;
+        $('#home-plugins-store-style-clean-v10').remove();
         $('#home-plugins-store-style-clean-v9').remove();
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v10">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v11">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:5em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
@@ -63,7 +65,7 @@
             '.hps-logo{display:none;}' +
             '.hps-title{font-size:1.05em;font-weight:900;line-height:1.1;white-space:nowrap;letter-spacing:0;}' +
             '.hps-subtitle{display:none;}' +
-            '.hps-actions{display:flex;align-items:center;gap:.7em;}' +
+            '.hps-actions{display:flex;align-items:center;gap:.7em;flex-shrink:0;}' +
             '.hps-topbtn{padding:.45em .75em;border-radius:.5em;background:rgba(255,255,255,.08);border:0;font-weight:800;font-size:.82em;white-space:nowrap;color:rgba(255,255,255,.78);}' +
             '.hps-scroll{height:calc(100% - 2.75em);overflow-y:auto;overflow-x:hidden;padding:0 0 5em 0;box-sizing:border-box;scroll-behavior:auto;overscroll-behavior:contain;}' +
             '.hps-section{position:relative;margin:0 0 1.95em 0;}' +
@@ -693,6 +695,10 @@
         return active ? active.find('.selector:visible') : $();
     }
 
+    function topButtons() {
+        return active ? active.find('.hps-topbtn.selector:visible') : $();
+    }
+
     function setFocus(index) {
         var list = focusables();
         if (!list.length) return;
@@ -715,6 +721,7 @@
     }
 
     function focusByElement(element) {
+        lastMoveDirection = '';
         var index = focusables().index(element);
         if (index > -1) setFocus(index);
     }
@@ -773,8 +780,9 @@
             }
 
             if (direction == 'up') {
-                var topButton = active.find('.hps-topbtn.selector:visible').first();
-                if (topButton.length) focusElement(topButton[0]);
+                var buttons = topButtons();
+                var buttonIndex = Math.min(cardIndex, buttons.length - 1);
+                if (buttonIndex >= 0) focusElement(buttons.eq(buttonIndex)[0]);
                 return true;
             }
         }
@@ -782,7 +790,39 @@
         return false;
     }
 
+    function moveTopFocus(direction, current) {
+        if (!current || !current.hasClass('hps-topbtn')) return false;
+
+        var buttons = topButtons();
+        var buttonIndex = buttons.index(current);
+
+        if (buttonIndex < 0) return true;
+
+        if (direction == 'left' || direction == 'right') {
+            var nextButton = direction == 'left' ? buttonIndex - 1 : buttonIndex + 1;
+
+            if (nextButton >= 0 && nextButton < buttons.length) {
+                focusElement(buttons.eq(nextButton)[0]);
+            }
+
+            return true;
+        }
+
+        if (direction == 'down') {
+            var firstRowCards = active.find('.hps-section').first().find('.hps-card.selector:visible');
+            var cardIndex = Math.min(buttonIndex, firstRowCards.length - 1);
+
+            if (cardIndex >= 0) focusElement(firstRowCards.eq(cardIndex)[0]);
+            return true;
+        }
+
+        if (direction == 'up') return true;
+
+        return false;
+    }
+
     function moveFocus(direction) {
+        lastMoveDirection = direction;
         var list = focusables();
         var current = list.eq(focusIndex);
 
@@ -792,17 +832,8 @@
             return;
         }
 
+        if (moveTopFocus(direction, current)) return;
         if (moveCardFocus(direction, current)) return;
-
-        if (direction == 'down' && current.hasClass('hps-topbtn')) {
-            var firstCard = active.find('.hps-card.selector:visible').first();
-            var firstCardIndex = list.index(firstCard);
-
-            if (firstCardIndex > -1) {
-                setFocus(firstCardIndex);
-                return;
-            }
-        }
 
         var rect = current[0].getBoundingClientRect();
         var cx = rect.left + rect.width / 2;
@@ -850,20 +881,17 @@
         var scroll = active && active.find('.hps-scroll')[0];
         if (!scroll || !el || !el.length) return;
 
-        var top = 0;
-        var node = el[0];
+        if (lastMoveDirection != 'left' && lastMoveDirection != 'right') {
+            var scrollRect = scroll.getBoundingClientRect();
+            var verticalRect = el[0].getBoundingClientRect();
+            var edge = 36;
 
-        while (node && node !== scroll && node !== document.body) {
-            top += node.offsetTop || 0;
-            node = node.offsetParent;
+            if (verticalRect.top < scrollRect.top + edge) {
+                scroll.scrollTop -= (scrollRect.top + edge) - verticalRect.top;
+            } else if (verticalRect.bottom > scrollRect.bottom - edge) {
+                scroll.scrollTop += verticalRect.bottom - (scrollRect.bottom - edge);
+            }
         }
-
-        var bottom = top + el[0].offsetHeight;
-        var viewTop = scroll.scrollTop;
-        var viewBottom = viewTop + scroll.clientHeight;
-
-        if (top < viewTop + 30) scroll.scrollTop = Math.max(0, top - 40);
-        else if (bottom > viewBottom - 30) scroll.scrollTop = bottom - scroll.clientHeight + 40;
 
         var row = el.closest('.hps-grid')[0];
         if (!row) return;
@@ -925,12 +953,13 @@
 
     function setupFocus() {
         if (!active) return;
+        var restoreIndex = Math.max(0, focusIndex);
 
         try {
             if (Lampa.Controller) Lampa.Controller.collectionSet(active);
         } catch (e) {}
 
-        setTimeout(function () { setFocus(0); }, 60);
+        setTimeout(function () { setFocus(restoreIndex); }, 60);
     }
 
     function addController() {
