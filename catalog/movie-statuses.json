@@ -1,0 +1,25 @@
+{
+  "secuses": true,
+  "results": [
+    {
+      "title": "Статусы фильмов",
+      "results": [
+        {
+          "id": "movie_statuses",
+          "name": "Статусы фильмов",
+          "version": "1.1.0",
+          "descr": "Статусы в карточке фильма и панели избранного.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=110",
+          "available_lampa": 1,
+          "tag": "Library",
+          "accent": "#7c5cff",
+          "icon": "✓",
+          "subtitle": "Медиатека без премиума",
+          "cover": "movie-statuses.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json?v=130"
+        }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,8 @@
           "accent": "#ff4757",
           "icon": "REC",
           "subtitle": "Радио в основном меню",
-          "cover": "record-radio.svg"
+          "cover": "record-radio.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json?v=130"
         }
       ]
     },
@@ -35,7 +36,8 @@
           "accent": "#00ffd0",
           "icon": "↻",
           "subtitle": "Перезагрузка после аккаунта",
-          "cover": "reload-button.svg"
+          "cover": "reload-button.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json?v=130"
         }
       ]
     },
@@ -54,21 +56,23 @@
           "accent": "#7c5cff",
           "icon": "✓",
           "subtitle": "Медиатека без премиума",
-          "cover": "movie-statuses.svg"
+          "cover": "movie-statuses.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json?v=130"
         },
         {
           "id": "plugin_home",
           "name": "Дом плагинов",
-          "version": "1.8.0",
-          "descr": "Автоматический каталог из extensions.json, cover-обложки и кнопки установки.",
+          "version": "1.9.0",
+          "descr": "Автоматический каталог, cover-обложки и установка через родной экран Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=180",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=190",
           "available_lampa": 1,
           "tag": "Store",
           "accent": "#00ffd0",
           "icon": "⌂",
           "subtitle": "Автоматический каталог",
-          "cover": "plugin-home.svg"
+          "cover": "plugin-home.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/plugin-home.json?v=130"
         }
       ]
     },
@@ -81,13 +85,14 @@
           "version": "0.1.0",
           "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=180",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=190",
           "available_lampa": 1,
           "tag": "UI",
           "accent": "#ffcc66",
           "icon": "✦",
           "subtitle": "Скоро",
-          "cover": "coming-soon.svg"
+          "cover": "coming-soon.png",
+          "store": "https://shardice.github.io/lampa-store/catalog/coming-soon.json?v=130"
         }
       ]
     }
