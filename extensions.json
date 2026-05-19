@@ -62,10 +62,10 @@
         {
           "id": "plugin_home",
           "name": "Дом плагинов",
-          "version": "2.0.0",
+          "version": "2.1.0",
           "descr": "Автоматический каталог, cover-обложки и установка через родной экран Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=200",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=210",
           "available_lampa": 1,
           "tag": "Store",
           "accent": "#00ffd0",
