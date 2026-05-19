@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.3.0-clean
+ * version: 1.4.0
  * description: Красивый каталог плагинов для Lampa. Дизайн остаётся своим, установка открывает родное подтверждение Lampa.
  */
 
@@ -14,6 +14,7 @@
     var active = null;
     var focusIndex = 0;
     var keyBound = false;
+    var controllerAdded = false;
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -38,19 +39,19 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v3').length) return;
+        if ($('#home-plugins-store-style-clean-v4').length) return;
 
-        $('body').append('<style id="home-plugins-store-style-clean-v3">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:4.8em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.65em!important;height:2.65em!important;min-width:2.65em!important;max-width:2.65em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.65em!important;border-radius:.55em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.55em!important;height:2.55em!important;max-width:2.55em!important;max-height:2.55em!important;display:block!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v4">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:5em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.72em!important;height:2.72em!important;max-width:2.72em!important;max-height:2.72em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name,[data-component="' + COMPONENT + '"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:radial-gradient(circle at 17% 9%,rgba(0,255,208,.20),transparent 30%),radial-gradient(circle at 88% 0%,rgba(88,107,255,.23),transparent 35%),linear-gradient(135deg,#0d1421,#171d2b 56%,#101522);color:#fff;padding:3.55em 4.2em;box-sizing:border-box;overflow:hidden;}' +
             '.hps-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.35em;}' +
             '.hps-brand{display:flex;align-items:center;gap:1.1em;min-width:0;}' +
             '.hps-logo{width:4.35em;height:4.35em;border-radius:1.15em;background:linear-gradient(135deg,#00ffd0,#2f80ff);display:flex;align-items:center;justify-content:center;font-size:2em;font-weight:900;box-shadow:0 1em 2.8em rgba(0,255,208,.18);flex:0 0 auto;}' +
-            '.hps-title{font-size:2.35em;font-weight:900;line-height:1.05;white-space:nowrap;letter-spacing:-.035em;}' +
+            '.hps-title{font-size:2.35em;font-weight:900;line-height:1.05;white-space:nowrap;letter-spacing:0;}' +
             '.hps-subtitle{margin-top:.35em;color:rgba(255,255,255,.66);font-size:1.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:58vw;}' +
             '.hps-actions{display:flex;align-items:center;gap:.7em;}' +
             '.hps-topbtn{padding:.82em 1.05em;border-radius:.95em;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.13);font-weight:850;white-space:nowrap;}' +
@@ -67,9 +68,28 @@
             '.hps-install{height:2.65em;padding:0 1em;border-radius:.8em;background:linear-gradient(135deg,#00ffd0,#2f80ff);color:#101522;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:8.2em;}' +
             '.hps-hint{color:rgba(255,255,255,.62);font-size:.78em;font-weight:750;line-height:1.2;}' +
             '.hps-empty{padding:2em;border-radius:1.2em;background:rgba(255,255,255,.08);font-weight:850;color:rgba(255,255,255,.72);}' +
-            '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em);}' +
+            '.hps-screen .selector.focus,.hps-screen .selector.hover{border-color:rgba(255,255,255,.42)!important;box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em) scale(1.015);}' +
             '@media(max-width:1280px){.hps-grid{grid-template-columns:repeat(2,1fr)}.hps-screen{padding:3.1em 3.3em}}' +
         '</style>');
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char];
+        });
+    }
+
+    function stopEvent(e) {
+        if (!e) return;
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     }
 
     function normalize(item) {
@@ -85,52 +105,91 @@
     }
 
     function load(done) {
-        fetch(STORE_URL + '?_=' + Date.now())
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                var sections = [];
+        var url = STORE_URL + '?_=' + Date.now();
 
-                if (data && Array.isArray(data.results)) {
-                    data.results.forEach(function (section) {
-                        var raw = Array.isArray(section.results) ? section.results : [];
-                        var items = raw.map(normalize).filter(function (item) { return !!item.url; });
+        function parse(data) {
+            var sections = [];
 
-                        if (items.length) {
-                            sections.push({ title: section.title || 'Плагины', items: items });
-                        }
+            if (data && Array.isArray(data.results)) {
+                data.results.forEach(function (section) {
+                    var raw = Array.isArray(section.results) ? section.results : [];
+                    var items = raw.map(normalize).filter(function (item) {
+                        return !!(item.store || item.url);
                     });
-                }
 
-                done(sections);
-            })
-            .catch(function (e) {
-                console.log('Store load error:', e);
-                done([]);
-            });
+                    if (items.length) {
+                        sections.push({ title: section.title || 'Плагины', items: items });
+                    }
+                });
+            }
+
+            done(sections);
+        }
+
+        function fail(e) {
+            console.log('Store load error:', e);
+            done([]);
+        }
+
+        if (window.fetch) {
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(parse)
+                .catch(fail);
+        } else if (window.$ && $.getJSON) {
+            $.getJSON(url, parse).fail(fail);
+        } else {
+            fail('fetch is not available');
+        }
+    }
+
+    function returnToSettings(delay) {
+        setTimeout(function () {
+            try {
+                if (Lampa.Controller && typeof Lampa.Controller.toggle === 'function') {
+                    Lampa.Controller.toggle('settings');
+                }
+            } catch (e) {}
+
+            try {
+                var first = $('.settings-param.selector:visible').first();
+
+                if (first.length && Lampa.Controller && typeof Lampa.Controller.collectionFocus === 'function') {
+                    Lampa.Controller.collectionFocus(first);
+                }
+            } catch (e2) {}
+        }, delay || 80);
     }
 
     function openNativeInstall(plugin) {
         /*
-         * Важно: родное подтверждение установки Lampa возможно только в родном экране расширений.
-         * Дизайн магазина остаётся загруженным, но Lampa откроет свой слой установки поверх него.
+         * Родное подтверждение установки Lampa открывается в Lampa.Extensions.show.
+         * Перед этим убираем свой высокий overlay, чтобы он не перекрыл родной экран.
          */
-        try {
-            if (Lampa.Extensions && typeof Lampa.Extensions.show === 'function') {
+        if (!Lampa.Extensions || typeof Lampa.Extensions.show !== 'function') {
+            if (Lampa.Noty) Lampa.Noty.show('Установка недоступна: Lampa.Extensions.show не найден');
+            return;
+        }
+
+        closeScreen(false);
+
+        setTimeout(function () {
+            try {
                 Lampa.Extensions.show({
                     store: plugin.store || STORE_URL,
                     with_installed: true
                 });
-                return;
+            } catch (e) {
+                console.log('Plugin install error:', e);
+                if (Lampa.Noty) Lampa.Noty.show('Не удалось открыть установку');
+                returnToSettings(80);
             }
-
-            if (Lampa.Noty) Lampa.Noty.show('Установка недоступна: Lampa.Extensions.show не найден');
-        } catch (e) {
-            console.log('Plugin install error:', e);
-            if (Lampa.Noty) Lampa.Noty.show('Не удалось открыть установку');
-        }
+        }, 80);
     }
 
     function render(sections) {
+        if (!active) return;
+
         var scroll = active.find('.hps-scroll');
         scroll.empty();
 
@@ -141,24 +200,29 @@
         }
 
         sections.forEach(function (section) {
-            scroll.append('<div class="hps-section-title">' + section.title + '</div>');
+            scroll.append('<div class="hps-section-title">' + escapeHtml(section.title) + '</div>');
 
             var grid = $('<div class="hps-grid"></div>');
 
             section.items.forEach(function (plugin) {
                 var card = $('<div class="hps-card selector">' +
-                    '<div class="hps-cover">' + (plugin.cover ? '<img src="' + plugin.cover + '" alt="">' : '') + '</div>' +
-                    '<div class="hps-name">' + plugin.name + '</div>' +
-                    '<div class="hps-desc">' + plugin.descr + '</div>' +
-                    '<div class="hps-meta">' + plugin.author + ' • v' + plugin.version + '</div>' +
+                    '<div class="hps-cover">' + (plugin.cover ? '<img src="' + escapeHtml(plugin.cover) + '" alt="">' : '') + '</div>' +
+                    '<div class="hps-name">' + escapeHtml(plugin.name) + '</div>' +
+                    '<div class="hps-desc">' + escapeHtml(plugin.descr) + '</div>' +
+                    '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +
                         '<div class="hps-hint">OK — открыть установку Lampa</div>' +
                     '</div>' +
                 '</div>');
 
-                card.on('hover:enter click', function () {
+                card.on('hover:enter click', function (e) {
+                    stopEvent(e);
                     openNativeInstall(plugin);
+                });
+
+                card.on('mouseenter.home_plugins_store_clean', function () {
+                    focusByElement(this);
                 });
 
                 grid.append(card);
@@ -195,8 +259,85 @@
         } catch (e) {}
     }
 
+    function focusByElement(element) {
+        var index = focusables().index(element);
+        if (index > -1) setFocus(index);
+    }
+
+    function fallbackMove(direction) {
+        var list = focusables();
+
+        if (direction == 'left' || direction == 'up') {
+            setFocus(focusIndex - 1);
+        } else if (direction == 'right' || direction == 'down') {
+            setFocus(Math.min(list.length - 1, focusIndex + 1));
+        }
+    }
+
+    function moveFocus(direction) {
+        var list = focusables();
+        var current = list.eq(focusIndex);
+
+        if (!list.length) return;
+        if (!current.length) {
+            setFocus(0);
+            return;
+        }
+
+        if (direction == 'down' && current.hasClass('hps-topbtn')) {
+            var firstCard = active.find('.hps-card.selector:visible').first();
+            var firstCardIndex = list.index(firstCard);
+
+            if (firstCardIndex > -1) {
+                setFocus(firstCardIndex);
+                return;
+            }
+        }
+
+        var rect = current[0].getBoundingClientRect();
+        var cx = rect.left + rect.width / 2;
+        var cy = rect.top + rect.height / 2;
+        var best = -1;
+        var bestScore = Infinity;
+
+        list.each(function (index) {
+            if (index == focusIndex) return;
+
+            var itemRect = this.getBoundingClientRect();
+            var ix = itemRect.left + itemRect.width / 2;
+            var iy = itemRect.top + itemRect.height / 2;
+            var primary = 0;
+            var secondary = 0;
+
+            if (direction == 'left') {
+                primary = cx - ix;
+                secondary = Math.abs(cy - iy);
+            } else if (direction == 'right') {
+                primary = ix - cx;
+                secondary = Math.abs(cy - iy);
+            } else if (direction == 'up') {
+                primary = cy - iy;
+                secondary = Math.abs(cx - ix);
+            } else if (direction == 'down') {
+                primary = iy - cy;
+                secondary = Math.abs(cx - ix);
+            }
+
+            if (primary <= 4) return;
+
+            var score = primary * 1000 + secondary;
+            if (score < bestScore) {
+                bestScore = score;
+                best = index;
+            }
+        });
+
+        if (best > -1) setFocus(best);
+        else fallbackMove(direction);
+    }
+
     function ensureVisible(el) {
-        var scroll = active.find('.hps-scroll')[0];
+        var scroll = active && active.find('.hps-scroll')[0];
         if (!scroll || !el || !el.length) return;
 
         var top = 0;
@@ -215,43 +356,33 @@
         else if (bottom > viewBottom - 30) scroll.scrollTop = bottom - scroll.clientHeight + 40;
     }
 
-    function columnStep() {
-        if (!active) return 1;
-
-        var grid = active.find('.hps-grid').first();
-        if (!grid.length) return 1;
-
-        var cols = (grid.css('grid-template-columns') || '').split(' ').filter(Boolean).length;
-        return Math.max(cols || 1, 1);
-    }
-
     function bindKeys() {
         if (keyBound) return;
         keyBound = true;
 
-        $(document).on('keydown.home_plugins_store_clean_v3', function (e) {
+        $(document).on('keydown.home_plugins_store_clean_v4', function (e) {
             if (!active) return;
 
             var code = e.keyCode || e.which;
 
             if (code == 37) {
-                e.preventDefault();
-                setFocus(focusIndex - 1);
+                stopEvent(e);
+                moveFocus('left');
             } else if (code == 39) {
-                e.preventDefault();
-                setFocus(focusIndex + 1);
+                stopEvent(e);
+                moveFocus('right');
             } else if (code == 38) {
-                e.preventDefault();
-                setFocus(focusIndex - columnStep());
+                stopEvent(e);
+                moveFocus('up');
             } else if (code == 40) {
-                e.preventDefault();
-                setFocus(focusIndex + columnStep());
+                stopEvent(e);
+                moveFocus('down');
             } else if (code == 13) {
-                e.preventDefault();
+                stopEvent(e);
                 var el = focusables().eq(focusIndex);
-                if (el.length) el.trigger('hover:enter').trigger('click');
+                if (el.length) el.trigger('hover:enter');
             } else if (code == 8 || code == 27 || code == 461 || code == 10009) {
-                e.preventDefault();
+                stopEvent(e);
                 closeScreen(true);
             }
         });
@@ -259,10 +390,12 @@
 
     function unbindKeys() {
         keyBound = false;
-        $(document).off('keydown.home_plugins_store_clean_v3');
+        $(document).off('keydown.home_plugins_store_clean_v4');
     }
 
     function setupFocus() {
+        if (!active) return;
+
         try {
             if (Lampa.Controller) Lampa.Controller.collectionSet(active);
         } catch (e) {}
@@ -270,10 +403,33 @@
         setTimeout(function () { setFocus(0); }, 60);
     }
 
+    function addController() {
+        if (!Lampa.Controller) return;
+
+        if (!controllerAdded) {
+            Lampa.Controller.add(CONTROLLER, {
+                toggle: setupFocus,
+                update: setupFocus,
+                left: function () { moveFocus('left'); },
+                right: function () { moveFocus('right'); },
+                up: function () { moveFocus('up'); },
+                down: function () { moveFocus('down'); },
+                back: function () { closeScreen(true); }
+            });
+
+            controllerAdded = true;
+        }
+
+        Lampa.Controller.toggle(CONTROLLER);
+    }
+
     function openScreen() {
         addCss();
 
-        $('.hps-screen').remove();
+        if (active) closeScreen(false);
+        else $('.hps-screen').remove();
+
+        focusIndex = 0;
 
         active = $('<div class="hps-screen">' +
             '<div class="hps-head">' +
@@ -292,29 +448,26 @@
             '<div class="hps-scroll"><div class="hps-empty">Загрузка каталога...</div></div>' +
         '</div>');
 
-        active.find('[data-action="close"]').on('hover:enter click', function () { closeScreen(true); });
-        active.find('[data-action="refresh"]').on('hover:enter click', function () {
+        active.find('[data-action="close"]').on('hover:enter click', function (e) {
+            stopEvent(e);
+            closeScreen(true);
+        });
+
+        active.find('[data-action="refresh"]').on('hover:enter click', function (e) {
+            stopEvent(e);
+            if (!active) return;
+
             active.find('.hps-scroll').html('<div class="hps-empty">Обновляю каталог...</div>');
             load(render);
         });
 
+        active.find('.hps-topbtn').on('mouseenter.home_plugins_store_clean', function () {
+            focusByElement(this);
+        });
+
         $('body').append(active);
         bindKeys();
-
-        if (Lampa.Controller) {
-            Lampa.Controller.add(CONTROLLER, {
-                toggle: function () {},
-                update: setupFocus,
-                left: function () { setFocus(focusIndex - 1); },
-                right: function () { setFocus(focusIndex + 1); },
-                up: function () { setFocus(focusIndex - columnStep()); },
-                down: function () { setFocus(focusIndex + columnStep()); },
-                back: function () { closeScreen(true); }
-            });
-
-            Lampa.Controller.toggle(CONTROLLER);
-        }
-
+        addController();
         load(render);
         setupFocus();
     }
@@ -330,35 +483,35 @@
              * Но на некоторых сборках Lampa фокус остаётся на кастомном controller.
              * Поэтому мягко возвращаем управление в settings с задержкой.
              */
-            setTimeout(function () {
-                try {
-                    if (Lampa.Controller && typeof Lampa.Controller.toggle === 'function') {
-                        Lampa.Controller.toggle('settings');
-                    }
-                } catch (e) {}
-
-                try {
-                    var first = $('.settings-param.selector:visible').first();
-
-                    if (first.length && Lampa.Controller && typeof Lampa.Controller.collectionFocus === 'function') {
-                        Lampa.Controller.collectionFocus(first);
-                    }
-                } catch (e2) {}
-            }, 80);
+            returnToSettings(80);
         }
     }
 
-    function addSettingsItem() {
+    function bindSettingsItem(root) {
+        var scope = root && root.length ? root : $('body');
+
+        scope.find('[data-component="' + COMPONENT + '"]')
+            .off('hover:enter click')
+            .on('hover:enter click', function (e) {
+                stopEvent(e);
+                openScreen();
+            });
+    }
+
+    function addSettingsItem(body) {
         addCss();
 
         if (!Lampa.Settings || !Lampa.Settings.main) return;
 
         try {
             var main = Lampa.Settings.main();
-            var render = main.render();
+            var render = body && body.length ? body : main.render();
 
             if (!render || !render.length || typeof render.find !== 'function') return;
-            if (render.find('[data-component="' + COMPONENT + '"]').length) return;
+            if (render.find('[data-component="' + COMPONENT + '"]').length) {
+                bindSettingsItem(render);
+                return;
+            }
 
             var field = $(
                 '<div class="settings-param selector" data-component="' + COMPONENT + '">' +
@@ -374,17 +527,19 @@
             if (after.length) after.after(field);
             else render.append(field);
 
-            if (typeof main.update === 'function') main.update();
+            bindSettingsItem(render);
+
+            if (!body && typeof main.update === 'function') main.update();
         } catch (e) {
             console.log('Store settings item error:', e);
         }
     }
 
-    Lampa.Settings.listener.follow('open', function (e) {
-        if (e.name == 'main') {
-            e.body.find('[data-component="' + COMPONENT + '"]').off('hover:enter click').on('hover:enter click', openScreen);
-        }
-    });
+    if (Lampa.Settings && Lampa.Settings.listener) {
+        Lampa.Settings.listener.follow('open', function (e) {
+            if (e.name == 'main') addSettingsItem(e.body);
+        });
+    }
 
     if (window.appready) addSettingsItem();
     else {

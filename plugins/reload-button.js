@@ -9,6 +9,7 @@
     'use strict';
 
     var COMPONENT = 'reload_lampa_button_clean';
+    var reloading = false;
 
     function addCss() {
         if ($('#reload-lampa-button-clean-style-v4').length) return;
@@ -60,6 +61,9 @@
     }
 
     function reload() {
+        if (reloading) return;
+        reloading = true;
+
         try {
             if (Lampa.Noty) Lampa.Noty.show('Перезагрузка Lampa...');
         } catch (e) {}
@@ -83,33 +87,67 @@
     function isAccount(el) {
         var html = (el.html() || '').toLowerCase();
         var cls = (el.attr('class') || '').toLowerCase();
-        var data = ((el.attr('data-component') || '') + ' ' + (el.attr('data-action') || '')).toLowerCase();
+        var data = (
+            (el.attr('data-component') || '') + ' ' +
+            (el.attr('data-action') || '') + ' ' +
+            (el.attr('title') || '') + ' ' +
+            (el.attr('aria-label') || '')
+        ).toLowerCase();
 
         return html.indexOf('account') > -1 ||
             html.indexOf('profile') > -1 ||
             html.indexOf('user') > -1 ||
+            html.indexOf('avatar') > -1 ||
             cls.indexOf('account') > -1 ||
             cls.indexOf('profile') > -1 ||
             cls.indexOf('user') > -1 ||
+            cls.indexOf('avatar') > -1 ||
             data.indexOf('account') > -1 ||
             data.indexOf('profile') > -1 ||
-            data.indexOf('user') > -1;
+            data.indexOf('user') > -1 ||
+            data.indexOf('avatar') > -1;
     }
 
     function isMore(el) {
         var html = (el.html() || '').toLowerCase();
         var cls = (el.attr('class') || '').toLowerCase();
-        var data = ((el.attr('data-component') || '') + ' ' + (el.attr('data-action') || '')).toLowerCase();
+        var data = (
+            (el.attr('data-component') || '') + ' ' +
+            (el.attr('data-action') || '') + ' ' +
+            (el.attr('title') || '') + ' ' +
+            (el.attr('aria-label') || '')
+        ).toLowerCase();
 
         return html.indexOf('more') > -1 ||
             html.indexOf('dots') > -1 ||
             html.indexOf('ellipsis') > -1 ||
+            html.indexOf('more_vert') > -1 ||
+            html.indexOf('more_horiz') > -1 ||
             cls.indexOf('more') > -1 ||
-            data.indexOf('more') > -1;
+            cls.indexOf('dots') > -1 ||
+            cls.indexOf('ellipsis') > -1 ||
+            data.indexOf('more') > -1 ||
+            data.indexOf('dots') > -1 ||
+            data.indexOf('ellipsis') > -1;
     }
 
     function headerButtons() {
-        return $('.head__actions .selector, .header__actions .selector, .head__right .selector, .header__right .selector, .head .selector, .header .selector').filter(':visible');
+        return $('.head__actions .selector, .header__actions .selector, .head__right .selector, .header__right .selector, .head .selector, .header .selector')
+            .not('[data-component="' + COMPONENT + '"]')
+            .filter(':visible');
+    }
+
+    function sameParentInOrder(left, right) {
+        if (!left.length || !right.length) return false;
+        if (left.parent()[0] !== right.parent()[0]) return false;
+
+        return left.parent().children().index(left) < right.parent().children().index(right);
+    }
+
+    function previousButton(buttons, target) {
+        var index = buttons.index(target);
+        if (index > 0) return buttons.eq(index - 1);
+        return $();
     }
 
     function copySizeFrom(source, button) {
@@ -161,18 +199,14 @@
             if (!more.length && isMore(el)) more = el;
         });
 
-        if (!account.length && !more.length) return false;
+        if (!more.length) return false;
+        if (!account.length || !sameParentInOrder(account, more)) account = previousButton(buttons, more);
+        if (!account.length || !sameParentInOrder(account, more)) return false;
 
-        var reference = account.length ? account : more;
+        var reference = account;
         var btn = createButton(reference);
 
-        if (account.length && more.length && account.parent()[0] === more.parent()[0]) {
-            more.before(btn);
-        } else if (account.length) {
-            account.after(btn);
-        } else if (more.length) {
-            more.before(btn);
-        }
+        more.before(btn);
 
         /*
          * После вставки ещё раз выравниваем по высоте соседней кнопки,
