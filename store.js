@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.6
+ * version: 1.4.7
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -44,10 +44,11 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v8').length) return;
+        if ($('#home-plugins-store-style-clean-v9').length) return;
+        $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v8">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v9">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:5em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
@@ -64,21 +65,24 @@
             '.hps-actions{display:flex;align-items:center;gap:.7em;}' +
             '.hps-topbtn{padding:.45em .75em;border-radius:.5em;background:rgba(255,255,255,.08);border:0;font-weight:800;font-size:.82em;white-space:nowrap;color:rgba(255,255,255,.78);}' +
             '.hps-scroll{height:calc(100% - 2.75em);overflow-y:auto;overflow-x:hidden;padding:0 0 5em 0;box-sizing:border-box;scroll-behavior:auto;}' +
-            '.hps-section{margin:0 0 1.65em 0;}' +
+            '.hps-section{position:relative;margin:0 0 1.95em 0;}' +
+            '.hps-section:after{content:"›";position:absolute;right:0;top:2.05em;bottom:.65em;width:4.4em;display:flex;align-items:center;justify-content:flex-end;padding-right:1.1em;box-sizing:border-box;font-size:2.4em;font-weight:300;color:rgba(255,255,255,.46);pointer-events:none;background:linear-gradient(90deg,rgba(32,33,33,0),#202121 76%);}' +
+            '.hps-section--end:after{display:none;}' +
             '.hps-section-title{font-size:1.05em;font-weight:900;margin:0 0 .75em 0;padding:0 1.8em;color:rgba(255,255,255,.94);}' +
-            '.hps-grid{display:flex;gap:1em;overflow-x:auto;overflow-y:hidden;padding:0 1.8em .2em 1.8em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;}' +
+            '.hps-grid{display:flex;gap:1em;overflow-x:auto;overflow-y:hidden;padding:0 1.8em .75em 1.8em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;}' +
             '.hps-grid::-webkit-scrollbar,.hps-scroll::-webkit-scrollbar{width:.45em;height:.45em;}' +
-            '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:1em;}' +
-            '.hps-card{position:relative;flex:0 0 21.4em;min-height:10.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em;box-sizing:border-box;}' +
+            '.hps-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:1em;margin:0 1.8em;}' +
+            '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.30);border-radius:1em;}' +
+            '.hps-card{position:relative;flex:0 0 21.4em;min-height:13.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em 1em 3.45em 1em;box-sizing:border-box;}' +
             '.hps-cover{height:0;border-radius:.45em;background:transparent;overflow:hidden;box-shadow:none;margin:0;}' +
             '.hps-card--cover .hps-cover{height:9.45em;margin:-1em -1em .9em -1em;border-radius:.72em .72em 0 0;background:#2c2c2c;}' +
             '.hps-cover img{display:block;width:100%;height:100%;object-fit:cover;}' +
             '.hps-name{margin-top:0;font-size:1.05em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-desc{margin-top:.65em;height:3.9em;color:rgba(255,255,255,.86);font-size:.78em;font-weight:700;line-height:1.38;overflow:hidden;}' +
-            '.hps-meta{margin-bottom:.55em;color:rgba(255,255,255,.44);font-size:.76em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-card-footer{position:absolute;left:1em;right:1em;bottom:.8em;display:flex;align-items:center;gap:.55em;}' +
+            '.hps-desc{margin-top:.58em;max-height:4.2em;color:rgba(255,255,255,.86);font-size:.78em;font-weight:700;line-height:1.38;overflow:hidden;}' +
+            '.hps-meta{position:absolute;left:1em;right:1em;bottom:2.52em;color:rgba(255,255,255,.44);font-size:.74em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-card-footer{position:absolute;left:1em;right:1em;bottom:.76em;display:flex;align-items:center;gap:.55em;min-width:0;}' +
             '.hps-install{height:1.9em;padding:0 .7em;border-radius:.45em;background:rgba(0,0,0,.24);color:#8bdc68;font-size:.78em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:4.6em;}' +
-            '.hps-hint{color:rgba(255,255,255,.48);font-size:.72em;font-weight:800;line-height:1.2;}' +
+            '.hps-hint{color:rgba(255,255,255,.48);font-size:.72em;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}' +
             '.hps-card--installed .hps-install{background:rgba(42,42,42,.92);color:#7ee05f;box-shadow:none;}' +
             '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:none;}' +
             '.hps-card--disabled .hps-install{background:rgba(255,255,255,.09);color:rgba(255,255,255,.58);box-shadow:none;}' +
@@ -664,9 +668,25 @@
             block.append('<div class="hps-section-title">' + escapeHtml(section.title) + '</div>');
             block.append(grid);
             scroll.append(block);
+
+            updateSectionScrollState(grid);
+            grid.on('scroll.home_plugins_store_clean', function () {
+                updateSectionScrollState($(this));
+            });
         });
 
         setupFocus();
+    }
+
+    function updateSectionScrollState(grid) {
+        if (!grid || !grid.length) return;
+
+        var el = grid[0];
+        var section = grid.closest('.hps-section');
+        var canScroll = el.scrollWidth > el.clientWidth + 8;
+        var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+
+        section.toggleClass('hps-section--end', !canScroll || atEnd);
     }
 
     function focusables() {
@@ -798,6 +818,8 @@
 
         if (itemRect.left < rowRect.left + 24) row.scrollLeft -= (rowRect.left + 32) - itemRect.left;
         else if (itemRect.right > rowRect.right - 24) row.scrollLeft += itemRect.right - (rowRect.right - 32);
+
+        updateSectionScrollState($(row));
     }
 
     function bindKeys() {
