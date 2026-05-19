@@ -1,7 +1,7 @@
 /*
  * name: Reload Lampa Button
  * author: shardice
- * version: 1.2.0
+ * version: 1.3.0
  * description: Кнопка перезагрузки Lampa между аккаунтом и меню из трёх точек. Без setInterval и MutationObserver.
  */
 
@@ -14,7 +14,7 @@
         if ($('#reload-lampa-button-clean-style-v3').length) return;
 
         $('body').append('<style id="reload-lampa-button-clean-style-v3">' +
-            '[data-component="' + COMPONENT + '"]{width:2.35em!important;height:2.35em!important;min-width:2.35em!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;margin:0 .16em!important;background:rgba(255,255,255,.055)!important;color:#fff!important;position:relative!important;z-index:2!important;}' +
+            '[data-component="' + COMPONENT + '"]{width:2.42em!important;height:2.42em!important;min-width:2.42em!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;margin:0 .42em!important;background:rgba(255,255,255,.055)!important;color:#fff!important;position:relative!important;z-index:2!important;}' +
             '[data-component="' + COMPONENT + '"] svg{width:1.32em!important;height:1.32em!important;display:block!important;opacity:.94!important;}' +
             '[data-component="' + COMPONENT + '"].focus,[data-component="' + COMPONENT + '"].hover,[data-component="' + COMPONENT + '"]:hover{background:rgba(255,255,255,.17)!important;box-shadow:0 0 0 .14em rgba(255,255,255,.18)!important;transform:scale(1.06)!important;}' +
         '</style>');
