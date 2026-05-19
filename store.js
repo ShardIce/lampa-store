@@ -285,7 +285,7 @@
             card.find('.hps-hint').text('Можно включить в действиях');
         } else {
             card.find('.hps-install').text('Установить');
-            card.find('.hps-hint').text('OK — действия');
+            card.find('.hps-hint').text('OK — установить');
         }
     }
 
@@ -638,7 +638,7 @@
                     '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +
-                        '<div class="hps-hint">OK — действия</div>' +
+                        '<div class="hps-hint">OK — установить</div>' +
                     '</div>' +
                 '</div>');
 
