@@ -21,38 +21,6 @@
           "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
         },
         {
-          "id": "lampa_clean_tv",
-          "name": "Lampa Clean TV",
-          "title": "Lampa Clean TV",
-          "version": "1.0.0",
-          "descr": "Чистый TV-режим для Lampa. Применяет настройки интерфейса и аккуратно скрывает лишние сервисные элементы без постоянного сканирования DOM.",
-          "description": "Чистый TV-режим для Lampa. Применяет настройки интерфейса и аккуратно скрывает лишние сервисные элементы без постоянного сканирования DOM.",
-          "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/lampa-clean-tv.js",
-          "url": "https://shardice.github.io/lampa-store/plugins/lampa-clean-tv.js",
-          "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/lampa-clean-tv.svg",
-          "img": "https://shardice.github.io/lampa-store/covers/lampa-clean-tv.svg",
-          "image": "https://shardice.github.io/lampa-store/covers/lampa-clean-tv.svg",
-          "store": "https://shardice.github.io/lampa-store/catalog/lampa-clean-tv.json"
-        },
-        {
-          "id": "showy_online",
-          "name": "Showy Online Menu",
-          "title": "Showy Online Menu",
-          "version": "1.1.1",
-          "descr": "Загружает Showy Online и добавляет пункт Showy в левое меню Lampa.",
-          "description": "Загружает Showy Online и добавляет пункт Showy в левое меню Lampa.",
-          "author": "@showybot",
-          "link": "https://shardice.github.io/lampa-store/plugins/showy-menu.js",
-          "url": "https://shardice.github.io/lampa-store/plugins/showy-menu.js",
-          "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
-          "img": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
-          "image": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
-          "store": "https://shardice.github.io/lampa-store/catalog/showy-online.json"
-        },
-        {
           "id": "cub_off",
           "name": "CUB Off",
           "title": "CUB Off",
