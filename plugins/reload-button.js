@@ -25,8 +25,7 @@
                 'justify-content:center!important;' +
                 'box-sizing:border-box!important;' +
                 'padding:0!important;' +
-                'margin-left:.55em!important;' +
-                'margin-right:.55em!important;' +
+                'margin-left: 1.5em!important;' +
                 'border-radius:50%!important;' +
                 'background:rgba(255,255,255,.055)!important;' +
                 'color:#fff!important;' +
