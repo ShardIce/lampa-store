@@ -1,8 +1,8 @@
 /*
  * name: Reload Lampa Button
  * author: shardice
- * version: 1.3.0
- * description: Кнопка перезагрузки Lampa между аккаунтом и меню из трёх точек. Без setInterval и MutationObserver.
+ * version: 1.4.0
+ * description: Кнопка перезагрузки Lampa между аккаунтом и меню из трёх точек. Увеличенный отступ и выравнивание по соседней иконке.
  */
 
 (function () {
@@ -11,12 +11,42 @@
     var COMPONENT = 'reload_lampa_button_clean';
 
     function addCss() {
-        if ($('#reload-lampa-button-clean-style-v3').length) return;
+        if ($('#reload-lampa-button-clean-style-v4').length) return;
 
-        $('body').append('<style id="reload-lampa-button-clean-style-v3">' +
-            '[data-component="' + COMPONENT + '"]{width:2.42em!important;height:2.42em!important;min-width:2.42em!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;margin:0 .42em!important;background:rgba(255,255,255,.055)!important;color:#fff!important;position:relative!important;z-index:2!important;}' +
-            '[data-component="' + COMPONENT + '"] svg{width:1.32em!important;height:1.32em!important;display:block!important;opacity:.94!important;}' +
-            '[data-component="' + COMPONENT + '"].focus,[data-component="' + COMPONENT + '"].hover,[data-component="' + COMPONENT + '"]:hover{background:rgba(255,255,255,.17)!important;box-shadow:0 0 0 .14em rgba(255,255,255,.18)!important;transform:scale(1.06)!important;}' +
+        $('body').append('<style id="reload-lampa-button-clean-style-v4">' +
+            '[data-component="' + COMPONENT + '"]{' +
+                'display:inline-flex!important;' +
+                'align-items:center!important;' +
+                'justify-content:center!important;' +
+                'box-sizing:border-box!important;' +
+                'padding:0!important;' +
+                'margin-left:.55em!important;' +
+                'margin-right:.55em!important;' +
+                'border-radius:50%!important;' +
+                'background:rgba(255,255,255,.055)!important;' +
+                'color:#fff!important;' +
+                'position:relative!important;' +
+                'top:0!important;' +
+                'left:auto!important;' +
+                'right:auto!important;' +
+                'bottom:auto!important;' +
+                'vertical-align:middle!important;' +
+                'line-height:1!important;' +
+                'z-index:2!important;' +
+                'transform:none!important;' +
+            '}' +
+            '[data-component="' + COMPONENT + '"] svg{' +
+                'width:55%!important;' +
+                'height:55%!important;' +
+                'display:block!important;' +
+                'opacity:.94!important;' +
+                'flex:0 0 auto!important;' +
+            '}' +
+            '[data-component="' + COMPONENT + '"].focus,[data-component="' + COMPONENT + '"].hover,[data-component="' + COMPONENT + '"]:hover{' +
+                'background:rgba(255,255,255,.17)!important;' +
+                'box-shadow:0 0 0 .14em rgba(255,255,255,.18)!important;' +
+                'transform:scale(1.04)!important;' +
+            '}' +
         '</style>');
     }
 
@@ -55,7 +85,15 @@
         var cls = (el.attr('class') || '').toLowerCase();
         var data = ((el.attr('data-component') || '') + ' ' + (el.attr('data-action') || '')).toLowerCase();
 
-        return html.indexOf('account') > -1 || html.indexOf('profile') > -1 || html.indexOf('user') > -1 || cls.indexOf('account') > -1 || cls.indexOf('profile') > -1 || data.indexOf('account') > -1 || data.indexOf('profile') > -1;
+        return html.indexOf('account') > -1 ||
+            html.indexOf('profile') > -1 ||
+            html.indexOf('user') > -1 ||
+            cls.indexOf('account') > -1 ||
+            cls.indexOf('profile') > -1 ||
+            cls.indexOf('user') > -1 ||
+            data.indexOf('account') > -1 ||
+            data.indexOf('profile') > -1 ||
+            data.indexOf('user') > -1;
     }
 
     function isMore(el) {
@@ -63,16 +101,46 @@
         var cls = (el.attr('class') || '').toLowerCase();
         var data = ((el.attr('data-component') || '') + ' ' + (el.attr('data-action') || '')).toLowerCase();
 
-        return html.indexOf('more') > -1 || html.indexOf('dots') > -1 || html.indexOf('ellipsis') > -1 || cls.indexOf('more') > -1 || data.indexOf('more') > -1;
+        return html.indexOf('more') > -1 ||
+            html.indexOf('dots') > -1 ||
+            html.indexOf('ellipsis') > -1 ||
+            cls.indexOf('more') > -1 ||
+            data.indexOf('more') > -1;
     }
 
     function headerButtons() {
         return $('.head__actions .selector, .header__actions .selector, .head__right .selector, .header__right .selector, .head .selector, .header .selector').filter(':visible');
     }
 
-    function createButton() {
+    function copySizeFrom(source, button) {
+        var size = 0;
+
+        try {
+            var w = source.outerWidth();
+            var h = source.outerHeight();
+            size = Math.round(Math.max(w || 0, h || 0));
+        } catch (e) {}
+
+        /*
+         * Для TV-интерфейса Lampa обычно 46-58 px.
+         * Ограничиваем размер, чтобы кнопка не раздулась и не залезла на часы.
+         */
+        if (!size || size < 36 || size > 64) size = 48;
+
+        button.css({
+            width: size + 'px',
+            height: size + 'px',
+            minWidth: size + 'px',
+            maxWidth: size + 'px'
+        });
+    }
+
+    function createButton(reference) {
         var btn = $('<div class="selector" data-component="' + COMPONENT + '" title="Перезагрузить Lampa">' + icon() + '</div>');
         btn.on('hover:enter click', reload);
+
+        if (reference && reference.length) copySizeFrom(reference, btn);
+
         return btn;
     }
 
@@ -95,7 +163,8 @@
 
         if (!account.length && !more.length) return false;
 
-        var btn = createButton();
+        var reference = account.length ? account : more;
+        var btn = createButton(reference);
 
         if (account.length && more.length && account.parent()[0] === more.parent()[0]) {
             more.before(btn);
@@ -105,13 +174,21 @@
             more.before(btn);
         }
 
+        /*
+         * После вставки ещё раз выравниваем по высоте соседней кнопки,
+         * потому что часть размеров появляется только после добавления в DOM.
+         */
+        setTimeout(function () {
+            copySizeFrom(reference, btn);
+        }, 80);
+
         return true;
     }
 
     function boot() {
         /*
          * Без setInterval и без MutationObserver:
-         * всего 4 лёгкие попытки, после этого плагин больше не трогает DOM.
+         * четыре лёгкие попытки и всё.
          */
         setTimeout(insert, 500);
         setTimeout(insert, 1500);

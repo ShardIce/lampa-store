@@ -38,9 +38,9 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v4').length) return;
+        if ($('#home-plugins-store-style-clean-v3').length) return;
 
-        $('body').append('<style id="home-plugins-store-style-clean-v4">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v3">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:4.8em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.65em!important;height:2.65em!important;min-width:2.65em!important;max-width:2.65em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.65em!important;border-radius:.55em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.55em!important;height:2.55em!important;max-width:2.55em!important;max-height:2.55em!important;display:block!important;}' +
@@ -63,72 +63,13 @@
             '.hps-name{margin-top:.9em;font-size:1.25em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
             '.hps-desc{margin-top:.45em;height:3.65em;color:rgba(255,255,255,.70);font-size:.88em;line-height:1.35;overflow:hidden;}' +
             '.hps-meta{margin-top:.75em;color:rgba(255,255,255,.50);font-size:.78em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-status{position:absolute;top:1.55em;right:1.55em;padding:.42em .68em;border-radius:999px;background:rgba(0,255,208,.18);border:1px solid rgba(0,255,208,.38);color:#9fffe9;font-size:.72em;font-weight:900;backdrop-filter:blur(8px);}' +'.hps-status--off{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.16);color:rgba(255,255,255,.62);}' +'.hps-card-footer{position:absolute;left:1.05em;right:1.05em;bottom:1.05em;display:flex;align-items:center;gap:.65em;}' +
+            '.hps-card-footer{position:absolute;left:1.05em;right:1.05em;bottom:1.05em;display:flex;align-items:center;gap:.65em;}' +
             '.hps-install{height:2.65em;padding:0 1em;border-radius:.8em;background:linear-gradient(135deg,#00ffd0,#2f80ff);color:#101522;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:8.2em;}' +
             '.hps-hint{color:rgba(255,255,255,.62);font-size:.78em;font-weight:750;line-height:1.2;}' +
             '.hps-empty{padding:2em;border-radius:1.2em;background:rgba(255,255,255,.08);font-weight:850;color:rgba(255,255,255,.72);}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em);}' +
             '@media(max-width:1280px){.hps-grid{grid-template-columns:repeat(2,1fr)}.hps-screen{padding:3.1em 3.3em}}' +
         '</style>');
-    }
-
-
-    function storageText() {
-        var parts = [];
-
-        try {
-            for (var i = 0; i < localStorage.length; i++) {
-                var key = localStorage.key(i);
-                parts.push(key);
-                parts.push(localStorage.getItem(key));
-            }
-        } catch (e) {}
-
-        try {
-            for (var j = 0; j < sessionStorage.length; j++) {
-                var skey = sessionStorage.key(j);
-                parts.push(skey);
-                parts.push(sessionStorage.getItem(skey));
-            }
-        } catch (e2) {}
-
-        try {
-            if (Lampa.Storage && typeof Lampa.Storage.get === 'function') {
-                ['extensions', 'plugins', 'plugins_installed', 'extensions_installed', 'plugins_list'].forEach(function (key) {
-                    try {
-                        var value = Lampa.Storage.get(key);
-                        if (value) parts.push(JSON.stringify(value));
-                    } catch (e3) {}
-                });
-            }
-        } catch (e4) {}
-
-        return parts.join('\n');
-    }
-
-    function isInstalled(plugin) {
-        var text = storageText();
-
-        if (!text) return false;
-
-        var url = plugin.url || '';
-        var store = plugin.store || '';
-        var name = plugin.name || '';
-
-        if (url && text.indexOf(url) !== -1) return true;
-        if (store && text.indexOf(store) !== -1) return true;
-        if (name && text.indexOf(name) !== -1 && text.indexOf('installed') !== -1) return true;
-
-        /*
-         * В некоторых сборках Lampa хранит ссылку без query и без полного поля.
-         */
-        if (url) {
-            var shortUrl = url.split('?')[0];
-
-            if (shortUrl && text.indexOf(shortUrl) !== -1) return true;
-        }
-
-        return false;
     }
 
     function normalize(item) {
@@ -139,8 +80,7 @@
             author: item.author || '@lampa',
             cover: item.cover || item.img || item.image || '',
             store: item.store || '',
-            url: item.link || item.url || '',
-            installed: false
+            url: item.link || item.url || ''
         };
     }
 
@@ -206,17 +146,14 @@
             var grid = $('<div class="hps-grid"></div>');
 
             section.items.forEach(function (plugin) {
-                plugin.installed = isInstalled(plugin);
-
                 var card = $('<div class="hps-card selector">' +
                     '<div class="hps-cover">' + (plugin.cover ? '<img src="' + plugin.cover + '" alt="">' : '') + '</div>' +
-                    '<div class="hps-status ' + (plugin.installed ? '' : 'hps-status--off') + '">' + (plugin.installed ? 'Установлен' : 'Не установлен') + '</div>' +
                     '<div class="hps-name">' + plugin.name + '</div>' +
                     '<div class="hps-desc">' + plugin.descr + '</div>' +
                     '<div class="hps-meta">' + plugin.author + ' • v' + plugin.version + '</div>' +
                     '<div class="hps-card-footer">' +
-                        '<div class="hps-install">' + (plugin.installed ? 'Открыть в Lampa' : 'Установить') + '</div>' +
-                        '<div class="hps-hint">' + (plugin.installed ? 'Плагин найден в памяти' : 'OK — открыть установку Lampa') + '</div>' +
+                        '<div class="hps-install">Установить</div>' +
+                        '<div class="hps-hint">OK — открыть установку Lampa</div>' +
                     '</div>' +
                 '</div>');
 
@@ -292,7 +229,7 @@
         if (keyBound) return;
         keyBound = true;
 
-        $(document).on('keydown.home_plugins_store_clean_v4', function (e) {
+        $(document).on('keydown.home_plugins_store_clean_v3', function (e) {
             if (!active) return;
 
             var code = e.keyCode || e.which;
@@ -322,7 +259,7 @@
 
     function unbindKeys() {
         keyBound = false;
-        $(document).off('keydown.home_plugins_store_clean_v4');
+        $(document).off('keydown.home_plugins_store_clean_v3');
     }
 
     function setupFocus() {
@@ -389,26 +326,25 @@
 
         if (backToSettings) {
             /*
-             * Возвращаемся в настройки или в главный экран, но не в форму ввода URL плагина.
-             * В разных сборках Lampa контроллеры называются по-разному, поэтому пробуем мягко.
+             * Экран магазина открыт поверх настроек. После удаления overlay настройки уже видны.
+             * Но на некоторых сборках Lampa фокус остаётся на кастомном controller.
+             * Поэтому мягко возвращаем управление в settings с задержкой.
              */
-            try {
-                if (Lampa.Controller) {
-                    Lampa.Controller.toggle('settings');
-                    return;
-                }
-            } catch (e) {}
+            setTimeout(function () {
+                try {
+                    if (Lampa.Controller && typeof Lampa.Controller.toggle === 'function') {
+                        Lampa.Controller.toggle('settings');
+                    }
+                } catch (e) {}
 
-            try {
-                if (Lampa.Activity && typeof Lampa.Activity.backward === 'function') {
-                    Lampa.Activity.backward();
-                    return;
-                }
-            } catch (e2) {}
+                try {
+                    var first = $('.settings-param.selector:visible').first();
 
-            try {
-                if (Lampa.Controller) Lampa.Controller.toggle('content');
-            } catch (e3) {}
+                    if (first.length && Lampa.Controller && typeof Lampa.Controller.collectionFocus === 'function') {
+                        Lampa.Controller.collectionFocus(first);
+                    }
+                } catch (e2) {}
+            }, 80);
         }
     }
 
