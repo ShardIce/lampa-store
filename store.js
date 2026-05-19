@@ -1,8 +1,8 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.1
- * description: Красивый каталог плагинов для Lampa. Дизайн остаётся своим, установка открывает родное подтверждение Lampa.
+ * version: 1.4.2
+ * description: Красивый каталог плагинов для Lampa. Установка происходит внутри магазина без перехода в штатный экран расширений.
  */
 
 (function () {
@@ -16,6 +16,7 @@
     var keyBound = false;
     var controllerAdded = false;
     var ignoreOpenUntil = 0;
+    var installing = {};
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -40,9 +41,9 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v4').length) return;
+        if ($('#home-plugins-store-style-clean-v5').length) return;
 
-        $('body').append('<style id="home-plugins-store-style-clean-v4">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v5">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:5em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.72em!important;height:2.72em!important;max-width:2.72em!important;max-height:2.72em!important;display:block!important;}' +
@@ -68,6 +69,8 @@
             '.hps-card-footer{position:absolute;left:1.05em;right:1.05em;bottom:1.05em;display:flex;align-items:center;gap:.65em;}' +
             '.hps-install{height:2.65em;padding:0 1em;border-radius:.8em;background:linear-gradient(135deg,#00ffd0,#2f80ff);color:#101522;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:8.2em;}' +
             '.hps-hint{color:rgba(255,255,255,.62);font-size:.78em;font-weight:750;line-height:1.2;}' +
+            '.hps-card--installed .hps-install{background:rgba(105,255,196,.18);color:#6dffc4;box-shadow:inset 0 0 0 1px rgba(105,255,196,.38);}' +
+            '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);}' +
             '.hps-empty{padding:2em;border-radius:1.2em;background:rgba(255,255,255,.08);font-weight:850;color:rgba(255,255,255,.72);}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{border-color:rgba(255,255,255,.42)!important;box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em) scale(1.015);}' +
             '@media(max-width:1280px){.hps-grid{grid-template-columns:repeat(2,1fr)}.hps-screen{padding:3.1em 3.3em}}' +
@@ -172,30 +175,124 @@
         }, delay || 80);
     }
 
-    function openNativeInstall(plugin) {
-        /*
-         * Родное подтверждение установки Lampa открывается в Lampa.Extensions.show.
-         * Перед этим убираем свой высокий overlay, чтобы он не перекрыл родной экран.
-         */
-        if (!Lampa.Extensions || typeof Lampa.Extensions.show !== 'function') {
-            if (Lampa.Noty) Lampa.Noty.show('Установка недоступна: Lampa.Extensions.show не найден');
+    function normalizePluginUrl(url) {
+        return String(url || '').replace(/\s+/g, '').replace('cub.watch', (window.lampa_settings && window.lampa_settings.cub_domain) || 'cub.red');
+    }
+
+    function installedPlugins() {
+        var list = [];
+
+        try {
+            if (Lampa.Plugins && typeof Lampa.Plugins.get === 'function') {
+                list = Lampa.Plugins.get();
+            } else if (Lampa.Storage && typeof Lampa.Storage.get === 'function') {
+                list = Lampa.Storage.get('plugins', '[]');
+            }
+        } catch (e) {
+            list = [];
+        }
+
+        if (typeof list == 'string') {
+            try {
+                list = JSON.parse(list);
+            } catch (e2) {
+                list = [];
+            }
+        }
+
+        return Array.isArray(list) ? list : [];
+    }
+
+    function isInstalled(plugin) {
+        var url = normalizePluginUrl(plugin.url);
+        if (!url) return false;
+
+        return installedPlugins().some(function (item) {
+            var installed = typeof item == 'string' ? item : item && (item.url || item.link);
+            return normalizePluginUrl(installed) == url;
+        });
+    }
+
+    function updateCardState(card, plugin, state) {
+        if (!card || !card.length) return;
+
+        state = state || (isInstalled(plugin) ? 'installed' : 'ready');
+        card.removeClass('hps-card--installed hps-card--installing');
+
+        if (state == 'installing') {
+            card.addClass('hps-card--installing');
+            card.find('.hps-install').text('Устанавливаю');
+            card.find('.hps-hint').text('Остаёмся в магазине');
+        } else if (state == 'installed') {
+            card.addClass('hps-card--installed');
+            card.find('.hps-install').text('Установлен');
+            card.find('.hps-hint').text('Плагин уже в памяти Lampa');
+        } else {
+            card.find('.hps-install').text('Установить');
+            card.find('.hps-hint').text('OK — установить здесь');
+        }
+    }
+
+    function savePluginFallback(data) {
+        var list = installedPlugins().map(function (item) {
+            return typeof item == 'string' ? { url: item, status: 1 } : item;
+        });
+
+        list.push(data);
+        Lampa.Storage.set('plugins', list);
+
+        if (Lampa.Utils && typeof Lampa.Utils.putScriptAsync === 'function') {
+            Lampa.Utils.putScriptAsync([data.url], false, false, function () {}, false);
+        } else if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
+            Lampa.Utils.putScript([data.url], function () {}, false, function () {}, true);
+        }
+    }
+
+    function installPlugin(plugin, card) {
+        var url = plugin.url;
+
+        if (!url) {
+            if (Lampa.Noty) Lampa.Noty.show('У плагина нет ссылки для установки');
             return;
         }
 
-        closeScreen(false);
+        if (isInstalled(plugin)) {
+            updateCardState(card, plugin, 'installed');
+            if (Lampa.Noty) Lampa.Noty.show('Плагин уже установлен');
+            return;
+        }
 
-        setTimeout(function () {
-            try {
-                Lampa.Extensions.show({
-                    store: plugin.store || STORE_URL,
-                    with_installed: true
-                });
-            } catch (e) {
-                console.log('Plugin install error:', e);
-                if (Lampa.Noty) Lampa.Noty.show('Не удалось открыть установку');
-                returnToSettings(80);
+        if (installing[url]) return;
+
+        installing[url] = true;
+        updateCardState(card, plugin, 'installing');
+
+        var data = {
+            url: url,
+            status: 1,
+            name: plugin.name,
+            author: plugin.author
+        };
+
+        try {
+            if (Lampa.Plugins && typeof Lampa.Plugins.add === 'function') {
+                Lampa.Plugins.add(data);
+            } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+                savePluginFallback(data);
+            } else {
+                throw new Error('Lampa.Plugins.add не найден');
             }
-        }, 80);
+
+            setTimeout(function () {
+                installing[url] = false;
+                updateCardState(card, plugin, 'installed');
+            }, 350);
+        } catch (e) {
+            installing[url] = false;
+            updateCardState(card, plugin, 'ready');
+            console.log('Plugin install error:', e);
+            if (Lampa.Noty) Lampa.Noty.show('Не удалось установить плагин');
+        }
     }
 
     function render(sections) {
@@ -223,13 +320,15 @@
                     '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +
-                        '<div class="hps-hint">OK — открыть установку Lampa</div>' +
+                        '<div class="hps-hint">OK — установить здесь</div>' +
                     '</div>' +
                 '</div>');
 
+                updateCardState(card, plugin);
+
                 card.on('hover:enter click', function (e) {
                     stopEvent(e);
-                    openNativeInstall(plugin);
+                    installPlugin(plugin, card);
                 });
 
                 card.on('mouseenter.home_plugins_store_clean', function () {
@@ -448,7 +547,7 @@
                     '<div class="hps-logo">⌂</div>' +
                     '<div>' +
                         '<div class="hps-title">Дом плагинов</div>' +
-                        '<div class="hps-subtitle">Бесплатные плагины без подписки. Установка подтверждается самой Lampa.</div>' +
+                        '<div class="hps-subtitle">Бесплатные плагины без подписки. Установка не выводит из магазина.</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="hps-actions">' +
