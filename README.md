@@ -1,19 +1,9 @@
-# Lampa Store v19
+# Lampa Pack v20
 
-Главное:
-1. cleanup-store.js удаляет из localStorage старые битые версии магазина с colStep.
-2. store.js больше не содержит кастомной страницы, прокрутки, colStep.
-3. Дом плагинов открывает родной экран Lampa.Extensions.show.
-4. Radio Record теперь добавляет пункт в меню и открывает простой список станций.
+Для теста используй новую ссылку, чтобы не брать старый store.js из кеша:
+https://shardice.github.io/lampa-store/hub-v20.js
 
-Как восстановить:
+Порядок:
 1. Загрузить все файлы на GitHub.
-2. В Lampa добавить:
-   https://shardice.github.io/lampa-store/cleanup-store.js
-3. Подождать перезагрузку.
-4. В Lampa добавить:
-   https://shardice.github.io/lampa-store/store.js
-
-Проверка:
-https://shardice.github.io/lampa-store/store.js
-НЕ должен содержать colStep.
+2. Один раз установить cleanup-store.js.
+3. Потом установить hub-v20.js.

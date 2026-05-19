@@ -1,14 +1,6 @@
-/*
- * name: Статусы фильмов
+
+/* name: Статусы фильмов
  * author: shardice
- * version: 1.2.0
- * description: Заготовка статусов фильмов
+ * version: 2.0.0
  */
-
-(function () {
-    'use strict';
-
-    if (window.appready && Lampa.Noty) {
-        Lampa.Noty.show('Статусы фильмов установлены');
-    }
-})();
+(function(){'use strict';var KEY='ph_movie_statuses_v20';var statuses=['Смотрю','Просмотрено','Запланировано','Брошено'];function data(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}function save(d){localStorage.setItem(KEY,JSON.stringify(d))}function getMovie(e){return e&&e.data&&(e.data.movie||e.data.card||e.data)}function id(m){return String(m&&(m.id||m.tmdb_id||m.imdb_id||m.title||m.name)||'')}function title(m){return(m&&(m.title||m.name||m.original_title||m.original_name))||'Без названия'}function choose(m){Lampa.Select.show({title:'Статус: '+title(m),items:statuses.map(function(s){return{title:s}}).concat([{title:'Убрать статус'}]),onSelect:function(it){var d=data(),mid=id(m);if(!mid)return;if(it.title=='Убрать статус')delete d[mid];else d[mid]={title:title(m),status:it.title,time:Date.now()};save(d);if(Lampa.Noty)Lampa.Noty.show(it.title)}})}function add(e){var m=getMovie(e);if(!m)return;setTimeout(function(){var box=$('.full-start__buttons,.full-start-new__buttons,.full-start__buttons-container').first();if(!box.length||box.find('[data-ph-status]').length)return;var b=$('<div class="full-start__button selector" data-ph-status="1"><span>Статус</span></div>');b.on('hover:enter click',function(){choose(m)});box.append(b)},400)}if(Lampa.Listener)Lampa.Listener.follow('full',function(e){if(e.type=='complite'||e.type=='complete')add(e)});if(window.appready&&Lampa.Noty)Lampa.Noty.show('Статусы фильмов установлены')})();

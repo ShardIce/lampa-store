@@ -2,67 +2,71 @@
   "secuses": true,
   "results": [
     {
-      "title": "Дом плагинов • Основное",
+      "title": "Дом плагинов • Рабочие плагины",
       "results": [
         {
           "id": "record_radio",
           "name": "Radio Record",
           "title": "Radio Record",
-          "version": "1.3.0",
-          "descr": "Радио Record в главном меню Lampa.",
-          "description": "Радио Record в главном меню Lampa.",
+          "version": "2.0.0",
+          "descr": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
+          "description": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "url": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg"
+          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json"
         },
         {
           "id": "reload_lampa",
           "name": "Reload Button",
           "title": "Reload Button",
-          "version": "1.2.0",
-          "descr": "Кнопка перезагрузки Lampa.",
-          "description": "Кнопка перезагрузки Lampa.",
+          "version": "2.0.0",
+          "descr": "Кнопка перезагрузки в верхней панели после аккаунта.",
+          "description": "Кнопка перезагрузки в верхней панели после аккаунта.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
           "url": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/reload-button.jpg"
+          "image": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
         },
         {
           "id": "movie_statuses",
           "name": "Статусы фильмов",
           "title": "Статусы фильмов",
-          "version": "1.2.0",
-          "descr": "Статусы для фильмов и сериалов.",
-          "description": "Статусы для фильмов и сериалов.",
+          "version": "2.0.0",
+          "descr": "Локальные статусы: смотрю, просмотрено, запланировано, брошено.",
+          "description": "Локальные статусы фильмов и сериалов.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "url": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg"
+          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json"
         },
         {
-          "id": "plugin_home",
-          "name": "Дом плагинов",
-          "title": "Дом плагинов",
-          "version": "3.2.0",
-          "descr": "Каталог плагинов через родной экран Lampa.",
-          "description": "Каталог плагинов через родной экран Lampa.",
+          "id": "strawberry_shell",
+          "name": "Клубничка",
+          "title": "Клубничка",
+          "version": "1.0.0",
+          "descr": "Оболочка 18+ каталога. Источники добавляются отдельно в strawberry-sources.json.",
+          "description": "Оболочка 18+ каталога. Источники добавляются отдельно.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js",
-          "url": "https://shardice.github.io/lampa-store/store.js",
+          "link": "https://shardice.github.io/lampa-store/plugins/strawberry.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/strawberry.js",
           "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
-          "img": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg"
+          "cover": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
+          "img": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
+          "image": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/strawberry.json"
         }
       ]
     }
