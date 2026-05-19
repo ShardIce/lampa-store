@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.7
+ * version: 1.4.8
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -44,11 +44,12 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v9').length) return;
+        if ($('#home-plugins-store-style-clean-v10').length) return;
+        $('#home-plugins-store-style-clean-v9').remove();
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v9">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v10">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:5em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
@@ -64,26 +65,27 @@
             '.hps-subtitle{display:none;}' +
             '.hps-actions{display:flex;align-items:center;gap:.7em;}' +
             '.hps-topbtn{padding:.45em .75em;border-radius:.5em;background:rgba(255,255,255,.08);border:0;font-weight:800;font-size:.82em;white-space:nowrap;color:rgba(255,255,255,.78);}' +
-            '.hps-scroll{height:calc(100% - 2.75em);overflow-y:auto;overflow-x:hidden;padding:0 0 5em 0;box-sizing:border-box;scroll-behavior:auto;}' +
+            '.hps-scroll{height:calc(100% - 2.75em);overflow-y:auto;overflow-x:hidden;padding:0 0 5em 0;box-sizing:border-box;scroll-behavior:auto;overscroll-behavior:contain;}' +
             '.hps-section{position:relative;margin:0 0 1.95em 0;}' +
+            '.hps-section:before{content:"‹";position:absolute;left:0;top:2.05em;bottom:.65em;width:4.4em;display:flex;align-items:center;justify-content:flex-start;padding-left:1.1em;box-sizing:border-box;font-size:2.4em;font-weight:300;color:rgba(255,255,255,.46);pointer-events:none;background:linear-gradient(270deg,rgba(32,33,33,0),#202121 76%);z-index:2;}' +
             '.hps-section:after{content:"›";position:absolute;right:0;top:2.05em;bottom:.65em;width:4.4em;display:flex;align-items:center;justify-content:flex-end;padding-right:1.1em;box-sizing:border-box;font-size:2.4em;font-weight:300;color:rgba(255,255,255,.46);pointer-events:none;background:linear-gradient(90deg,rgba(32,33,33,0),#202121 76%);}' +
+            '.hps-section--start:before{display:none;}' +
             '.hps-section--end:after{display:none;}' +
             '.hps-section-title{font-size:1.05em;font-weight:900;margin:0 0 .75em 0;padding:0 1.8em;color:rgba(255,255,255,.94);}' +
-            '.hps-grid{display:flex;gap:1em;overflow-x:auto;overflow-y:hidden;padding:0 1.8em .75em 1.8em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;}' +
+            '.hps-grid{display:flex;gap:1em;overflow-x:auto;overflow-y:hidden;padding:0 1.8em .75em 1.8em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}' +
             '.hps-grid::-webkit-scrollbar,.hps-scroll::-webkit-scrollbar{width:.45em;height:.45em;}' +
             '.hps-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:1em;margin:0 1.8em;}' +
             '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.30);border-radius:1em;}' +
-            '.hps-card{position:relative;flex:0 0 21.4em;min-height:13.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em 1em 3.45em 1em;box-sizing:border-box;}' +
+            '.hps-card{position:relative;flex:0 0 21.4em;min-height:13.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em 1em 3.25em 1em;box-sizing:border-box;}' +
             '.hps-cover{height:0;border-radius:.45em;background:transparent;overflow:hidden;box-shadow:none;margin:0;}' +
             '.hps-card--cover .hps-cover{height:9.45em;margin:-1em -1em .9em -1em;border-radius:.72em .72em 0 0;background:#2c2c2c;}' +
             '.hps-cover img{display:block;width:100%;height:100%;object-fit:cover;}' +
             '.hps-name{margin-top:0;font-size:1.05em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-desc{margin-top:.58em;max-height:4.2em;color:rgba(255,255,255,.86);font-size:.78em;font-weight:700;line-height:1.38;overflow:hidden;}' +
-            '.hps-meta{position:absolute;left:1em;right:1em;bottom:2.52em;color:rgba(255,255,255,.44);font-size:.74em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-card-footer{position:absolute;left:1em;right:1em;bottom:.76em;display:flex;align-items:center;gap:.55em;min-width:0;}' +
-            '.hps-install{height:1.9em;padding:0 .7em;border-radius:.45em;background:rgba(0,0,0,.24);color:#8bdc68;font-size:.78em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:4.6em;}' +
-            '.hps-hint{color:rgba(255,255,255,.48);font-size:.72em;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}' +
-            '.hps-card--installed .hps-install{background:rgba(42,42,42,.92);color:#7ee05f;box-shadow:none;}' +
+            '.hps-desc{margin-top:.58em;max-height:4.2em;color:rgba(255,255,255,.82);font-size:.78em;font-weight:400;line-height:1.38;overflow:hidden;}' +
+            '.hps-meta{position:absolute;left:1em;right:8.8em;bottom:1.1em;color:rgba(255,255,255,.44);font-size:.74em;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-card-footer{position:absolute;right:1em;bottom:.82em;display:flex;align-items:center;justify-content:flex-end;}' +
+            '.hps-install{height:2.05em;padding:0 .95em;border-radius:.5em;background:#7ee05f;color:#101510;font-size:.78em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:6.7em;box-shadow:none;}' +
+            '.hps-card--installed .hps-install{background:rgba(255,255,255,.11);color:rgba(255,255,255,.45);}' +
             '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:none;}' +
             '.hps-card--disabled .hps-install{background:rgba(255,255,255,.09);color:rgba(255,255,255,.58);box-shadow:none;}' +
             '.hps-empty{margin:0 1.8em;padding:2em;border-radius:.7em;background:#3c3c3c;font-weight:850;color:rgba(255,255,255,.72);}' +
@@ -97,7 +99,8 @@
             '.hps-action-item--danger{color:#ffb3b3;}' +
             '.hps-action-item-status{font-size:.75em;font-weight:800;color:rgba(255,255,255,.58);white-space:nowrap;}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 .18em rgba(255,255,255,.78)!important;transform:none!important;}' +
-            '@media(max-width:1280px){.hps-card{flex-basis:19.6em}.hps-screen{padding-top:1.25em}}' +
+            '@media(max-width:1280px){.hps-card{flex-basis:19.6em}.hps-screen{padding-top:1.25em}.hps-meta{right:8.1em}}' +
+            '@media(max-width:760px){.hps-head{padding:0 1em}.hps-section-title{padding:0 1em}.hps-grid{padding-left:1em;padding-right:1em}.hps-card{flex-basis:17.8em}.hps-card--cover .hps-cover{height:8em}.hps-desc{font-size:.75em}.hps-section:before,.hps-section:after{width:3em}}' +
         '</style>');
     }
 
@@ -283,18 +286,14 @@
         if (state == 'installing') {
             card.addClass('hps-card--installing');
             card.find('.hps-install').text('Устанавливаю');
-            card.find('.hps-hint').text('Остаёмся в магазине');
         } else if (state == 'installed') {
             card.addClass('hps-card--installed');
             card.find('.hps-install').text('Установлен');
-            card.find('.hps-hint').text('Плагин уже в памяти Lampa');
         } else if (state == 'disabled') {
             card.addClass('hps-card--disabled');
             card.find('.hps-install').text('Отключен');
-            card.find('.hps-hint').text('Можно включить в действиях');
         } else {
             card.find('.hps-install').text('Установить');
-            card.find('.hps-hint').text('OK — установить');
         }
     }
 
@@ -646,7 +645,6 @@
                     '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +
-                        '<div class="hps-hint">OK — установить</div>' +
                     '</div>' +
                 '</div>');
 
@@ -684,8 +682,10 @@
         var el = grid[0];
         var section = grid.closest('.hps-section');
         var canScroll = el.scrollWidth > el.clientWidth + 8;
+        var atStart = el.scrollLeft <= 8;
         var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
 
+        section.toggleClass('hps-section--start', !canScroll || atStart);
         section.toggleClass('hps-section--end', !canScroll || atEnd);
     }
 
@@ -719,6 +719,18 @@
         if (index > -1) setFocus(index);
     }
 
+    function focusElement(element) {
+        if (!element) return false;
+
+        var index = focusables().index(element);
+        if (index > -1) {
+            setFocus(index);
+            return true;
+        }
+
+        return false;
+    }
+
     function fallbackMove(direction) {
         var list = focusables();
 
@@ -727,6 +739,47 @@
         } else if (direction == 'right' || direction == 'down') {
             setFocus(Math.min(list.length - 1, focusIndex + 1));
         }
+    }
+
+    function moveCardFocus(direction, current) {
+        if (!current || !current.hasClass('hps-card')) return false;
+
+        var row = current.closest('.hps-grid');
+        var cards = row.find('.hps-card.selector:visible');
+        var cardIndex = cards.index(current);
+
+        if (!row.length || cardIndex < 0) return false;
+
+        if (direction == 'left' || direction == 'right') {
+            var nextIndex = direction == 'left' ? cardIndex - 1 : cardIndex + 1;
+
+            if (nextIndex >= 0 && nextIndex < cards.length) {
+                focusElement(cards.eq(nextIndex)[0]);
+            }
+
+            return true;
+        }
+
+        if (direction == 'up' || direction == 'down') {
+            var section = current.closest('.hps-section');
+            var targetSection = direction == 'up' ? section.prev('.hps-section') : section.next('.hps-section');
+
+            if (targetSection.length) {
+                var targetCards = targetSection.find('.hps-card.selector:visible');
+                var targetIndex = Math.min(cardIndex, targetCards.length - 1);
+
+                if (targetIndex >= 0) focusElement(targetCards.eq(targetIndex)[0]);
+                return true;
+            }
+
+            if (direction == 'up') {
+                var topButton = active.find('.hps-topbtn.selector:visible').first();
+                if (topButton.length) focusElement(topButton[0]);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     function moveFocus(direction) {
@@ -738,6 +791,8 @@
             setFocus(0);
             return;
         }
+
+        if (moveCardFocus(direction, current)) return;
 
         if (direction == 'down' && current.hasClass('hps-topbtn')) {
             var firstCard = active.find('.hps-card.selector:visible').first();
@@ -831,23 +886,23 @@
 
             var code = e.keyCode || e.which;
 
-            if (code == 37) {
+            if (code == 37 || code == 21) {
                 stopEvent(e);
                 if (actionPanel) moveAction('left');
                 else moveFocus('left');
-            } else if (code == 39) {
+            } else if (code == 39 || code == 22) {
                 stopEvent(e);
                 if (actionPanel) moveAction('right');
                 else moveFocus('right');
-            } else if (code == 38) {
+            } else if (code == 38 || code == 19) {
                 stopEvent(e);
                 if (actionPanel) moveAction('up');
                 else moveFocus('up');
-            } else if (code == 40) {
+            } else if (code == 40 || code == 20) {
                 stopEvent(e);
                 if (actionPanel) moveAction('down');
                 else moveFocus('down');
-            } else if (code == 13) {
+            } else if (code == 13 || code == 23 || code == 66) {
                 stopEvent(e);
                 if (actionPanel) {
                     selectAction();
@@ -855,7 +910,7 @@
                     var el = focusables().eq(focusIndex);
                     if (el.length) el.trigger('hover:enter');
                 }
-            } else if (code == 8 || code == 27 || code == 461 || code == 10009) {
+            } else if (code == 4 || code == 8 || code == 27 || code == 461 || code == 10009) {
                 stopEvent(e);
                 if (actionPanel) closeActionMenu();
                 else closeScreen(true);
