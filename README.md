@@ -1,7 +1,20 @@
-# Дом плагинов v1.4.0
+# Дом плагинов v1.7.0 — автоматический каталог
 
-Бесплатные плагины для Lampa без подписки.
+Главное изменение:
+- магазин больше НЕ хранит список плагинов внутри `store.js`;
+- при каждом открытии он читает `extensions.json`;
+- новые плагины достаточно добавить только в `extensions.json`, и они появятся автоматически;
+- есть кнопка "Обновить", которая перезагружает список без переустановки магазина.
+
+Важно:
+Если после закрытия магазина открывается старая серая страница расширений, значит в памяти Lampa всё ещё установлены старые версии:
+- Shardice Store Launcher
+- старый store.js?v=104
+- Без названия
+
+Их нужно удалить в "Расширения → Установленные в память", оставить только новый:
+https://shardice.github.io/lampa-store/store.js?v=170
 
 Публичные ссылки:
-- https://shardice.github.io/lampa-store/store.js?v=140
-- https://shardice.github.io/lampa-store/extensions.json?v=140
+- https://shardice.github.io/lampa-store/store.js?v=170
+- https://shardice.github.io/lampa-store/extensions.json?v=170

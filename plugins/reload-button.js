@@ -1,90 +1,21 @@
 /*
  * name: Reload Lampa Button
  * author: shardice
- * version: 1.0.0
- * description: Добавляет кнопку перезагрузки Lampa в верхнее меню
+ * version: 1.1.0
+ * description: Кнопка перезагрузки Lampa в верхнем меню после аккаунта
  */
 
 (function () {
     'use strict';
-
-    var COMPONENT = 'plugin_home_reload_lampa';
-
-    function style() {
-        if ($('#plugin-home-reload-style').length) return;
-
-        $('body').append('<style id="plugin-home-reload-style">' +
-            '.plugin-home-reload-btn{width:2.85em;height:2.85em;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:.55em;background:rgba(255,255,255,.06);transition:.18s;}' +
-            '.plugin-home-reload-btn svg{width:1.55em;height:1.55em;opacity:.92;}' +
-            '.plugin-home-reload-btn.focus,.plugin-home-reload-btn.hover{background:rgba(255,255,255,.16);transform:scale(1.08);box-shadow:0 0 0 .16em rgba(255,255,255,.18);}' +
-            '.plugin-home-reload-float{position:fixed;right:13.4em;top:1.08em;z-index:9999;}' +
-        '</style>');
-    }
-
-    function icon() {
-        return '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-            '<path d="M20 5v5h-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M4 19v-5h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M18.2 9A7 7 0 0 0 6.6 6.6L4 9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M5.8 15A7 7 0 0 0 17.4 17.4L20 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '</svg>';
-    }
-
-    function reloadApp() {
-        if (Lampa.Noty) Lampa.Noty.show('Перезагрузка Lampa...');
-
-        setTimeout(function () {
-            try {
-                if (Lampa.Utils && typeof Lampa.Utils.reload == 'function') {
-                    Lampa.Utils.reload();
-                    return;
-                }
-            } catch (e) {}
-
-            location.reload();
-        }, 350);
-    }
-
-    function createButton(floatMode) {
-        var btn = $('<div class="plugin-home-reload-btn selector ' + (floatMode ? 'plugin-home-reload-float' : '') + '" data-component="' + COMPONENT + '">' + icon() + '</div>');
-        btn.on('hover:enter click', reloadApp);
-        return btn;
-    }
-
-    function findHeader() {
-        var selectors = ['.head__actions', '.header__actions', '.head__right', '.header__right', '.head .selector:last', '.header .selector:last'];
-
-        for (var i = 0; i < selectors.length; i++) {
-            var el = $(selectors[i]).first();
-            if (el.length) {
-                if (selectors[i].indexOf(':last') > -1) return el.parent();
-                return el;
-            }
-        }
-
-        return $();
-    }
-
-    function addButton() {
-        style();
-
-        if ($('[data-component="' + COMPONENT + '"]').length) return;
-
-        var header = findHeader();
-
-        if (header.length) header.append(createButton(false));
-        else $('body').append(createButton(true));
-    }
-
-    function boot() {
-        addButton();
-        setInterval(addButton, 3000);
-    }
-
-    if (window.appready) boot();
-    else {
-        Lampa.Listener.follow('app', function (e) {
-            if (e.type == 'ready') boot();
-        });
-    }
+    var COMPONENT = 'plugin_home_reload_lampa_v2';
+    function css(){if($('#plugin-home-reload-v2-style').length)return;$('body').append('<style id="plugin-home-reload-v2-style">.plugin-home-reload-v2{width:2.55em!important;height:2.55em!important;min-width:2.55em!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;margin-left:.42em!important;margin-right:.08em!important;background:rgba(255,255,255,.055)!important;color:#fff!important;transition:.16s!important;position:relative!important;z-index:9999!important}.plugin-home-reload-v2 svg{width:1.45em!important;height:1.45em!important;display:block!important;opacity:.92!important}.plugin-home-reload-v2.focus,.plugin-home-reload-v2.hover,.plugin-home-reload-v2:hover{background:rgba(255,255,255,.16)!important;transform:scale(1.08)!important;box-shadow:0 0 0 .14em rgba(255,255,255,.18)!important}.plugin-home-reload-v2-float{position:fixed!important;right:8.7em!important;top:1.05em!important;z-index:99999!important}</style>')}
+    function icon(){return '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 5v5h-5" stroke="currentColor" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 19v-5h5" stroke="currentColor" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.2 9A7 7 0 0 0 6.6 6.6L4 9" stroke="currentColor" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.8 15A7 7 0 0 0 17.4 17.4L20 15" stroke="currentColor" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+    function reloadApp(){try{if(Lampa.Noty)Lampa.Noty.show('Перезагрузка Lampa...')}catch(e){}setTimeout(function(){try{if(Lampa.Utils&&typeof Lampa.Utils.reload=='function'){Lampa.Utils.reload();return}}catch(e){}try{window.location.reload()}catch(e2){location.href=location.href}},300)}
+    function makeButton(floatMode){var button=$('<div class="plugin-home-reload-v2 selector '+(floatMode?'plugin-home-reload-v2-float':'')+'" data-component="'+COMPONENT+'" title="Перезагрузить Lampa">'+icon()+'</div>');button.on('hover:enter click',reloadApp);return button}
+    function isAccountElement(el){var text=(el.text()||'').toLowerCase(),html=(el.html()||'').toLowerCase(),cls=(el.attr('class')||'').toLowerCase(),data=((el.attr('data-component')||'')+' '+(el.attr('data-action')||'')).toLowerCase();return cls.indexOf('account')>-1||cls.indexOf('profile')>-1||cls.indexOf('user')>-1||data.indexOf('account')>-1||data.indexOf('profile')>-1||data.indexOf('user')>-1||html.indexOf('icon--user')>-1||html.indexOf('profile')>-1||text=='аккаунт'||text=='account'}
+    function findAccountButton(){var candidates=$('.head .selector,.header .selector,.head__actions .selector,.header__actions .selector,.head__right .selector,.header__right .selector,.selector');var account=$();candidates.each(function(){var el=$(this);if(isAccountElement(el)){account=el;return false}});return account}
+    function findTopActions(){var selectors=['.head__actions','.header__actions','.head__right','.header__right','.head .head__buttons','.header .header__buttons','.head','.header'];for(var i=0;i<selectors.length;i++){var el=$(selectors[i]).first();if(el.length&&el.is(':visible'))return el}return $()}
+    function injectAfterAccount(){css();if($('[data-component="'+COMPONENT+'"]').length)return true;var account=findAccountButton();if(account.length){account.after(makeButton(false));return true}var actions=findTopActions();if(actions.length){var overflow=actions.find('.selector').filter(function(){var html=($(this).html()||'').toLowerCase(),cls=($(this).attr('class')||'').toLowerCase(),data=(($(this).attr('data-component')||'')+' '+($(this).attr('data-action')||'')).toLowerCase();return html.indexOf('more')>-1||html.indexOf('dots')>-1||cls.indexOf('more')>-1||data.indexOf('more')>-1}).first();if(overflow.length)overflow.before(makeButton(false));else actions.append(makeButton(false));return true}$('body').append(makeButton(true));return false}
+    function boot(){injectAfterAccount();setInterval(function(){injectAfterAccount()},1200)}
+    if(window.appready)boot();else Lampa.Listener.follow('app',function(e){if(e.type=='ready')boot()});
 })();

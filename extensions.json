@@ -5,12 +5,35 @@
       "title": "Дом плагинов • Музыка",
       "results": [
         {
+          "id": "record_radio",
           "name": "Radio Record",
-          "version": "1.0.0",
-          "descr": "Красивый плеер Radio Record с каналами без дублей и избранным.",
+          "version": "1.2.0",
+          "descr": "Radio Record в основном меню Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js?v=100",
-          "available_lampa": 1
+          "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js?v=120",
+          "available_lampa": 1,
+          "tag": "Music",
+          "accent": "#ff4757",
+          "icon": "REC",
+          "subtitle": "Радио в основном меню"
+        }
+      ]
+    },
+    {
+      "title": "Дом плагинов • Системные",
+      "results": [
+        {
+          "id": "reload_lampa",
+          "name": "Reload Button",
+          "version": "1.1.0",
+          "descr": "Кнопка перезагрузки после аккаунта.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js?v=110",
+          "available_lampa": 1,
+          "tag": "System",
+          "accent": "#00ffd0",
+          "icon": "↻",
+          "subtitle": "Перезагрузка после аккаунта"
         }
       ]
     },
@@ -18,20 +41,48 @@
       "title": "Дом плагинов • Основное",
       "results": [
         {
-          "name": "Дом плагинов",
-          "version": "1.4.0",
-          "descr": "Бесплатные плагины для Lampa без подписки.",
+          "id": "movie_statuses",
+          "name": "Статусы фильмов",
+          "version": "1.1.0",
+          "descr": "Статусы в карточке фильма и панели избранного.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=140",
-          "available_lampa": 1
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=110",
+          "available_lampa": 1,
+          "tag": "Library",
+          "accent": "#7c5cff",
+          "icon": "✓",
+          "subtitle": "Медиатека без премиума"
         },
         {
-          "name": "Статусы фильмов",
-          "version": "1.0.6",
-          "descr": "Личная медиатека без премиума.",
+          "id": "plugin_home",
+          "name": "Дом плагинов",
+          "version": "1.7.0",
+          "descr": "Магазин автоматически читает extensions.json. Новые плагины появляются без правки store.js.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=106",
-          "available_lampa": 1
+          "link": "https://shardice.github.io/lampa-store/store.js?v=170",
+          "available_lampa": 1,
+          "tag": "Store",
+          "accent": "#00ffd0",
+          "icon": "⌂",
+          "subtitle": "Автоматический каталог"
+        }
+      ]
+    },
+    {
+      "title": "Дом плагинов • Скоро",
+      "results": [
+        {
+          "id": "ui_cleaner",
+          "name": "Очистка интерфейса",
+          "version": "0.1.0",
+          "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=170",
+          "available_lampa": 1,
+          "tag": "UI",
+          "accent": "#ffcc66",
+          "icon": "✦",
+          "subtitle": "Скоро"
         }
       ]
     }
