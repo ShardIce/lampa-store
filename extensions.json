@@ -2,35 +2,35 @@
   "secuses": true,
   "results": [
     {
-      "title": "Shardice Store • Основное",
+      "title": "Shardice Store • Системные",
       "results": [
         {
-          "name": "Статусы фильмов и сериалов",
-          "version": "1.0.4",
-          "descr": "Добавляет локальные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Можно вести свою медиатеку без премиума.",
+          "name": "Reload Lampa Button",
+          "version": "1.0.0",
+          "descr": "Кнопка перезагрузки Lampa в верхнем меню.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=104",
-          "available_lampa": 1
-        },
-        {
-          "name": "Shardice Store Launcher",
-          "version": "1.0.4",
-          "descr": "Кнопка магазина в настройках Lampa. Открывает каталог Shardice Store.",
-          "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=104",
+          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js?v=100",
           "available_lampa": 1
         }
       ]
     },
     {
-      "title": "Shardice Store • Скоро",
+      "title": "Shardice Store • Основное",
       "results": [
         {
-          "name": "Очистка интерфейса",
-          "version": "0.1.0",
-          "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
+          "name": "Статусы фильмов и сериалов",
+          "version": "1.0.5",
+          "descr": "Личная медиатека без премиума: смотрю, буду смотреть, просмотрено, отложено, брошено.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=104",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=105",
+          "available_lampa": 1
+        },
+        {
+          "name": "Shardice Store Launcher",
+          "version": "1.3.0",
+          "descr": "Красивая витрина магазина в настройках Lampa. Исправлена огромная иконка.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=130",
           "available_lampa": 1
         }
       ]
