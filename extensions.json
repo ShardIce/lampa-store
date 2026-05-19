@@ -2,32 +2,35 @@
   "secuses": true,
   "results": [
     {
-      "title": "Shardice Store",
+      "title": "Shardice Store • Основное",
       "results": [
         {
           "name": "Статусы фильмов и сериалов",
-          "descr": "Сохраняет локальные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Первый тестовый плагин для сортировки своей медиатеки.",
+          "version": "1.0.4",
+          "descr": "Добавляет локальные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Можно вести свою медиатеку без премиума.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=104",
           "available_lampa": 1
         },
         {
           "name": "Shardice Store Launcher",
-          "descr": "Кнопка магазина в настройках Lampa. Служебный плагин для открытия каталога.",
+          "version": "1.0.4",
+          "descr": "Кнопка магазина в настройках Lampa. Открывает каталог Shardice Store.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=104",
           "available_lampa": 1
         }
       ]
     },
     {
-      "title": "Скоро",
+      "title": "Shardice Store • Скоро",
       "results": [
         {
           "name": "Очистка интерфейса",
-          "descr": "Будущий плагин для скрытия лишних элементов и упрощения интерфейса.",
+          "version": "0.1.0",
+          "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=104",
           "available_lampa": 1
         }
       ]

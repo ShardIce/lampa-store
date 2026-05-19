@@ -1,7 +1,21 @@
 /*
- * Скоро
+ * name: Очистка интерфейса
  * author: shardice
- * version: 1.0.0
- * description: Заглушка для будущих плагинов Shardice Store
+ * version: 0.1.0
+ * description: Заглушка будущего плагина
  */
-(function(){'use strict';if(window.appready){if(Lampa.Noty)Lampa.Noty.show('Этот плагин пока в разработке');}else Lampa.Listener.follow('app',function(e){if(e.type=='ready'&&Lampa.Noty)Lampa.Noty.show('Этот плагин пока в разработке');});})();
+
+(function () {
+    'use strict';
+
+    function ready() {
+        if (Lampa.Noty) Lampa.Noty.show('Плагин пока в разработке');
+    }
+
+    if (window.appready) ready();
+    else {
+        Lampa.Listener.follow('app', function (e) {
+            if (e.type == 'ready') ready();
+        });
+    }
+})();
