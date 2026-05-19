@@ -1,0 +1,34 @@
+{
+  "secuses": true,
+  "results": [
+    {
+      "title": "Shardice Clean Store",
+      "results": [
+        {
+          "name": "Статусы фильмов и сериалов",
+          "descr": "Добавляет личные статусы: смотрю, буду смотреть, просмотрено, отложено, брошено. Данные хранятся локально на устройстве.",
+          "author": "@shardice",
+          "version": "1.0.0",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=2",
+          "img": "https://shardice.github.io/lampa-store/assets/movie-statuses.svg",
+          "icon": "https://shardice.github.io/lampa-store/assets/icon-statuses.svg",
+          "available_lampa": 1
+        }
+      ]
+    },
+    {
+      "title": "Скоро",
+      "results": [
+        {
+          "name": "Чистка интерфейса",
+          "descr": "Будущий плагин для скрытия лишних элементов и настройки главного экрана. Сейчас карточка только для планирования, не устанавливать.",
+          "author": "@shardice",
+          "version": "0.1.0",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=2",
+          "img": "https://shardice.github.io/lampa-store/assets/coming-soon.svg",
+          "available_lampa": 0
+        }
+      ]
+    }
+  ]
+}
