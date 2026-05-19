@@ -1,8 +1,8 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.0.0-clean
- * description: Красивый каталог плагинов для Lampa. Установка выполняется через родной экран Lampa.
+ * version: 1.2.0-clean
+ * description: Красивый каталог плагинов для Lampa. Дизайн остаётся своим, установка открывает родное подтверждение Lampa.
  */
 
 (function () {
@@ -10,11 +10,10 @@
 
     var STORE_URL = 'https://shardice.github.io/lampa-store/extensions.json';
     var COMPONENT = 'home_plugins_store_clean';
-    var CONTROLLER = 'home_plugins_store_screen';
+    var CONTROLLER = 'home_plugins_store_screen_clean';
     var active = null;
     var focusIndex = 0;
     var keyBound = false;
-    var plugins = [];
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -31,20 +30,20 @@
 
     function smallIcon() {
         return '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">' +
-            '<defs><linearGradient id="hpsg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00ffd0"/><stop offset="1" stop-color="#2f80ff"/></linearGradient></defs>' +
-            '<rect x="7" y="7" width="28" height="28" rx="8" fill="url(#hpsg)"/>' +
-            '<path d="M14 22h14M14 17h14M14 27h9" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>' +
-            '<circle cx="29" cy="27" r="2.7" fill="#fff"/>' +
+            '<defs><linearGradient id="hpsg3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00ffd0"/><stop offset="1" stop-color="#2f80ff"/></linearGradient></defs>' +
+            '<rect x="2" y="2" width="38" height="38" rx="10" fill="url(#hpsg3)"/>' +
+            '<path d="M12 22h17M12 16.5h17M12 27.5h11" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/>' +
+            '<circle cx="30" cy="28" r="3.4" fill="#fff"/>' +
         '</svg>';
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean').length) return;
+        if ($('#home-plugins-store-style-clean-v3').length) return;
 
-        $('body').append('<style id="home-plugins-store-style-clean">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:.9em!important;min-height:4.45em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:1.45em!important;height:1.45em!important;min-width:1.45em!important;max-width:1.45em!important;margin:0 .72em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 1.45em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:1.34em!important;height:1.34em!important;max-width:1.34em!important;max-height:1.34em!important;display:block!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v3">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:1.05em!important;min-height:4.8em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.65em!important;height:2.65em!important;min-width:2.65em!important;max-width:2.65em!important;margin:0 .9em 0 0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.65em!important;border-radius:.55em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] svg{width:2.55em!important;height:2.55em!important;max-width:2.55em!important;max-height:2.55em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name,[data-component="' + COMPONENT + '"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:radial-gradient(circle at 17% 9%,rgba(0,255,208,.20),transparent 30%),radial-gradient(circle at 88% 0%,rgba(88,107,255,.23),transparent 35%),linear-gradient(135deg,#0d1421,#171d2b 56%,#101522);color:#fff;padding:3.55em 4.2em;box-sizing:border-box;overflow:hidden;}' +
@@ -69,30 +68,8 @@
             '.hps-hint{color:rgba(255,255,255,.62);font-size:.78em;font-weight:750;line-height:1.2;}' +
             '.hps-empty{padding:2em;border-radius:1.2em;background:rgba(255,255,255,.08);font-weight:850;color:rgba(255,255,255,.72);}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 3px rgba(255,255,255,.25),0 1.2em 2.5em rgba(0,0,0,.34)!important;transform:translateY(-.07em);}' +
-            '.hps-install.focus,.hps-install.hover{box-shadow:0 0 0 3px rgba(255,255,255,.26)!important;}' +
             '@media(max-width:1280px){.hps-grid{grid-template-columns:repeat(2,1fr)}.hps-screen{padding:3.1em 3.3em}}' +
         '</style>');
-    }
-
-    function openNativeInstall(plugin) {
-        closeScreen(false);
-
-        setTimeout(function () {
-            try {
-                if (Lampa.Extensions && typeof Lampa.Extensions.show === 'function') {
-                    Lampa.Extensions.show({
-                        store: plugin.store || STORE_URL,
-                        with_installed: true
-                    });
-                    return;
-                }
-
-                if (Lampa.Noty) Lampa.Noty.show('Установка недоступна: Lampa.Extensions.show не найден');
-            } catch (e) {
-                console.log('Plugin install error:', e);
-                if (Lampa.Noty) Lampa.Noty.show('Не удалось открыть установку');
-            }
-        }, 150);
     }
 
     function normalize(item) {
@@ -111,19 +88,20 @@
         fetch(STORE_URL + '?_=' + Date.now())
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                var result = [];
+                var sections = [];
 
                 if (data && Array.isArray(data.results)) {
                     data.results.forEach(function (section) {
-                        var items = Array.isArray(section.results) ? section.results : [];
-                        result.push({
-                            title: section.title || 'Плагины',
-                            items: items.map(normalize).filter(function (x) { return !!x.url; })
-                        });
+                        var raw = Array.isArray(section.results) ? section.results : [];
+                        var items = raw.map(normalize).filter(function (item) { return !!item.url; });
+
+                        if (items.length) {
+                            sections.push({ title: section.title || 'Плагины', items: items });
+                        }
                     });
                 }
 
-                done(result);
+                done(sections);
             })
             .catch(function (e) {
                 console.log('Store load error:', e);
@@ -131,10 +109,30 @@
             });
     }
 
+    function openNativeInstall(plugin) {
+        /*
+         * Важно: родное подтверждение установки Lampa возможно только в родном экране расширений.
+         * Дизайн магазина остаётся загруженным, но Lampa откроет свой слой установки поверх него.
+         */
+        try {
+            if (Lampa.Extensions && typeof Lampa.Extensions.show === 'function') {
+                Lampa.Extensions.show({
+                    store: plugin.store || STORE_URL,
+                    with_installed: true
+                });
+                return;
+            }
+
+            if (Lampa.Noty) Lampa.Noty.show('Установка недоступна: Lampa.Extensions.show не найден');
+        } catch (e) {
+            console.log('Plugin install error:', e);
+            if (Lampa.Noty) Lampa.Noty.show('Не удалось открыть установку');
+        }
+    }
+
     function render(sections) {
         var scroll = active.find('.hps-scroll');
         scroll.empty();
-        plugins = [];
 
         if (!sections.length) {
             scroll.append('<div class="hps-empty">Каталог не загрузился. Проверь extensions.json.</div>');
@@ -143,15 +141,11 @@
         }
 
         sections.forEach(function (section) {
-            if (!section.items.length) return;
-
             scroll.append('<div class="hps-section-title">' + section.title + '</div>');
 
             var grid = $('<div class="hps-grid"></div>');
 
             section.items.forEach(function (plugin) {
-                plugins.push(plugin);
-
                 var card = $('<div class="hps-card selector">' +
                     '<div class="hps-cover">' + (plugin.cover ? '<img src="' + plugin.cover + '" alt="">' : '') + '</div>' +
                     '<div class="hps-name">' + plugin.name + '</div>' +
@@ -235,7 +229,7 @@
         if (keyBound) return;
         keyBound = true;
 
-        $(document).on('keydown.home_plugins_store', function (e) {
+        $(document).on('keydown.home_plugins_store_clean_v3', function (e) {
             if (!active) return;
 
             var code = e.keyCode || e.which;
@@ -265,7 +259,7 @@
 
     function unbindKeys() {
         keyBound = false;
-        $(document).off('keydown.home_plugins_store');
+        $(document).off('keydown.home_plugins_store_clean_v3');
     }
 
     function setupFocus() {
