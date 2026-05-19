@@ -1,7 +1,8 @@
 /*
  * name: Статусы фильмов
  * author: shardice
- * version: 1.1.0
+ * version: 1.2.0
+ * description: Заготовка статусов фильмов
  */
 
 (function () {

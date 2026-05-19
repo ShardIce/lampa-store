@@ -7,17 +7,17 @@
         {
           "id": "record_radio",
           "name": "Radio Record",
-          "version": "1.2.0",
-          "descr": "Radio Record в основном меню Lampa.",
+          "title": "Radio Record",
+          "version": "1.3.0",
+          "descr": "Радио Record в главном меню Lampa.",
+          "description": "Радио Record в главном меню Lampa.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "available_lampa": 1,
-          "tag": "Music",
-          "accent": "#ff4757",
-          "icon": "REC",
-          "subtitle": "Радио в основном меню",
-          "cover": "record-radio.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json"
+          "cover": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
+          "img": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
+          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg"
         }
       ]
     }

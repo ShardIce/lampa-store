@@ -7,17 +7,17 @@
         {
           "id": "plugin_home",
           "name": "Дом плагинов",
-          "version": "2.2.0",
-          "descr": "Автоматический каталог, cover-обложки и установка через родной экран Lampa.",
+          "title": "Дом плагинов",
+          "version": "3.2.0",
+          "descr": "Каталог плагинов через родной экран Lampa.",
+          "description": "Каталог плагинов через родной экран Lampa.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/store.js",
+          "url": "https://shardice.github.io/lampa-store/store.js",
           "available_lampa": 1,
-          "tag": "Store",
-          "accent": "#00ffd0",
-          "icon": "⌂",
-          "subtitle": "Автоматический каталог",
-          "cover": "plugin-home.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/plugin-home.json"
+          "cover": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "img": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "image": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg"
         }
       ]
     }

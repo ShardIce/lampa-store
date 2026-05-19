@@ -1,15 +1,19 @@
-# Дом плагинов v2.2.0
+# Lampa Store v19
 
-Стабильная версия без query-версий в ссылках.
+Главное:
+1. cleanup-store.js удаляет из localStorage старые битые версии магазина с colStep.
+2. store.js больше не содержит кастомной страницы, прокрутки, colStep.
+3. Дом плагинов открывает родной экран Lampa.Extensions.show.
+4. Radio Record теперь добавляет пункт в меню и открывает простой список станций.
 
-Главные изменения:
-- Ссылка магазина: https://shardice.github.io/lampa-store/store.js
-- Каталог: https://shardice.github.io/lampa-store/extensions.json
-- Коверы: /covers/*.jpg
-- Установка открывает родной экран Lampa через single-plugin catalog из /catalog/*.json
-- Прокрутка вручную через scrollTop
-- Фокус вручную: стрелки / OK / Back
-- Иконка в настройках уменьшена
+Как восстановить:
+1. Загрузить все файлы на GitHub.
+2. В Lampa добавить:
+   https://shardice.github.io/lampa-store/cleanup-store.js
+3. Подождать перезагрузку.
+4. В Lampa добавить:
+   https://shardice.github.io/lampa-store/store.js
 
-Важно:
-Чтобы обновления применились, старые store.js?v=104/150/170/180/190/200/210 нужно удалить из установленных расширений.
+Проверка:
+https://shardice.github.io/lampa-store/store.js
+НЕ должен содержать colStep.
