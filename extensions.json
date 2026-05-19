@@ -2,14 +2,14 @@
   "secuses": true,
   "results": [
     {
-      "title": "Дом плагинов • Системные",
+      "title": "Дом плагинов • Музыка",
       "results": [
         {
-          "name": "Reload Lampa Button",
+          "name": "Radio Record",
           "version": "1.0.0",
-          "descr": "Кнопка перезагрузки Lampa в верхнем меню.",
+          "descr": "Красивый плеер Radio Record с каналами без дублей и избранным.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js?v=100",
+          "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js?v=100",
           "available_lampa": 1
         }
       ]
@@ -18,32 +18,19 @@
       "title": "Дом плагинов • Основное",
       "results": [
         {
-          "name": "Статусы фильмов",
-          "version": "1.0.6",
-          "descr": "Личная медиатека без премиума: смотрю, буду смотреть, просмотрено, отложено, брошено.",
-          "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=106",
-          "available_lampa": 1
-        },
-        {
           "name": "Дом плагинов",
           "version": "1.4.0",
           "descr": "Бесплатные плагины для Lampa без подписки.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/store.js?v=140",
           "available_lampa": 1
-        }
-      ]
-    },
-    {
-      "title": "Дом плагинов • Скоро",
-      "results": [
+        },
         {
-          "name": "Очистка интерфейса",
-          "version": "0.1.0",
-          "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
+          "name": "Статусы фильмов",
+          "version": "1.0.6",
+          "descr": "Личная медиатека без премиума.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=140",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=106",
           "available_lampa": 1
         }
       ]
