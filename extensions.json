@@ -67,6 +67,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/radio-record.svg",
           "image": "https://shardice.github.io/lampa-store/covers/radio-record.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/radio-record.json"
+        },
+        {
+          "id": "custom_favs",
+          "name": "Custom Favs",
+          "title": "Custom Favs",
+          "version": "1.0.0",
+          "descr": "Custom bookmarks: добавляет пользовательские категории избранного в Lampa.",
+          "description": "Custom bookmarks: добавляет пользовательские категории избранного в Lampa.",
+          "author": "@levende",
+          "link": "https://shardice.github.io/lampa-store/plugins/custom-favs.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/custom-favs.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/custom-favs.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/custom-favs.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/custom-favs.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/custom-favs.json"
         }
       ]
     },
