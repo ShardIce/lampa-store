@@ -1,7 +1,7 @@
 /*
  * name: Showy Online Menu
  * author: shardice
- * version: 1.1.0
+ * version: 1.1.1
  * description: Загружает Showy Online и добавляет пункт Showy в левое меню Lampa.
  */
 
@@ -11,8 +11,10 @@
     var COMPONENT = 'showy_menu';
     var SHOWY_URL = 'http://showwwy.com/m.js';
     var loaded = false;
+    var loading = false;
     var menuAdded = false;
     var attemptsLeft = 8;
+    var callbacks = [];
 
     function safe(fn) {
         try {
@@ -38,25 +40,50 @@
         });
     }
 
+    function flushCallbacks() {
+        var queue = callbacks.splice(0, callbacks.length);
+        queue.forEach(function (callback) {
+            safe(callback);
+        });
+    }
+
+    function markLoaded() {
+        loaded = true;
+        loading = false;
+        window.showy_plugin = true;
+        flushCallbacks();
+    }
+
     function ensureShowy(callback) {
-        if (window.lampac_plugin || window.showy_plugin) {
+        if (loaded || window.showy_plugin) {
             loaded = true;
             callback();
             return;
         }
 
-        if (loaded) {
-            callback();
+        callbacks.push(callback);
+
+        if (loading) {
             return;
         }
 
-        loaded = true;
+        loading = true;
 
         if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
             Lampa.Utils.putScript([SHOWY_URL], function () {}, false, function () {
-                callback();
+                markLoaded();
             }, true);
+
+            setTimeout(function () {
+                if (!loaded && !window.showy_plugin) {
+                    loading = false;
+                    callbacks = [];
+                    notify('Не удалось загрузить Showy');
+                }
+            }, 10000);
         } else {
+            loading = false;
+            callbacks = [];
             notify('Не удалось загрузить Showy: Lampa.Utils.putScript не найден');
         }
     }
@@ -129,13 +156,15 @@
     function addNativeMenuButton() {
         if (!Lampa.Menu || typeof Lampa.Menu.addButton !== 'function') return false;
 
-        Lampa.Menu.addButton(icon(), 'Showy', openSearch);
-        menuAdded = true;
-        return true;
+        return !!safe(function () {
+            Lampa.Menu.addButton(icon(), 'Showy', openSearch);
+            menuAdded = true;
+            return true;
+        });
     }
 
     function menuRoot() {
-        return $('.menu .menu__case').first();
+        return $('.menu .menu__case, .menu .menu__list, .menu__case, .menu__list, .menu__content').first();
     }
 
     function addDomMenuButton() {
@@ -146,11 +175,12 @@
             return true;
         }
 
+        var tag = /^(UL|OL)$/i.test(root[0].tagName || '') ? 'li' : 'div';
         var item = $(
-            '<li class="menu__item selector" data-action="' + COMPONENT + '">' +
+            '<' + tag + ' class="menu__item selector" data-action="' + COMPONENT + '">' +
                 '<div class="menu__ico">' + icon() + '</div>' +
                 '<div class="menu__text">Showy</div>' +
-            '</li>'
+            '</' + tag + '>'
         );
 
         item.on('hover:enter click', function (e) {
@@ -166,8 +196,8 @@
 
     function addMenuButton() {
         if (menuAdded) return true;
-        if (addNativeMenuButton()) return true;
-        return addDomMenuButton();
+        if (addDomMenuButton()) return true;
+        return addNativeMenuButton();
     }
 
     function scheduleMenuAttempt(delay) {
@@ -187,6 +217,12 @@
         scheduleMenuAttempt(300);
         scheduleMenuAttempt(1300);
         scheduleMenuAttempt(3000);
+
+        safe(function () {
+            Lampa.Storage.listener.follow('change', function (event) {
+                if (event && event.name === 'activity') scheduleMenuAttempt(200);
+            });
+        });
     }
 
     if (window.appready) {
