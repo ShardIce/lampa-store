@@ -2,7 +2,7 @@
   "secuses": true,
   "results": [
     {
-      "title": "Shardice Store • Системные",
+      "title": "Дом плагинов • Системные",
       "results": [
         {
           "name": "Reload Lampa Button",
@@ -15,22 +15,35 @@
       ]
     },
     {
-      "title": "Shardice Store • Основное",
+      "title": "Дом плагинов • Основное",
       "results": [
         {
-          "name": "Статусы фильмов и сериалов",
-          "version": "1.0.5",
+          "name": "Статусы фильмов",
+          "version": "1.0.6",
           "descr": "Личная медиатека без премиума: смотрю, буду смотреть, просмотрено, отложено, брошено.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=105",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=106",
           "available_lampa": 1
         },
         {
-          "name": "Shardice Store Launcher",
-          "version": "1.3.0",
-          "descr": "Красивая витрина магазина в настройках Lampa. Исправлена огромная иконка.",
+          "name": "Дом плагинов",
+          "version": "1.4.0",
+          "descr": "Бесплатные плагины для Lampa без подписки.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=130",
+          "link": "https://shardice.github.io/lampa-store/store.js?v=140",
+          "available_lampa": 1
+        }
+      ]
+    },
+    {
+      "title": "Дом плагинов • Скоро",
+      "results": [
+        {
+          "name": "Очистка интерфейса",
+          "version": "0.1.0",
+          "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=140",
           "available_lampa": 1
         }
       ]

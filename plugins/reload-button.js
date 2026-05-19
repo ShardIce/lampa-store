@@ -8,16 +8,16 @@
 (function () {
     'use strict';
 
-    var COMPONENT = 'shardice_reload_lampa';
+    var COMPONENT = 'plugin_home_reload_lampa';
 
     function style() {
-        if ($('#shardice-reload-style').length) return;
+        if ($('#plugin-home-reload-style').length) return;
 
-        $('body').append('<style id="shardice-reload-style">' +
-            '.shardice-reload-btn{width:2.85em;height:2.85em;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:.55em;background:rgba(255,255,255,.06);transition:.18s;}' +
-            '.shardice-reload-btn svg{width:1.55em;height:1.55em;opacity:.92;}' +
-            '.shardice-reload-btn.focus,.shardice-reload-btn.hover{background:rgba(255,255,255,.16);transform:scale(1.08);box-shadow:0 0 0 .16em rgba(255,255,255,.18);}' +
-            '.shardice-reload-float{position:fixed;right:13.4em;top:1.08em;z-index:9999;}' +
+        $('body').append('<style id="plugin-home-reload-style">' +
+            '.plugin-home-reload-btn{width:2.85em;height:2.85em;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:.55em;background:rgba(255,255,255,.06);transition:.18s;}' +
+            '.plugin-home-reload-btn svg{width:1.55em;height:1.55em;opacity:.92;}' +
+            '.plugin-home-reload-btn.focus,.plugin-home-reload-btn.hover{background:rgba(255,255,255,.16);transform:scale(1.08);box-shadow:0 0 0 .16em rgba(255,255,255,.18);}' +
+            '.plugin-home-reload-float{position:fixed;right:13.4em;top:1.08em;z-index:9999;}' +
         '</style>');
     }
 
@@ -46,7 +46,7 @@
     }
 
     function createButton(floatMode) {
-        var btn = $('<div class="shardice-reload-btn selector ' + (floatMode ? 'shardice-reload-float' : '') + '" data-component="' + COMPONENT + '">' + icon() + '</div>');
+        var btn = $('<div class="plugin-home-reload-btn selector ' + (floatMode ? 'plugin-home-reload-float' : '') + '" data-component="' + COMPONENT + '">' + icon() + '</div>');
         btn.on('hover:enter click', reloadApp);
         return btn;
     }
@@ -56,10 +56,8 @@
 
         for (var i = 0; i < selectors.length; i++) {
             var el = $(selectors[i]).first();
-
             if (el.length) {
                 if (selectors[i].indexOf(':last') > -1) return el.parent();
-
                 return el;
             }
         }

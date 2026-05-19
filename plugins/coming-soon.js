@@ -7,5 +7,15 @@
 
 (function () {
     'use strict';
-    if (window.appready && Lampa.Noty) Lampa.Noty.show('Плагин пока в разработке');
+
+    function ready() {
+        if (Lampa.Noty) Lampa.Noty.show('Плагин пока в разработке');
+    }
+
+    if (window.appready) ready();
+    else {
+        Lampa.Listener.follow('app', function (e) {
+            if (e.type == 'ready') ready();
+        });
+    }
 })();
