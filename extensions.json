@@ -51,6 +51,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
           "image": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/showy-online.json"
+        },
+        {
+          "id": "cub_off",
+          "name": "CUB Off",
+          "title": "CUB Off",
+          "version": "1.0.0",
+          "descr": "Убирает элементы интерфейса, предлагающие оформить CUB Premium.",
+          "description": "Убирает элементы интерфейса, предлагающие оформить CUB Premium.",
+          "author": "byLampa",
+          "link": "https://bylampa.github.io/cub_off.js",
+          "url": "https://bylampa.github.io/cub_off.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/cub-off.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/cub-off.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/cub-off.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/cub-off.json"
         }
       ]
     }
