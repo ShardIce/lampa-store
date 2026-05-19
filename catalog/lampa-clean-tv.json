@@ -2,24 +2,8 @@
   "secuses": true,
   "results": [
     {
-      "title": "Системные плагины",
+      "title": "Lampa Clean TV",
       "results": [
-        {
-          "id": "reload_lampa_button",
-          "name": "Reload Lampa Button",
-          "title": "Reload Lampa Button",
-          "version": "1.4.1",
-          "descr": "Лёгкая кнопка перезагрузки Lampa. Устойчиво вставляется между аккаунтом и меню из трёх точек с аккуратным отступом.",
-          "description": "Лёгкая кнопка перезагрузки Lampa. Устойчиво вставляется между аккаунтом и меню из трёх точек с аккуратным отступом.",
-          "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
-          "url": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
-          "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/reload-button.svg",
-          "img": "https://shardice.github.io/lampa-store/covers/reload-button.svg",
-          "image": "https://shardice.github.io/lampa-store/covers/reload-button.svg",
-          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
-        },
         {
           "id": "lampa_clean_tv",
           "name": "Lampa Clean TV",

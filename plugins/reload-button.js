@@ -1,8 +1,8 @@
 /*
  * name: Reload Lampa Button
  * author: shardice
- * version: 1.4.0
- * description: Кнопка перезагрузки Lampa между аккаунтом и меню из трёх точек. Увеличенный отступ и выравнивание по соседней иконке.
+ * version: 1.4.1
+ * description: Кнопка перезагрузки Lampa между аккаунтом и меню из трёх точек. Более устойчивый поиск верхней панели без постоянного сканирования DOM.
  */
 
 (function () {
@@ -10,11 +10,15 @@
 
     var COMPONENT = 'reload_lampa_button_clean';
     var reloading = false;
+    var inserted = false;
+    var attemptsLeft = 12;
+    var scheduled = false;
+    var listenersBound = false;
 
     function addCss() {
-        if ($('#reload-lampa-button-clean-style-v4').length) return;
+        if ($('#reload-lampa-button-clean-style-v5').length) return;
 
-        $('body').append('<style id="reload-lampa-button-clean-style-v4">' +
+        $('body').append('<style id="reload-lampa-button-clean-style-v5">' +
             '[data-component="' + COMPONENT + '"]{' +
                 'display:inline-flex!important;' +
                 'align-items:center!important;' +
@@ -102,10 +106,12 @@
             cls.indexOf('profile') > -1 ||
             cls.indexOf('user') > -1 ||
             cls.indexOf('avatar') > -1 ||
+            cls.indexOf('person') > -1 ||
             data.indexOf('account') > -1 ||
             data.indexOf('profile') > -1 ||
             data.indexOf('user') > -1 ||
-            data.indexOf('avatar') > -1;
+            data.indexOf('avatar') > -1 ||
+            data.indexOf('person') > -1;
     }
 
     function isMore(el) {
@@ -123,16 +129,103 @@
             html.indexOf('ellipsis') > -1 ||
             html.indexOf('more_vert') > -1 ||
             html.indexOf('more_horiz') > -1 ||
+            html.indexOf('button--options') > -1 ||
+            html.indexOf('data-action="more"') > -1 ||
+            html.indexOf('data-action="options"') > -1 ||
+            html.indexOf('⋮') > -1 ||
+            html.indexOf('•••') > -1 ||
             cls.indexOf('more') > -1 ||
+            cls.indexOf('menu') > -1 ||
+            cls.indexOf('options') > -1 ||
+            cls.indexOf('button--options') > -1 ||
             cls.indexOf('dots') > -1 ||
             cls.indexOf('ellipsis') > -1 ||
             data.indexOf('more') > -1 ||
+            data.indexOf('menu') > -1 ||
+            data.indexOf('options') > -1 ||
             data.indexOf('dots') > -1 ||
             data.indexOf('ellipsis') > -1;
     }
 
-    function headerButtons() {
-        return $('.head__actions .selector, .header__actions .selector, .head__right .selector, .header__right .selector, .head .selector, .header .selector')
+    function isClock(el) {
+        var text = (el.text() || '').replace(/\s+/g, '').toLowerCase();
+        var cls = (el.attr('class') || '').toLowerCase();
+        var data = (
+            (el.attr('data-component') || '') + ' ' +
+            (el.attr('data-action') || '') + ' ' +
+            (el.attr('title') || '') + ' ' +
+            (el.attr('aria-label') || '')
+        ).toLowerCase();
+
+        return /^\d{1,2}:\d{2}$/.test(text) ||
+            cls.indexOf('clock') > -1 ||
+            cls.indexOf('time') > -1 ||
+            data.indexOf('clock') > -1 ||
+            data.indexOf('time') > -1;
+    }
+
+    function unique(elements) {
+        var result = $();
+
+        elements.each(function () {
+            if (result.index(this) === -1) result = result.add(this);
+        });
+
+        return result;
+    }
+
+    function headerContainers() {
+        var containers = $(
+            '.head__actions,' +
+            '.header__actions,' +
+            '.head__right,' +
+            '.header__right,' +
+            '.head .actions,' +
+            '.header .actions'
+        ).filter(':visible');
+
+        if (!containers.length) {
+            $('.head .selector:visible, .header .selector:visible').each(function () {
+                var parent = $(this).parent();
+                if (parent.find('.selector:visible').length > 1) containers = containers.add(parent);
+            });
+        }
+
+        return unique(containers);
+    }
+
+    function buttonsIn(container) {
+        var raw = container.find(
+            '.selector,' +
+            '.button--options,' +
+            '[data-action="more"],' +
+            '[data-action="menu"],' +
+            '[data-action="options"],' +
+            '[data-component="more"],' +
+            '[data-component="menu"]'
+        ).add(container.children(
+            '.selector,' +
+            '.button--options,' +
+            '[data-action="more"],' +
+            '[data-action="menu"],' +
+            '[data-action="options"],' +
+            '[data-component="more"],' +
+            '[data-component="menu"]'
+        ));
+        var mapped = $();
+
+        raw.each(function () {
+            var item = $(this);
+            var selector = item.hasClass('selector') ? item : item.closest('.selector');
+
+            if (selector.length && (selector[0] === container[0] || $.contains(container[0], selector[0]))) {
+                mapped = mapped.add(selector);
+            } else {
+                mapped = mapped.add(item);
+            }
+        });
+
+        return unique(mapped)
             .not('[data-component="' + COMPONENT + '"]')
             .filter(':visible');
     }
@@ -147,6 +240,12 @@
     function previousButton(buttons, target) {
         var index = buttons.index(target);
         if (index > 0) return buttons.eq(index - 1);
+        return $();
+    }
+
+    function nextButton(buttons, target) {
+        var index = buttons.index(target);
+        if (index > -1 && index < buttons.length - 1) return buttons.eq(index + 1);
         return $();
     }
 
@@ -182,12 +281,24 @@
         return btn;
     }
 
-    function insert() {
-        addCss();
+    function placeBefore(target, reference) {
+        if (!target || !target.length || isClock(target)) return false;
+        if (!reference || !reference.length || isClock(reference)) return false;
+        if (!sameParentInOrder(reference, target)) return false;
 
-        if ($('[data-component="' + COMPONENT + '"]').length) return true;
+        var btn = createButton(reference);
+        target.before(btn);
 
-        var buttons = headerButtons();
+        setTimeout(function () {
+            copySizeFrom(reference, btn);
+        }, 80);
+
+        inserted = true;
+        return true;
+    }
+
+    function insertInContainer(container) {
+        var buttons = buttonsIn(container);
         if (!buttons.length) return false;
 
         var account = $();
@@ -199,35 +310,96 @@
             if (!more.length && isMore(el)) more = el;
         });
 
-        if (!more.length) return false;
-        if (!account.length || !sameParentInOrder(account, more)) account = previousButton(buttons, more);
-        if (!account.length || !sameParentInOrder(account, more)) return false;
+        if (more.length) {
+            var reference = account.length && sameParentInOrder(account, more) ? account : previousButton(buttons, more);
+            if (placeBefore(more, reference)) return true;
+        }
 
-        var reference = account;
-        var btn = createButton(reference);
+        if (account.length) {
+            var afterAccount = nextButton(buttons, account);
+            if (afterAccount.length && placeBefore(afterAccount, account)) return true;
+        }
 
-        more.before(btn);
+        if (buttons.length >= 4) {
+            var target = buttons.eq(buttons.length - 1);
+            var previous = previousButton(buttons, target);
 
-        /*
-         * После вставки ещё раз выравниваем по высоте соседней кнопки,
-         * потому что часть размеров появляется только после добавления в DOM.
-         */
+            if (placeBefore(target, previous)) return true;
+        }
+
+        return false;
+    }
+
+    function insert() {
+        addCss();
+
+        if (inserted || $('[data-component="' + COMPONENT + '"]').length) {
+            inserted = true;
+            return true;
+        }
+
+        var containers = headerContainers();
+        var success = false;
+
+        containers.each(function () {
+            if (success) return false;
+            success = insertInContainer($(this));
+        });
+
+        return success;
+    }
+
+    function scheduleAttempt(delay) {
+        if (inserted || attemptsLeft <= 0 || scheduled) return;
+
+        scheduled = true;
         setTimeout(function () {
-            copySizeFrom(reference, btn);
-        }, 80);
+            scheduled = false;
+            if (inserted || attemptsLeft <= 0) return;
 
-        return true;
+            attemptsLeft--;
+            if (!insert()) scheduleAttempt(700);
+        }, delay || 0);
+    }
+
+    function bindLightEvents() {
+        if (listenersBound) return;
+        listenersBound = true;
+
+        try {
+            if (Lampa.Listener && typeof Lampa.Listener.follow === 'function') {
+                Lampa.Listener.follow('app', function () {
+                    scheduleAttempt(250);
+                });
+
+                Lampa.Listener.follow('activity', function () {
+                    scheduleAttempt(250);
+                });
+            }
+        } catch (e) {}
+
+        try {
+            if (Lampa.Controller && Lampa.Controller.listener && typeof Lampa.Controller.listener.follow === 'function') {
+                Lampa.Controller.listener.follow('toggle', function () {
+                    scheduleAttempt(250);
+                });
+            }
+        } catch (e2) {}
     }
 
     function boot() {
         /*
          * Без setInterval и без MutationObserver:
-         * четыре лёгкие попытки и всё.
+         * несколько лёгких попыток, затем только редкие события Lampa,
+         * пока не исчерпан небольшой лимит.
          */
-        setTimeout(insert, 500);
-        setTimeout(insert, 1500);
-        setTimeout(insert, 3000);
-        setTimeout(insert, 5000);
+        bindLightEvents();
+
+        scheduleAttempt(300);
+        setTimeout(function () { scheduleAttempt(1200); }, 1200);
+        setTimeout(function () { scheduleAttempt(2600); }, 2600);
+        setTimeout(function () { scheduleAttempt(5000); }, 5000);
+        setTimeout(function () { scheduleAttempt(9000); }, 9000);
     }
 
     if (window.appready) boot();
