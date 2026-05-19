@@ -1,18 +1,18 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.9.0
+ * version: 2.0.0
  * description: Автокаталог, PNG-cover, управление пультом и установка через родной экран Lampa
  */
 
 (function () {
     'use strict';
 
-    var STORE_URL = 'https://shardice.github.io/lampa-store/extensions.json?v=190';
+    var STORE_URL = 'https://shardice.github.io/lampa-store/extensions.json?v=200';
     var STORE_NAME = 'Дом плагинов';
     var STORE_DESC = 'Бесплатные плагины без подписки';
     var COVERS_BASE = 'https://shardice.github.io/lampa-store/covers/';
-    var controllerName = 'plugin_home_store_v190';
+    var controllerName = 'plugin_home_store_v200';
     var activeRoot = null;
     var loadedSections = [];
     var focusedIndex = 0;
@@ -24,13 +24,13 @@
     });
 
     function css() {
-        if ($('#plugin-home-style-v190').length) return;
+        if ($('#plugin-home-style-v200').length) return;
 
-        $('body').append('<style id="plugin-home-style-v190">' +
+        $('body').append('<style id="plugin-home-style-v200">' +
             '[data-component="plugin_home_store"]{display:flex!important;align-items:center!important;gap:1em!important;min-height:4.7em!important;padding-top:.65em!important;padding-bottom:.65em!important;}' +
-            '[data-component="plugin_home_store"] .settings-param__icon{width:2.35em!important;height:2.35em!important;min-width:2.35em!important;max-width:2.35em!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;margin:0!important;flex:0 0 2.35em!important;}' +
-            '[data-component="plugin_home_store"] .settings-param__icon svg{width:2.1em!important;height:2.1em!important;display:block!important;}' +
-            '[data-component="plugin_home_store"] .settings-param__name,[data-component="plugin_home_store"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
+            '[data-component="plugin_home_store"] .settings-param__icon{width:1.55em!important;height:1.55em!important;min-width:1.55em!important;max-width:1.55em!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;margin:0 .75em 0 0!important;flex:0 0 1.55em!important;border-radius:.38em!important;}' +
+            '[data-component="plugin_home_store"] .settings-param__icon svg{width:1.45em!important;height:1.45em!important;display:block!important;}' +
+            '[data-component="plugin_home_store"] svg{max-width:1.45em!important;max-height:1.45em!important;}[data-component="plugin_home_store"] .settings-param__body{min-width:0!important;}[data-component="plugin_home_store"] .settings-param__name,[data-component="plugin_home_store"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
 
             '.plugin-home{position:fixed;left:0;right:0;top:0;bottom:0;z-index:999999;background:radial-gradient(circle at 18% 12%,rgba(0,255,208,.20),transparent 28%),radial-gradient(circle at 85% 2%,rgba(124,92,255,.20),transparent 30%),linear-gradient(135deg,rgba(12,16,25,.985),rgba(20,24,34,.975));color:#fff;padding:3.6em 4.1em;overflow:hidden;}' +
             '.plugin-home__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1em;position:relative;z-index:2;}' +
@@ -97,9 +97,9 @@
     function coverUrl(item) {
         if (item.cover) {
             if (String(item.cover).indexOf('http') == 0) return item.cover;
-            return COVERS_BASE + String(item.cover).replace(/^\/+/, '') + '?v=190';
+            return COVERS_BASE + String(item.cover).replace(/^\/+/, '') + '?v=200';
         }
-        return COVERS_BASE + 'plugin-home.png?v=190';
+        return COVERS_BASE + 'plugin-home.png?v=200';
     }
 
     function normalize(item, sectionTitle, index) {
@@ -305,7 +305,7 @@
         if (keyBound) return;
         keyBound = true;
 
-        $(document).on('keydown.plugin_home_v190', function (e) {
+        $(document).on('keydown.plugin_home_v200', function (e) {
             if (!activeRoot) return;
 
             var code = e.keyCode || e.which;
@@ -322,7 +322,7 @@
 
     function unbindKeys() {
         keyBound = false;
-        $(document).off('keydown.plugin_home_v190');
+        $(document).off('keydown.plugin_home_v200');
     }
 
     function setupFocus(root) {
