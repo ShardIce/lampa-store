@@ -51,6 +51,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/no-shots.svg",
           "image": "https://shardice.github.io/lampa-store/covers/no-shots.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/no-shots.json"
+        },
+        {
+          "id": "radio_record",
+          "name": "Radio Record",
+          "title": "Radio Record",
+          "version": "1.0.0",
+          "descr": "Добавляет пункт Радио в левое меню Lampa и мини-плеер для станций Radio Record.",
+          "description": "Добавляет пункт Радио в левое меню Lampa и мини-плеер для станций Radio Record.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/radio-record.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/radio-record.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/radio-record.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/radio-record.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/radio-record.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/radio-record.json"
         }
       ]
     },
