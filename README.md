@@ -1,0 +1,2 @@
+# lampa-store
+lampa plugins
