@@ -8,17 +8,16 @@
           "id": "record_radio",
           "name": "Radio Record",
           "title": "Radio Record",
-          "version": "2.0.0",
-          "descr": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
-          "description": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
+          "version": "2.1.0",
+          "descr": "Лёгкий Radio Record без постоянного сканирования интерфейса.",
+          "description": "Лёгкий Radio Record без постоянного сканирования интерфейса.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "url": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json"
+          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg"
         }
       ]
     }

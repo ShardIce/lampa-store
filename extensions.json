@@ -2,71 +2,52 @@
   "secuses": true,
   "results": [
     {
-      "title": "Дом плагинов • Рабочие плагины",
+      "title": "Дом плагинов • Лёгкая версия",
       "results": [
         {
           "id": "record_radio",
           "name": "Radio Record",
           "title": "Radio Record",
-          "version": "2.0.0",
-          "descr": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
-          "description": "Визуальный плеер Radio Record с каналами, переключением и избранным.",
+          "version": "2.1.0",
+          "descr": "Лёгкий Radio Record без постоянного сканирования интерфейса.",
+          "description": "Лёгкий Radio Record без постоянного сканирования интерфейса.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "url": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json"
-        },
-        {
-          "id": "reload_lampa",
-          "name": "Reload Button",
-          "title": "Reload Button",
-          "version": "2.0.0",
-          "descr": "Кнопка перезагрузки в верхней панели после аккаунта.",
-          "description": "Кнопка перезагрузки в верхней панели после аккаунта.",
-          "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
-          "url": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
-          "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
-          "img": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/reload-button.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
+          "image": "https://shardice.github.io/lampa-store/covers/record-radio.jpg"
         },
         {
           "id": "movie_statuses",
           "name": "Статусы фильмов",
           "title": "Статусы фильмов",
-          "version": "2.0.0",
-          "descr": "Локальные статусы: смотрю, просмотрено, запланировано, брошено.",
-          "description": "Локальные статусы фильмов и сериалов.",
+          "version": "1.2.0",
+          "descr": "Заготовка статусов фильмов.",
+          "description": "Заготовка статусов фильмов.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "url": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json"
+          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg"
         },
         {
-          "id": "strawberry_shell",
-          "name": "Клубничка",
-          "title": "Клубничка",
-          "version": "1.0.0",
-          "descr": "Оболочка 18+ каталога. Источники добавляются отдельно в strawberry-sources.json.",
-          "description": "Оболочка 18+ каталога. Источники добавляются отдельно.",
+          "id": "plugin_home",
+          "name": "Дом плагинов",
+          "title": "Дом плагинов",
+          "version": "4.1.0",
+          "descr": "Лёгкий каталог через родной экран Lampa.",
+          "description": "Лёгкий каталог через родной экран Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/strawberry.js",
-          "url": "https://shardice.github.io/lampa-store/plugins/strawberry.js",
+          "link": "https://shardice.github.io/lampa-store/store.js",
+          "url": "https://shardice.github.io/lampa-store/store.js",
           "available_lampa": 1,
-          "cover": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
-          "img": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/strawberry.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/strawberry.json"
+          "cover": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "img": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "image": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg"
         }
       ]
     }

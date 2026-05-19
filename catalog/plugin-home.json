@@ -1,0 +1,25 @@
+{
+  "secuses": true,
+  "results": [
+    {
+      "title": "Дом плагинов",
+      "results": [
+        {
+          "id": "plugin_home",
+          "name": "Дом плагинов",
+          "title": "Дом плагинов",
+          "version": "4.1.0",
+          "descr": "Лёгкий каталог через родной экран Lampa.",
+          "description": "Лёгкий каталог через родной экран Lampa.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/store.js",
+          "url": "https://shardice.github.io/lampa-store/store.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "img": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg",
+          "image": "https://shardice.github.io/lampa-store/covers/plugin-home.jpg"
+        }
+      ]
+    }
+  ]
+}

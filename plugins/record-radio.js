@@ -1,6 +1,31 @@
-
-/* name: Radio Record
+/*
+ * name: Radio Record
  * author: shardice
- * version: 2.0.0
+ * version: 2.1.0
+ * description: Лёгкий Radio Record без постоянного сканирования интерфейса.
  */
-(function(){'use strict';var ID='radio_record_menu_v20';var audio=null;var root=null,focus=0;var channels=[{title:'Record',desc:'Главный канал',stream:'https://radiorecord.hostingradio.ru/rr_main96.aacp'},{title:'Russian Hits',desc:'Русские танцевальные хиты',stream:'https://radiorecord.hostingradio.ru/russianhits96.aacp'},{title:'Big Hits',desc:'Большие хиты',stream:'https://radiorecord.hostingradio.ru/bighits96.aacp'},{title:'Chill-Out',desc:'Спокойный эфир',stream:'https://radiorecord.hostingradio.ru/chil96.aacp'},{title:'Deep',desc:'Deep House',stream:'https://radiorecord.hostingradio.ru/deep96.aacp'},{title:'Trancemission',desc:'Trance',stream:'https://radiorecord.hostingradio.ru/tm96.aacp'}];function css(){if($('#record_radio_style_v20').length)return;$('body').append('<style id="record_radio_style_v20">.rr-menu{display:flex!important;align-items:center!important;gap:.9em!important;padding:.55em .9em!important;border-radius:.95em!important;margin:.12em 0!important}.rr-menu-ico{width:2em;height:2em;border-radius:.55em;background:linear-gradient(135deg,#ff4757,#ff9f1a);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:.78em}.rr-menu-txt{font-size:1.03em;font-weight:800}.rr-menu.focus,.rr-menu.hover{background:rgba(255,255,255,.13)!important}.rr-app{position:fixed;inset:0;z-index:999999;background:radial-gradient(circle at 15% 10%,rgba(255,71,87,.2),transparent 30%),linear-gradient(135deg,#101620,#181b28);color:#fff;padding:3.2em 4em}.rr-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:1em}.rr-title{font-size:2.3em;font-weight:900}.rr-close{padding:.75em 1em;border-radius:.9em;background:rgba(255,255,255,.1)}.rr-list{height:calc(100% - 5em);overflow:auto}.rr-row{display:grid;grid-template-columns:5em 1fr 8em;gap:1em;align-items:center;padding:.9em;margin-bottom:.7em;border-radius:1.2em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}.rr-badge{width:4em;height:4em;border-radius:1em;background:linear-gradient(135deg,#ff4757,#ff9f1a);display:flex;align-items:center;justify-content:center;font-weight:900}.rr-name{font-size:1.25em;font-weight:900}.rr-desc{margin-top:.25em;color:rgba(255,255,255,.62)}.rr-play{height:2.8em;border-radius:.85em;background:linear-gradient(135deg,#ff4757,#ff9f1a);display:flex;align-items:center;justify-content:center;font-weight:900}.rr-row.focus,.rr-row.hover,.rr-close.focus,.rr-close.hover{box-shadow:0 0 0 3px rgba(255,255,255,.24)!important}</style>')}function play(i){var ch=channels[i];try{if(audio){audio.pause();audio.src=''}audio=new Audio(ch.stream);audio.play();if(Lampa.Noty)Lampa.Noty.show('Играет: '+ch.title)}catch(e){if(Lampa.Noty)Lampa.Noty.show('Не удалось включить радио')}}function setFocus(i){if(!root)return;var rows=root.find('.rr-row');if(i<0)i=0;if(i>=rows.length)i=rows.length-1;focus=i;root.find('.selector').removeClass('focus hover');var el=rows.eq(focus).addClass('focus');var sc=root.find('.rr-list')[0],node=el[0];if(sc&&node){var top=node.offsetTop,b=top+node.offsetHeight;if(top<sc.scrollTop+20)sc.scrollTop=top-30;if(b>sc.scrollTop+sc.clientHeight-20)sc.scrollTop=b-sc.clientHeight+30}}function key(e){if(!root)return;var c=e.keyCode||e.which;if(c==38){e.preventDefault();setFocus(focus-1)}else if(c==40){e.preventDefault();setFocus(focus+1)}else if(c==13){e.preventDefault();play(focus)}else if(c==8||c==27||c==461||c==10009){e.preventDefault();close()}}function open(){css();$('.rr-app').remove();root=$('<div class="rr-app"><div class="rr-head"><div><div class="rr-title">Radio Record</div><div class="rr-desc">Выбери канал и нажми OK</div></div><div class="rr-close selector">Закрыть</div></div><div class="rr-list"></div></div>');root.find('.rr-close').on('hover:enter click',close);channels.forEach(function(ch,i){var row=$('<div class="rr-row selector"><div class="rr-badge">REC</div><div><div class="rr-name">'+ch.title+'</div><div class="rr-desc">'+ch.desc+'</div></div><div class="rr-play">Play</div></div>');row.on('hover:enter click',function(){play(i)});root.find('.rr-list').append(row)});$('body').append(root);$(document).off('keydown.rr').on('keydown.rr',key);setFocus(0)}function close(){$('.rr-app').remove();root=null;$(document).off('keydown.rr');if(Lampa.Controller)try{Lampa.Controller.toggle('content')}catch(e){}}function makeMenu(){var m=$('<div class="rr-menu selector" data-component="'+ID+'"><div class="rr-menu-ico">REC</div><div class="rr-menu-txt">Radio Record</div></div>');m.on('hover:enter click',open);return m}function findMenu(){var s=$('.selector,[data-component],div').filter(function(){return($(this).text()||'').trim()=='Настройки'}).first();if(s.length)return s.parent();var h=$('.selector,[data-component],div').filter(function(){return($(this).text()||'').trim()=='Главная'}).first();if(h.length)return h.parent();return $()}function inject(){css();if($('[data-component="'+ID+'"]').length)return;var menu=findMenu();if(!menu.length)return;var settings=menu.children().filter(function(){return($(this).text()||'').indexOf('Настройки')>-1}).first();if(settings.length)settings.before(makeMenu());else menu.append(makeMenu())}function boot(){inject();setInterval(inject,1500);if(Lampa.Noty)Lampa.Noty.show('Radio Record установлен')}if(window.appready)boot();else Lampa.Listener.follow('app',function(e){if(e.type=='ready')boot()})})();
+(function () {
+    'use strict';
+    var audio = null;
+    function stations() {
+        return [
+            { title: 'Record', url: 'https://radiorecord.hostingradio.ru/rr_main96.aacp' },
+            { title: 'Russian Hits', url: 'https://radiorecord.hostingradio.ru/russianhits96.aacp' },
+            { title: 'Big Hits', url: 'https://radiorecord.hostingradio.ru/bighits96.aacp' },
+            { title: 'Chill-Out', url: 'https://radiorecord.hostingradio.ru/chil96.aacp' },
+            { title: 'Deep', url: 'https://radiorecord.hostingradio.ru/deep96.aacp' }
+        ];
+    }
+    function play(item) {
+        try {
+            if (audio) { audio.pause(); audio.src = ''; }
+            audio = new Audio(item.url);
+            audio.play();
+            if (Lampa.Noty) Lampa.Noty.show('Играет: ' + item.title);
+        } catch (e) { if (Lampa.Noty) Lampa.Noty.show('Не удалось включить радио'); }
+    }
+    window.PluginHomeRadioRecord = function () {
+        Lampa.Select.show({title: 'Radio Record', items: stations(), onSelect: play});
+    };
+    if (window.appready && Lampa.Noty) Lampa.Noty.show('Radio Record установлен');
+})();

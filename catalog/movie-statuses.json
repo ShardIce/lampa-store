@@ -8,17 +8,16 @@
           "id": "movie_statuses",
           "name": "Статусы фильмов",
           "title": "Статусы фильмов",
-          "version": "2.0.0",
-          "descr": "Локальные статусы: смотрю, просмотрено, запланировано, брошено.",
-          "description": "Локальные статусы фильмов и сериалов.",
+          "version": "1.2.0",
+          "descr": "Заготовка статусов фильмов.",
+          "description": "Заготовка статусов фильмов.",
           "author": "@shardice",
           "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "url": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "available_lampa": 1,
           "cover": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
           "img": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
-          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg",
-          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json"
+          "image": "https://shardice.github.io/lampa-store/covers/movie-statuses.jpg"
         }
       ]
     }
