@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.0
+ * version: 1.4.1
  * description: Красивый каталог плагинов для Lampa. Дизайн остаётся своим, установка открывает родное подтверждение Lampa.
  */
 
@@ -15,6 +15,7 @@
     var focusIndex = 0;
     var keyBound = false;
     var controllerAdded = false;
+    var ignoreOpenUntil = 0;
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -152,10 +153,20 @@
             } catch (e) {}
 
             try {
-                var first = $('.settings-param.selector:visible').first();
+                var store = $('[data-component="' + COMPONENT + '"].settings-param.selector:visible').first();
+                var target = $();
 
-                if (first.length && Lampa.Controller && typeof Lampa.Controller.collectionFocus === 'function') {
-                    Lampa.Controller.collectionFocus(first);
+                if (store.length) {
+                    target = store.nextAll('.settings-param.selector:visible').not('[data-component="' + COMPONENT + '"]').first();
+                    if (!target.length) target = store.prevAll('.settings-param.selector:visible').not('[data-component="' + COMPONENT + '"]').first();
+                }
+
+                if (!target.length) {
+                    target = $('.settings-param.selector:visible').not('[data-component="' + COMPONENT + '"]').first();
+                }
+
+                if (target.length && Lampa.Controller && typeof Lampa.Controller.collectionFocus === 'function') {
+                    Lampa.Controller.collectionFocus(target);
                 }
             } catch (e2) {}
         }, delay || 80);
@@ -473,6 +484,7 @@
     }
 
     function closeScreen(backToSettings) {
+        ignoreOpenUntil = Date.now() + 900;
         $('.hps-screen').remove();
         active = null;
         unbindKeys();
@@ -494,6 +506,7 @@
             .off('hover:enter click')
             .on('hover:enter click', function (e) {
                 stopEvent(e);
+                if (Date.now() < ignoreOpenUntil) return;
                 openScreen();
             });
     }

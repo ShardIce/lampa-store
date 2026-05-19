@@ -35,6 +35,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/lampa-clean-tv.svg",
           "image": "https://shardice.github.io/lampa-store/covers/lampa-clean-tv.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/lampa-clean-tv.json"
+        },
+        {
+          "id": "showy_online",
+          "name": "Showy Online",
+          "title": "Showy Online",
+          "version": "1.0.0",
+          "descr": "Онлайн-плагин Showy для просмотра фильмов и сериалов через внешние источники.",
+          "description": "Онлайн-плагин Showy для просмотра фильмов и сериалов через внешние источники.",
+          "author": "@showybot",
+          "link": "http://showwwy.com/m.js",
+          "url": "http://showwwy.com/m.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/showy-online.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/showy-online.json"
         }
       ]
     }
