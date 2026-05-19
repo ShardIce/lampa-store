@@ -10,14 +10,14 @@
           "version": "1.1.0",
           "descr": "Кнопка перезагрузки после аккаунта.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js?v=110",
+          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
           "available_lampa": 1,
           "tag": "System",
           "accent": "#00ffd0",
           "icon": "↻",
           "subtitle": "Перезагрузка после аккаунта",
-          "cover": "reload-button.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json?v=130"
+          "cover": "reload-button.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
         }
       ]
     }

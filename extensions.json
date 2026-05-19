@@ -10,14 +10,14 @@
           "version": "1.2.0",
           "descr": "Radio Record в основном меню Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js?v=120",
+          "link": "https://shardice.github.io/lampa-store/plugins/record-radio.js",
           "available_lampa": 1,
           "tag": "Music",
           "accent": "#ff4757",
           "icon": "REC",
           "subtitle": "Радио в основном меню",
-          "cover": "record-radio.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json?v=130"
+          "cover": "record-radio.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/record-radio.json"
         }
       ]
     },
@@ -30,14 +30,14 @@
           "version": "1.1.0",
           "descr": "Кнопка перезагрузки после аккаунта.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js?v=110",
+          "link": "https://shardice.github.io/lampa-store/plugins/reload-button.js",
           "available_lampa": 1,
           "tag": "System",
           "accent": "#00ffd0",
           "icon": "↻",
           "subtitle": "Перезагрузка после аккаунта",
-          "cover": "reload-button.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json?v=130"
+          "cover": "reload-button.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/reload-button.json"
         }
       ]
     },
@@ -50,29 +50,29 @@
           "version": "1.1.0",
           "descr": "Статусы в карточке фильма и панели избранного.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=110",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "available_lampa": 1,
           "tag": "Library",
           "accent": "#7c5cff",
           "icon": "✓",
           "subtitle": "Медиатека без премиума",
-          "cover": "movie-statuses.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json?v=130"
+          "cover": "movie-statuses.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json"
         },
         {
           "id": "plugin_home",
           "name": "Дом плагинов",
-          "version": "2.1.0",
+          "version": "2.2.0",
           "descr": "Автоматический каталог, cover-обложки и установка через родной экран Lampa.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/store.js?v=210",
+          "link": "https://shardice.github.io/lampa-store/store.js",
           "available_lampa": 1,
           "tag": "Store",
           "accent": "#00ffd0",
           "icon": "⌂",
           "subtitle": "Автоматический каталог",
-          "cover": "plugin-home.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/plugin-home.json?v=130"
+          "cover": "plugin-home.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/plugin-home.json"
         }
       ]
     },
@@ -85,14 +85,14 @@
           "version": "0.1.0",
           "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=190",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js",
           "available_lampa": 1,
           "tag": "UI",
           "accent": "#ffcc66",
           "icon": "✦",
           "subtitle": "Скоро",
-          "cover": "coming-soon.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/coming-soon.json?v=130"
+          "cover": "coming-soon.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/coming-soon.json"
         }
       ]
     }

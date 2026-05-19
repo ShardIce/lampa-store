@@ -1,33 +1,15 @@
-# Дом плагинов v2.0.0
+# Дом плагинов v2.2.0
 
-Главные исправления:
-- Установка открывает родной экран Lampa.Extensions.show с отдельным каталогом на один плагин.
-- Это нужно, чтобы подтверждение установки/перезагрузки показывала сама Lampa.
-- Добавлена папка `covers` с PNG-обложками.
-- `extensions.json` поддерживает поле `cover`.
-- Для каждого плагина есть отдельный catalog/*.json.
-- Управление стрелками исправлено: фокус и scrollTop ведутся вручную.
-- Кнопки: Установить / Удалить на каждой карточке.
+Стабильная версия без query-версий в ссылках.
 
-Проверочные ссылки после загрузки:
-- https://shardice.github.io/lampa-store/store.js?v=190
-- https://shardice.github.io/lampa-store/extensions.json?v=190
-- https://shardice.github.io/lampa-store/covers/record-radio.png
-- https://shardice.github.io/lampa-store/catalog/record-radio.json?v=130
-
-
-## v2.0.0
-- Уменьшен размер иконки "Дом плагинов" в настройках.
-- Иконка приведена к размеру стандартных пунктов Lampa.
-- Новая ссылка магазина: https://shardice.github.io/lampa-store/store.js?v=200
+Главные изменения:
+- Ссылка магазина: https://shardice.github.io/lampa-store/store.js
+- Каталог: https://shardice.github.io/lampa-store/extensions.json
+- Коверы: /covers/*.jpg
+- Установка открывает родной экран Lampa через single-plugin catalog из /catalog/*.json
+- Прокрутка вручную через scrollTop
+- Фокус вручную: стрелки / OK / Back
+- Иконка в настройках уменьшена
 
 Важно:
-Если Lampa показывает ошибку по `store.js?v=104`, значит в памяти всё ещё стоит старая сломанная версия.
-Её нужно удалить из "Расширения → Установленные в память".
-
-
-## v2.1.0
-- Исправлена синтаксическая ошибка в store.js: неправильное экранирование onerror внутри img.
-- Проверено через node --check.
-- Новая тестовая ссылка: https://shardice.github.io/lampa-store/store.js?v=210
-- Стабильная ссылка после очистки кеша: https://shardice.github.io/lampa-store/store.js
+Чтобы обновления применились, старые store.js?v=104/150/170/180/190/200/210 нужно удалить из установленных расширений.

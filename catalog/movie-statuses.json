@@ -10,14 +10,14 @@
           "version": "1.1.0",
           "descr": "Статусы в карточке фильма и панели избранного.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js?v=110",
+          "link": "https://shardice.github.io/lampa-store/plugins/movie-statuses.js",
           "available_lampa": 1,
           "tag": "Library",
           "accent": "#7c5cff",
           "icon": "✓",
           "subtitle": "Медиатека без премиума",
-          "cover": "movie-statuses.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json?v=130"
+          "cover": "movie-statuses.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/movie-statuses.json"
         }
       ]
     }

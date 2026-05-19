@@ -10,14 +10,14 @@
           "version": "0.1.0",
           "descr": "Будущий плагин для скрытия лишнего и упрощения интерфейса.",
           "author": "@shardice",
-          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js?v=190",
+          "link": "https://shardice.github.io/lampa-store/plugins/coming-soon.js",
           "available_lampa": 1,
           "tag": "UI",
           "accent": "#ffcc66",
           "icon": "✦",
           "subtitle": "Скоро",
-          "cover": "coming-soon.png",
-          "store": "https://shardice.github.io/lampa-store/catalog/coming-soon.json?v=130"
+          "cover": "coming-soon.jpg",
+          "store": "https://shardice.github.io/lampa-store/catalog/coming-soon.json"
         }
       ]
     }
