@@ -65,7 +65,7 @@
         $('body').append('<style id="home-plugins-store-style-clean-v14">' +
             '[data-component="' + COMPONENT + '"] .settings-folder__icon{color:#fff!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-folder__icon svg,[data-component="' + COMPONENT + '"] .settings-folder__icon svg *{max-width:100%;}' +
-            '[data-component="' + COMPONENT + '"] .settings-folder__icon svg{width:2em!important;height:2em!important;display:block!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-folder__icon svg{width:2.2em!important;height:2.2em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-folder__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:#202121;color:#fff;padding:1.55em 0 0 0;box-sizing:border-box;overflow:hidden;}' +
