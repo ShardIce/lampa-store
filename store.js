@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.5.3
+ * version: 1.5.4
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -37,14 +37,16 @@
     });
 
     function smallIcon() {
-        return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">' +
-            '<path d="M16 13h32c3.1 0 5.7 2.2 6.3 5.2L56 29H8l1.7-10.8C10.3 15.2 12.9 13 16 13Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>' +
-            '<path d="M8 29v1.8a7 7 0 0 0 14 0V29M22 29v1.8a7 7 0 0 0 14 0V29M36 29v1.8a7 7 0 0 0 14 0V29M50 29v1.8a6.8 6.8 0 0 0 6-1.8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
-            '<path d="M12 34v15c0 4.4 3.6 8 8 8h24c4.4 0 8-3.6 8-8V34" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>' +
-            '<rect x="20" y="40" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
-            '<rect x="34" y="40" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
-            '<rect x="20" y="51" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
-            '<path d="M42 54h12M48 48v12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>' +
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">' +
+            '<g stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="24" y="24" width="80" height="80" rx="20"/>' +
+                '<path d="M43 47H74"/>' +
+                '<path d="M43 64H70"/>' +
+                '<path d="M43 81H66"/>' +
+                '<path d="M84 68V90"/>' +
+                '<path d="M73 79H95"/>' +
+            '</g>' +
+            '<circle cx="84" cy="79" r="3.5" fill="currentColor"/>' +
         '</svg>';
     }
 
