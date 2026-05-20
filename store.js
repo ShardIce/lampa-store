@@ -38,16 +38,16 @@
 
     function smallIcon() {
         return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">' +
-            '<g stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">' +
-                '<rect x="50" y="50" width="28" height="28" rx="8"/>' +
-                '<rect x="24" y="24" width="22" height="22" rx="6"/>' +
-                '<rect x="82" y="24" width="22" height="22" rx="6"/>' +
-                '<rect x="24" y="82" width="22" height="22" rx="6"/>' +
-                '<path d="M46 46L54 54"/>' +
-                '<path d="M82 46L74 54"/>' +
-                '<path d="M46 82L54 74"/>' +
-                '<path d="M89 93H107"/>' +
-                '<path d="M98 84V102"/>' +
+            '<g stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="47" y="47" width="34" height="34" rx="9"/>' +
+                '<rect x="14" y="14" width="30" height="30" rx="7"/>' +
+                '<rect x="84" y="14" width="30" height="30" rx="7"/>' +
+                '<rect x="14" y="84" width="30" height="30" rx="7"/>' +
+                '<path d="M44 44L52 52"/>' +
+                '<path d="M84 44L76 52"/>' +
+                '<path d="M44 84L52 76"/>' +
+                '<path d="M88 99H119"/>' +
+                '<path d="M103.5 83.5V114.5"/>' +
             '</g>' +
         '</svg>';
     }
