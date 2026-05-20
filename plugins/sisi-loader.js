@@ -1,8 +1,8 @@
 /*
  * name: SISI Loader
- * author: @bwa / xsena
- * version: 1.0.0
- * description: Loads SISI and xsena sources with local fallbacks.
+ * author: @bwa
+ * version: 1.0.1
+ * description: Loads SISI source with a local fallback.
  */
 
 (function () {
@@ -25,16 +25,6 @@
             remote: 'https://rc.bwa.ad/sisi.js?v23012026',
             fallback: fallbackBase + 'bwa-sisi.js',
             ready: 'plugin_bwasisi_bwasisi_ready'
-        },
-        {
-            remote: 'https://cf.xsena.red?v14012026',
-            fallback: fallbackBase + 'cf-xsena.js',
-            ready: 'plugin_xsena_cfxsena_ready'
-        },
-        {
-            remote: 'https://pl.xsena.red?v14012026',
-            fallback: fallbackBase + 'pl-xsena.js',
-            ready: 'plugin_xsena_plxsena_ready'
         }
     ];
 
