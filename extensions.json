@@ -99,6 +99,22 @@
           "img": "https://shardice.github.io/lampa-store/covers/bwarc.svg",
           "image": "https://shardice.github.io/lampa-store/covers/bwarc.svg",
           "store": "https://shardice.github.io/lampa-store/catalog/bwarc.json"
+        },
+        {
+          "id": "sisi_loader",
+          "name": "SISI Loader",
+          "title": "SISI Loader",
+          "version": "1.0.0",
+          "descr": "Загружает Клубничку и xsena.red с резервными локальными копиями скриптов.",
+          "description": "Загружает Клубничку и xsena.red с резервными локальными копиями скриптов.",
+          "author": "@bwa / xsena",
+          "link": "https://shardice.github.io/lampa-store/plugins/sisi-loader.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/sisi-loader.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/sisi-loader.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/sisi-loader.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/sisi-loader.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/sisi-loader.json"
         }
       ]
     },
