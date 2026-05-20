@@ -1540,7 +1540,7 @@ window.rch_nws[hostkey].Registry = function RchRegistry(client, startConnection)
       var html = Lampa.Template.get('lampac_does_not_answer', {});
       html.find('.online-empty__buttons').remove();
       html.find('.online-empty__title').text(Lampa.Lang.translate('title_error'));
-      html.find('.online-empty__time').text(er && er.accsdb ? er.msg : Lampa.Lang.translate('lampac_does_not_answer_text').replace('{balanser}', balanser[balanser].name));
+      html.find('.online-empty__time').text(er && er.accsdb ? er.msg : Lampa.Lang.translate('lampac_does_not_answer_text').replace('{balanser}', sources[balanser] ? sources[balanser].name : balanser));
       scroll.clear();
       scroll.append(html);
       this.loading(false);
@@ -1901,35 +1901,116 @@ window.rch_nws[hostkey].Registry = function RchRegistry(client, startConnection)
     Lampa.Component.add('bwarch', component); //то же самое
     resetTemplates();
 
+    function menuIcon() {
+      return '<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<rect x="4" y="6" width="30" height="22" rx="4" stroke="currentColor" stroke-width="3"/>' +
+        '<path d="M16 13L25 19L16 25V13Z" fill="currentColor"/>' +
+        '<path d="M11 32H27" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' +
+      '</svg>';
+    }
+
+    function addMenuButton() {
+      if ($('.menu__item[data-action="bwarch"]').length) return;
+
+      var list = $('.menu .menu__list').eq(0);
+      if (!list.length) return;
+
+      var btn = $('<li class="menu__item selector" data-action="bwarch">' +
+        '<div class="menu__ico">' + menuIcon() + '</div>' +
+        '<div class="menu__text">BwaRC</div>' +
+      '</li>');
+
+      btn.on('hover:enter', function() {
+        var search = $('.head__actions .open--search').first();
+
+        if (search.length) search.trigger('hover:enter');
+        else if (Lampa.Noty) Lampa.Noty.show('Откройте поиск и выберите источник BwaRC');
+      });
+
+      list.append(btn);
+    }
+
+    function addButtonToFull(render, btn) {
+      if (!render || !render.length) return false;
+
+      var anchor = render.find('.view--torrent, .full-start__button.view--torrent').first();
+      if (!anchor.length) anchor = render.find('.view--online, .full-start__button').last();
+      if (!anchor.length) anchor = render.find('.buttons--container .selector, .full-start__buttons .selector').last();
+
+      if (anchor.length) {
+        anchor.after(btn);
+        return true;
+      }
+
+      var holder = render.find('.full-start__buttons, .buttons--container, .full-start').first();
+      if (holder.length) {
+        holder.append(btn);
+        return true;
+      }
+
+      return false;
+    }
+
+    function openOnline(movie) {
+      resetTemplates();
+      Lampa.Component.add('bwarch', component);
+
+      var id = Lampa.Utils.hash(movie.number_of_seasons ? movie.original_name : movie.original_title);
+      var all = Lampa.Storage.get('clarification_search','{}');
+
+      Lampa.Activity.push({
+        url: '',
+        title: Lampa.Lang.translate('title_online'),
+        component: 'bwarch',
+        search: all[id] ? all[id] : movie.title,
+        search_one: movie.title,
+        search_two: movie.original_title,
+        movie: movie,
+        page: 1,
+        clarification: all[id] ? true : false
+      });
+    }
+
     function addButton(e) {
-      if (e.render.find('.lampac--button').length) return;
+      if (!e || !e.movie) return;
+
+      var render = e.activity && e.activity.render ? e.activity.render() : $();
+      var activeActivity = Lampa.Activity && Lampa.Activity.active ? Lampa.Activity.active() : false;
+
+      if (!render.length && activeActivity && activeActivity.activity && activeActivity.activity.render) {
+        render = activeActivity.activity.render();
+      }
+
+      if (render.find('.lampac--button').length) return;
+
       var btn = $(Lampa.Lang.translate(button));
 	  // //console.log(btn.clone().removeClass('focus').prop('outerHTML'))
       btn.on('hover:enter', function() {
-        resetTemplates();
-        Lampa.Component.add('bwarch', component);
-		
-		var id = Lampa.Utils.hash(e.movie.number_of_seasons ? e.movie.original_name : e.movie.original_title);
-		var all = Lampa.Storage.get('clarification_search','{}');
-		
-        Lampa.Activity.push({
-          url: '',
-          title: Lampa.Lang.translate('title_online'),
-          component: 'bwarch',
-          search: all[id] ? all[id] : e.movie.title,
-          search_one: e.movie.title,
-          search_two: e.movie.original_title,
-          movie: e.movie,
-          page: 1,
-		  clarification: all[id] ? true : false
-        });
+        openOnline(e.movie);
       });
-      e.render.after(btn);
+
+      if (e.render && e.render.length) e.render.after(btn);
+      else addButtonToFull(render, btn);
     }
+
+    if (!window.bwarch_search_source && Lampa.Search && typeof Lampa.Search.addSource == 'function') {
+      window.bwarch_search_source = true;
+      addSourceSearch('BwaRC', 'spider');
+    }
+
+    if (window.appready) addMenuButton();
+    Lampa.Listener.follow('app', function(e) {
+      if (e.type == 'ready') addMenuButton();
+    });
+    Lampa.Listener.follow('menu', function(e) {
+      if (e.type == 'start' || e.type == 'end') setTimeout(addMenuButton, 100);
+    });
+
     Lampa.Listener.follow('full', function(e) {
       if (e.type == 'complite') {
         addButton({
           render: e.object.activity.render().find('.view--torrent'),
+          activity: e.object.activity,
           movie: e.data.movie
         });
       }
@@ -1938,6 +2019,7 @@ window.rch_nws[hostkey].Registry = function RchRegistry(client, startConnection)
       if (Lampa.Activity.active().component == 'full') {
         addButton({
           render: Lampa.Activity.active().activity.render().find('.view--torrent'),
+          activity: Lampa.Activity.active().activity,
           movie: Lampa.Activity.active().card
         });
       }
