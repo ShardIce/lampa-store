@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.5.0
+ * version: 1.5.1
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -36,27 +36,30 @@
     });
 
     function smallIcon() {
-        return '<svg viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" fill="none">' +
-            '<rect x="8" y="7" width="22" height="24" rx="3" stroke="currentColor" stroke-width="2.4"/>' +
-            '<path d="M13 14h12M13 20h12M13 26h7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
-            '<circle cx="25" cy="26" r="2.4" fill="currentColor"/>' +
+        return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none">' +
+            '<path d="M16 13h32c3.1 0 5.7 2.2 6.3 5.2L56 29H8l1.7-10.8C10.3 15.2 12.9 13 16 13Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>' +
+            '<path d="M8 29v1.8a7 7 0 0 0 14 0V29M22 29v1.8a7 7 0 0 0 14 0V29M36 29v1.8a7 7 0 0 0 14 0V29M50 29v1.8a6.8 6.8 0 0 0 6-1.8" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>' +
+            '<path d="M12 34v15c0 4.4 3.6 8 8 8h24c4.4 0 8-3.6 8-8V34" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>' +
+            '<rect x="20" y="40" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
+            '<rect x="34" y="40" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
+            '<rect x="20" y="51" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="4"/>' +
+            '<path d="M42 54h12M48 48v12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>' +
         '</svg>';
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v12').length) return;
+        if ($('#home-plugins-store-style-clean-v13').length) return;
+        $('#home-plugins-store-style-clean-v12').remove();
         $('#home-plugins-store-style-clean-v11').remove();
         $('#home-plugins-store-style-clean-v10').remove();
         $('#home-plugins-store-style-clean-v9').remove();
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v12">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:4.35em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:0!important;color:rgba(255,255,255,.92)!important;background:transparent!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v13">' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:rgba(255,255,255,.92)!important;background:transparent!important;border-radius:0!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.25em!important;height:2.25em!important;max-width:2.25em!important;max-height:2.25em!important;display:block!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.05em!important;height:2.05em!important;max-width:2.05em!important;max-height:2.05em!important;display:block!important;margin:0 auto!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name,[data-component="' + COMPONENT + '"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__descr{display:none!important;}' +
 
