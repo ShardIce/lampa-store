@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.4.9
+ * version: 1.5.0
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -29,35 +29,36 @@
             uk: 'Дім плагінів'
         },
         home_plugins_store_descr: {
-            ru: 'Бесплатные плагины без подписки',
-            en: 'Free plugins without subscription',
-            uk: 'Безкоштовні плагіни без підписки'
+            ru: '',
+            en: '',
+            uk: ''
         }
     });
 
     function smallIcon() {
-        return '<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">' +
-            '<defs><linearGradient id="hpsg3" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#00ffd0"/><stop offset="1" stop-color="#2f80ff"/></linearGradient></defs>' +
-            '<rect x="2" y="2" width="38" height="38" rx="10" fill="url(#hpsg3)"/>' +
-            '<path d="M12 22h17M12 16.5h17M12 27.5h11" stroke="#fff" stroke-width="2.8" stroke-linecap="round"/>' +
-            '<circle cx="30" cy="28" r="3.4" fill="#fff"/>' +
+        return '<svg viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" fill="none">' +
+            '<rect x="8" y="7" width="22" height="24" rx="3" stroke="currentColor" stroke-width="2.4"/>' +
+            '<path d="M13 14h12M13 20h12M13 26h7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+            '<circle cx="25" cy="26" r="2.4" fill="currentColor"/>' +
         '</svg>';
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v11').length) return;
+        if ($('#home-plugins-store-style-clean-v12').length) return;
+        $('#home-plugins-store-style-clean-v11').remove();
         $('#home-plugins-store-style-clean-v10').remove();
         $('#home-plugins-store-style-clean-v9').remove();
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v11">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:5em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:.6em!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v12">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:0!important;min-height:4.35em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{width:2.8em!important;height:2.8em!important;min-width:2.8em!important;max-width:2.8em!important;margin:0 .46em 0 0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;flex:0 0 2.8em!important;border-radius:0!important;color:rgba(255,255,255,.92)!important;background:transparent!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__body{margin:0!important;padding:0!important;min-width:0!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.72em!important;height:2.72em!important;max-width:2.72em!important;max-height:2.72em!important;display:block!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.25em!important;height:2.25em!important;max-width:2.25em!important;max-height:2.25em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name,[data-component="' + COMPONENT + '"] .settings-param__descr{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__descr{display:none!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:#202121;color:#fff;padding:1.55em 0 0 0;box-sizing:border-box;overflow:hidden;}' +
             '.hps-head{height:2.4em;display:flex;align-items:flex-start;justify-content:space-between;padding:0 1.8em;margin-bottom:.35em;box-sizing:border-box;}' +
@@ -79,6 +80,11 @@
             '.hps-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:1em;margin:0 1.8em;}' +
             '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.30);border-radius:1em;}' +
             '.hps-card{position:relative;flex:0 0 21.4em;min-height:13.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em 1em 3.25em 1em;box-sizing:border-box;}' +
+            '.hps-card:before{content:"";position:absolute;left:0;right:0;top:0;height:.32em;z-index:1;pointer-events:none;background:rgba(255,255,255,.18);}' +
+            '.hps-card--own{background:linear-gradient(180deg,rgba(48,73,69,.72),#3c3c3c 44%);}' +
+            '.hps-card--external{background:linear-gradient(180deg,rgba(69,63,56,.62),#3c3c3c 44%);}' +
+            '.hps-card--own:before{background:rgba(112,214,178,.70);}' +
+            '.hps-card--external:before{background:rgba(214,186,128,.58);}' +
             '.hps-cover{height:0;border-radius:.45em;background:transparent;overflow:hidden;box-shadow:none;margin:0;}' +
             '.hps-card--cover .hps-cover{height:9.45em;margin:-1em -1em .9em -1em;border-radius:.72em .72em 0 0;background:#2c2c2c;}' +
             '.hps-cover img{display:block;width:100%;height:100%;object-fit:cover;}' +
@@ -126,15 +132,22 @@
     }
 
     function normalize(item) {
+        var author = item.author || '@lampa';
+
         return {
             name: item.name || item.title || 'Без названия',
             descr: item.descr || item.description || '',
             version: item.version || '1.0.0',
-            author: item.author || '@lampa',
+            author: author,
             cover: item.cover || item.img || item.image || '',
             store: item.store || '',
-            url: item.link || item.url || ''
+            url: item.link || item.url || '',
+            own: item.owner == 'home' || item.origin == 'home' || /@shardice/i.test(author)
         };
+    }
+
+    function originClass(plugin) {
+        return plugin.own ? ' hps-card--own' : ' hps-card--external';
     }
 
     function load(done) {
@@ -640,7 +653,7 @@
             var grid = $('<div class="hps-grid"></div>');
 
             section.items.forEach(function (plugin) {
-                var card = $('<div class="hps-card selector' + (plugin.cover ? ' hps-card--cover' : '') + '">' +
+                var card = $('<div class="hps-card selector' + (plugin.cover ? ' hps-card--cover' : '') + originClass(plugin) + '">' +
                     '<div class="hps-cover">' + (plugin.cover ? '<img src="' + escapeHtml(plugin.cover) + '" alt="">' : '') + '</div>' +
                     '<div class="hps-name">' + escapeHtml(plugin.name) + '</div>' +
                     '<div class="hps-desc">' + escapeHtml(plugin.descr) + '</div>' +
@@ -1080,7 +1093,6 @@
                     '<div class="settings-param__icon">' + smallIcon() + '</div>' +
                     '<div class="settings-param__body">' +
                         '<div class="settings-param__name">' + Lampa.Lang.translate('home_plugins_store_title') + '</div>' +
-                        '<div class="settings-param__descr">' + Lampa.Lang.translate('home_plugins_store_descr') + '</div>' +
                     '</div>' +
                 '</div>'
             );
