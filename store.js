@@ -1,7 +1,7 @@
 /*
  * name: Дом плагинов
  * author: shardice
- * version: 1.5.2
+ * version: 1.5.3
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -21,6 +21,7 @@
     var actionIndex = 0;
     var actionContext = null;
     var lastMoveDirection = '';
+    var ignoreActionMenuUntil = {};
 
     Lampa.Lang.add({
         home_plugins_store_title: {
@@ -321,9 +322,35 @@
         });
 
         list.push(data);
-        Lampa.Storage.set('plugins', list);
+        if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+            Lampa.Storage.set('plugins', list);
+        }
 
         if (Lampa.Utils && typeof Lampa.Utils.putScriptAsync === 'function') {
+            Lampa.Utils.putScriptAsync([data.url], false, false, function () {}, false);
+        } else if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
+            Lampa.Utils.putScript([data.url], function () {}, false, function () {}, true);
+        }
+    }
+
+    function addInstalledPlugin(data) {
+        var source = installedPlugins();
+        var list = source.map(function (item) {
+            return typeof item == 'string' ? { url: item, status: 1 } : item;
+        });
+
+        list.push(data);
+
+        if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+            Lampa.Storage.set('plugins', list);
+        } else if (Lampa.Plugins && typeof Lampa.Plugins.save === 'function') {
+            if (Array.isArray(source)) source.push(data);
+            Lampa.Plugins.save();
+        }
+
+        if (Lampa.Plugins && typeof Lampa.Plugins.push === 'function') {
+            Lampa.Plugins.push(data);
+        } else if (Lampa.Utils && typeof Lampa.Utils.putScriptAsync === 'function') {
             Lampa.Utils.putScriptAsync([data.url], false, false, function () {}, false);
         } else if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
             Lampa.Utils.putScript([data.url], function () {}, false, function () {}, true);
@@ -349,6 +376,7 @@
         if (installing[url]) return;
 
         installing[url] = true;
+        ignoreActionMenuUntil[url] = Date.now() + 1500;
         updateCardState(card, plugin, 'installing');
 
         var data = {
@@ -359,9 +387,10 @@
         };
 
         try {
-            if (Lampa.Plugins && typeof Lampa.Plugins.add === 'function') {
-                Lampa.Plugins.add(data);
-            } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+            if ((Lampa.Storage && typeof Lampa.Storage.set === 'function') ||
+                (Lampa.Plugins && typeof Lampa.Plugins.push === 'function')) {
+                addInstalledPlugin(data);
+            } else if (Lampa.Utils && (typeof Lampa.Utils.putScriptAsync === 'function' || typeof Lampa.Utils.putScript === 'function')) {
                 savePluginFallback(data);
             } else {
                 throw new Error('Lampa.Plugins.add не найден');
@@ -369,11 +398,13 @@
 
             setTimeout(function () {
                 installing[url] = false;
+                ignoreActionMenuUntil[url] = Date.now() + 1500;
                 updateCardState(card, plugin, 'installed');
                 if (complete) complete(true);
             }, 350);
         } catch (e) {
             installing[url] = false;
+            delete ignoreActionMenuUntil[url];
             updateCardState(card, plugin, 'ready');
             console.log('Plugin install error:', e);
             if (Lampa.Noty) Lampa.Noty.show('Не удалось установить плагин');
@@ -670,7 +701,10 @@
 
                 card.on('hover:enter click', function (e) {
                     stopEvent(e);
-                    if (isInstalled(plugin)) openActionMenu(plugin, card);
+                    if (isInstalled(plugin)) {
+                        if (Date.now() < (ignoreActionMenuUntil[plugin.url] || 0)) return;
+                        openActionMenu(plugin, card);
+                    }
                     else installPlugin(plugin, card);
                 });
 
