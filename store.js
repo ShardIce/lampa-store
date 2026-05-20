@@ -1,7 +1,7 @@
 /*
- * name: Дом плагинов
+ * name: Plugin Hub
  * author: shardice
- * version: 1.5.4
+ * version: 1.5.5
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -25,9 +25,9 @@
 
     Lampa.Lang.add({
         home_plugins_store_title: {
-            ru: 'Дом плагинов',
-            en: 'Plugin Home',
-            uk: 'Дім плагінів'
+            ru: 'Plugin Hub',
+            en: 'Plugin Hub',
+            uk: 'Plugin Hub'
         },
         home_plugins_store_descr: {
             ru: '',
@@ -39,14 +39,16 @@
     function smallIcon() {
         return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">' +
             '<g stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">' +
-                '<rect x="5" y="5" width="118" height="118" rx="25"/>' +
-                '<path d="M31 42H78"/>' +
-                '<path d="M31 64H72"/>' +
-                '<path d="M31 86H66"/>' +
-                '<path d="M91 72V106"/>' +
-                '<path d="M74 89H108"/>' +
+                '<rect x="50" y="50" width="28" height="28" rx="8"/>' +
+                '<rect x="24" y="24" width="22" height="22" rx="6"/>' +
+                '<rect x="82" y="24" width="22" height="22" rx="6"/>' +
+                '<rect x="24" y="82" width="22" height="22" rx="6"/>' +
+                '<path d="M46 46L54 54"/>' +
+                '<path d="M82 46L74 54"/>' +
+                '<path d="M46 82L54 74"/>' +
+                '<path d="M89 93H107"/>' +
+                '<path d="M98 84V102"/>' +
             '</g>' +
-            '<circle cx="91" cy="89" r="4.5" fill="currentColor"/>' +
         '</svg>';
     }
 
@@ -1047,7 +1049,7 @@
                 '<div class="hps-brand">' +
                     '<div class="hps-logo">⌂</div>' +
                     '<div>' +
-                        '<div class="hps-title">Дом плагинов</div>' +
+                        '<div class="hps-title">Plugin Hub</div>' +
                         '<div class="hps-subtitle">Бесплатные плагины без подписки. Установка не выводит из магазина.</div>' +
                     '</div>' +
                 '</div>' +
