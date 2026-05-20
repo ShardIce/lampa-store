@@ -38,15 +38,15 @@
 
     function smallIcon() {
         return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">' +
-            '<g stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">' +
-                '<rect x="24" y="24" width="80" height="80" rx="20"/>' +
-                '<path d="M43 47H74"/>' +
-                '<path d="M43 64H70"/>' +
-                '<path d="M43 81H66"/>' +
-                '<path d="M84 68V90"/>' +
-                '<path d="M73 79H95"/>' +
+            '<g stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="5" y="5" width="118" height="118" rx="25"/>' +
+                '<path d="M31 42H78"/>' +
+                '<path d="M31 64H72"/>' +
+                '<path d="M31 86H66"/>' +
+                '<path d="M91 72V106"/>' +
+                '<path d="M74 89H108"/>' +
             '</g>' +
-            '<circle cx="84" cy="79" r="3.5" fill="currentColor"/>' +
+            '<circle cx="91" cy="89" r="4.5" fill="currentColor"/>' +
         '</svg>';
     }
 
