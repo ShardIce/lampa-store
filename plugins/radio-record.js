@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.0
+ * version: 1.1.1
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
@@ -16,11 +16,14 @@
         if ($('#home-radio-record-style').length) return;
 
         $('body').append('<style id="home-radio-record-style">' +
-            '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;}' +
-            '.home-radio-record-item__imgbox{background-color:#3e3e3e;padding-bottom:83%;position:relative;border-radius:.3em;overflow:hidden;}' +
+            '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.26em;border-radius:.45em;transition:background-color .12s ease;}' +
+            '.home-radio-record-item__imgbox{background-color:#343434;padding-bottom:83%;position:relative;border:.12em solid rgba(255,255,255,.12);border-radius:.25em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
             '.home-radio-record-item__img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}' +
             '.home-radio-record-item__name{font-size:1.1em;margin-top:.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-item.focus .home-radio-record-item__imgbox:after{border:solid .26em #fff;content:"";display:block;position:absolute;left:-.5em;top:-.5em;right:-.5em;bottom:-.5em;border-radius:.8em;}' +
+            '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.08);}' +
+            '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:#fff;box-shadow:0 0 0 .12em rgba(255,255,255,.34),inset 0 0 0 .08em rgba(255,255,255,.22);}' +
+            '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.72);background-color:#202020;}' +
+            '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
             '@keyframes home-radio-record-sound{0%{height:.1em}100%{height:1em}}' +
             '@keyframes home-radio-record-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}' +
             '.home-radio-record-player{display:flex;align-items:center;border-radius:.3em;padding:.2em .8em;background-color:#3e3e3e;}' +
@@ -72,7 +75,7 @@
         normalized.icon_gray = cleanUrl(normalized.icon_gray);
         normalized.icon_fill_colored = cleanUrl(normalized.icon_fill_colored);
         normalized.icon_fill_white = cleanUrl(normalized.icon_fill_white);
-        normalized.icon = normalized.icon_fill_colored || normalized.icon_gray || normalized.icon_fill_white || cleanUrl(normalized.icon);
+        normalized.icon = normalized.icon_fill_white || normalized.icon_gray || normalized.icon_fill_colored || cleanUrl(normalized.icon);
         normalized.stream_64 = cleanUrl(normalized.stream_64);
         normalized.stream_128 = cleanUrl(normalized.stream_128);
         normalized.stream_320 = cleanUrl(normalized.stream_320);
@@ -120,7 +123,7 @@
         img.onerror = function () {
             img.src = './img/img_broken.svg';
         };
-        img.src = data.icon || data.icon_fill_colored || data.icon_gray || data.icon_fill_white || '';
+        img.src = data.icon_fill_white || data.icon || data.icon_gray || data.icon_fill_colored || '';
 
         this.data = data;
 
@@ -279,6 +282,7 @@
         var activity;
         var active;
         var last;
+        var playing = '';
         var keyBound = false;
 
         function stopEvent(e) {
@@ -401,11 +405,24 @@
             item = items[active];
 
             if (item && item.data) {
+                markPlaying(item.data);
                 player.play(item.data);
                 return true;
             }
 
             return false;
+        }
+
+        function stationKey(station) {
+            return station && (station.prefix || station.id || station.title) || '';
+        }
+
+        function markPlaying(station) {
+            playing = stationKey(station);
+
+            items.forEach(function (item) {
+                item.render().toggleClass('playing', stationKey(item.data) === playing);
+            });
         }
 
         function leaveContent(target) {
@@ -509,6 +526,7 @@
                 }).on('hover:enter click', function (e) {
                     if (e && e.preventDefault) e.preventDefault();
                     setFocus(items.indexOf(stationItem));
+                    markPlaying(station);
                     player.play(station);
                 });
 
@@ -557,6 +575,8 @@
                     moveOrLeave('down');
                 },
                 enter: playFocused,
+                ok: playFocused,
+                select: playFocused,
                 back: this.back
             });
             Lampa.Controller.toggle('content');
