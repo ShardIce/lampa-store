@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.1
+ * version: 1.1.2
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
@@ -16,14 +16,15 @@
         if ($('#home-radio-record-style').length) return;
 
         $('body').append('<style id="home-radio-record-style">' +
-            '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.26em;border-radius:.45em;transition:background-color .12s ease;}' +
-            '.home-radio-record-item__imgbox{background-color:#343434;padding-bottom:83%;position:relative;border:.12em solid rgba(255,255,255,.12);border-radius:.25em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
-            '.home-radio-record-item__img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}' +
-            '.home-radio-record-item__name{font-size:1.1em;margin-top:.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.08);}' +
-            '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:#fff;box-shadow:0 0 0 .12em rgba(255,255,255,.34),inset 0 0 0 .08em rgba(255,255,255,.22);}' +
-            '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.72);background-color:#202020;}' +
-            '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
+            '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.22em;border-radius:.36em;transition:background-color .12s ease;}' +
+            '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
+            '.home-radio-record-item__img{position:absolute;top:12%;left:12%;width:76%;height:76%;object-fit:contain;filter:brightness(0) invert(1);opacity:.82;transition:opacity .12s ease;}' +
+            '.home-radio-record-item__name{font-size:1.02em;margin-top:.7em;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.045);}' +
+            '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
+            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img{opacity:1;}' +
+            '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.36);background-color:rgba(255,255,255,.055);}' +
+            '.home-radio-record-item.playing .home-radio-record-item__name{color:rgba(255,255,255,.92);}' +
             '@keyframes home-radio-record-sound{0%{height:.1em}100%{height:1em}}' +
             '@keyframes home-radio-record-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}' +
             '.home-radio-record-player{display:flex;align-items:center;border-radius:.3em;padding:.2em .8em;background-color:#3e3e3e;}' +
@@ -75,7 +76,7 @@
         normalized.icon_gray = cleanUrl(normalized.icon_gray);
         normalized.icon_fill_colored = cleanUrl(normalized.icon_fill_colored);
         normalized.icon_fill_white = cleanUrl(normalized.icon_fill_white);
-        normalized.icon = normalized.icon_fill_white || normalized.icon_gray || normalized.icon_fill_colored || cleanUrl(normalized.icon);
+        normalized.icon = normalized.icon_gray || normalized.icon_fill_white || normalized.icon_fill_colored || cleanUrl(normalized.icon);
         normalized.stream_64 = cleanUrl(normalized.stream_64);
         normalized.stream_128 = cleanUrl(normalized.stream_128);
         normalized.stream_320 = cleanUrl(normalized.stream_320);
@@ -123,7 +124,7 @@
         img.onerror = function () {
             img.src = './img/img_broken.svg';
         };
-        img.src = data.icon_fill_white || data.icon || data.icon_gray || data.icon_fill_colored || '';
+        img.src = data.icon_gray || data.icon || data.icon_fill_white || data.icon_fill_colored || '';
 
         this.data = data;
 
