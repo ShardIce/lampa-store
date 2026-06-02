@@ -1,15 +1,16 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.0.0
- * description: Добавляет пункт Радио в левое меню Lampa и мини-плеер для станций Radio Record.
+ * version: 1.1.0
+ * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
 (function () {
     'use strict';
 
     var COMPONENT = 'home_radio_record';
-    var STATIONS_URL = 'https://lampaplugins.github.io/store/stations.json';
+    var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
+    var KEY_NAMESPACE = 'keydown.home_radio_record';
 
     function addCss() {
         if ($('#home-radio-record-style').length) return;
@@ -52,16 +53,76 @@
         '</svg>';
     }
 
+    function cleanUrl(url) {
+        return (url || '').replace('http://localhost:6081', '');
+    }
+
+    function normalizeStation(station, index) {
+        var normalized = {};
+        var key;
+
+        for (key in station) {
+            if (Object.prototype.hasOwnProperty.call(station, key)) normalized[key] = station[key];
+        }
+
+        normalized.sort = parseInt(normalized.sort, 10);
+        if (isNaN(normalized.sort)) normalized.sort = index;
+
+        normalized.title = normalized.title || normalized.short_title || 'Radio Record';
+        normalized.icon_gray = cleanUrl(normalized.icon_gray);
+        normalized.icon_fill_colored = cleanUrl(normalized.icon_fill_colored);
+        normalized.icon_fill_white = cleanUrl(normalized.icon_fill_white);
+        normalized.icon = normalized.icon_fill_colored || normalized.icon_gray || normalized.icon_fill_white || cleanUrl(normalized.icon);
+        normalized.stream_64 = cleanUrl(normalized.stream_64);
+        normalized.stream_128 = cleanUrl(normalized.stream_128);
+        normalized.stream_320 = cleanUrl(normalized.stream_320);
+        normalized.stream_hls = cleanUrl(normalized.stream_hls);
+        normalized._index = index;
+
+        return normalized;
+    }
+
+    function parseStations(data) {
+        var source = [];
+
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                data = {};
+            }
+        }
+
+        try {
+            if (data.result && Array.isArray(data.result.stations)) source = data.result.stations;
+            else if (Array.isArray(data.stations)) source = data.stations;
+        } catch (e2) {}
+
+        return source.filter(function (station) {
+            return station;
+        }).map(normalizeStation).filter(function (station) {
+            return station.stream_320 || station.stream_128 || station.stream_hls;
+        }).sort(function (a, b) {
+            if (a.sort === b.sort) return a._index - b._index;
+            return a.sort - b.sort;
+        });
+    }
+
     function StationItem(data) {
         var html = Lampa.Template.get('home_radio_record_item', {
             name: data.title || 'Radio Record'
         });
         var img = html.find('img')[0];
 
+        html.attr('title', data.title || 'Radio Record');
+        if (data.prefix) html.attr('data-prefix', data.prefix);
+
         img.onerror = function () {
             img.src = './img/img_broken.svg';
         };
-        img.src = data.icon_gray || data.icon || '';
+        img.src = data.icon || data.icon_fill_colored || data.icon_gray || data.icon_fill_white || '';
+
+        this.data = data;
 
         this.render = function () {
             return html;
@@ -172,7 +233,8 @@
             audio.src = '';
         }
 
-        html.on('hover:enter', function () {
+        html.on('hover:enter click', function (e) {
+            if (e && e.preventDefault) e.preventDefault();
             if (played) stop();
             else if (url) play();
         });
@@ -214,8 +276,203 @@
         var items = [];
         var html = $('<div></div>');
         var body = $('<div class="category-full"></div>');
+        var activity;
         var active;
         var last;
+        var keyBound = false;
+
+        function stopEvent(e) {
+            if (!e) return;
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+            e.cancelBubble = true;
+            e.returnValue = false;
+        }
+
+        function isActiveActivity() {
+            try {
+                return Lampa.Activity.active().activity === activity;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function setFocus(index) {
+            var item;
+            var itemHtml;
+
+            if (!items || !items.length) return false;
+
+            if (index < 0) index = 0;
+            if (index >= items.length) index = items.length - 1;
+
+            active = index;
+            item = items[active];
+            itemHtml = item.render();
+            last = itemHtml[0];
+
+            body.find('.selector').removeClass('focus hover');
+            itemHtml.addClass('focus');
+            scroll.update(itemHtml, true);
+
+            try {
+                Lampa.Controller.collectionFocus(itemHtml, scroll.render());
+            } catch (e) {}
+
+            return true;
+        }
+
+        function findMoveIndex(direction) {
+            var current;
+            var rect;
+            var centerX;
+            var centerY;
+            var best = -1;
+            var bestScore = Infinity;
+
+            if (typeof active !== 'number') return 0;
+            current = items[active] && items[active].render()[0];
+            if (!current) return -1;
+
+            rect = current.getBoundingClientRect();
+            centerX = rect.left + rect.width / 2;
+            centerY = rect.top + rect.height / 2;
+
+            items.forEach(function (item, index) {
+                var element;
+                var itemRect;
+                var itemX;
+                var itemY;
+                var primary = 0;
+                var secondary = 0;
+                var score;
+
+                if (index === active) return;
+
+                element = item.render()[0];
+                if (!element) return;
+
+                itemRect = element.getBoundingClientRect();
+                itemX = itemRect.left + itemRect.width / 2;
+                itemY = itemRect.top + itemRect.height / 2;
+
+                if (direction === 'left') {
+                    primary = centerX - itemX;
+                    secondary = Math.abs(centerY - itemY);
+                } else if (direction === 'right') {
+                    primary = itemX - centerX;
+                    secondary = Math.abs(centerY - itemY);
+                } else if (direction === 'up') {
+                    primary = centerY - itemY;
+                    secondary = Math.abs(centerX - itemX);
+                } else if (direction === 'down') {
+                    primary = itemY - centerY;
+                    secondary = Math.abs(centerX - itemX);
+                }
+
+                if (primary <= 4) return;
+
+                score = primary * 1000 + secondary;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = index;
+                }
+            });
+
+            return best;
+        }
+
+        function moveFocus(direction) {
+            var next;
+
+            if (!items || !items.length) return false;
+            if (typeof active !== 'number') return setFocus(0);
+
+            next = findMoveIndex(direction);
+            if (next > -1) return setFocus(next);
+
+            return false;
+        }
+
+        function playFocused() {
+            var item;
+
+            if (typeof active !== 'number') active = 0;
+            item = items[active];
+
+            if (item && item.data) {
+                player.play(item.data);
+                return true;
+            }
+
+            return false;
+        }
+
+        function leaveContent(target) {
+            unbindKeys();
+            if (Lampa.Controller) Lampa.Controller.toggle(target);
+        }
+
+        function moveOrLeave(direction) {
+            if (moveFocus(direction)) return;
+            if (direction === 'left') leaveContent('menu');
+            else if (direction === 'up') leaveContent('head');
+        }
+
+        function bindKeys() {
+            if (keyBound) return;
+            keyBound = true;
+
+            $(document).on(KEY_NAMESPACE, function (e) {
+                var code;
+
+                if (!isActiveActivity()) return;
+
+                code = e.keyCode || e.which;
+
+                if (code === 37 || code === 21) {
+                    stopEvent(e);
+                    moveOrLeave('left');
+                    return false;
+                }
+
+                if (code === 39 || code === 22) {
+                    stopEvent(e);
+                    moveOrLeave('right');
+                    return false;
+                }
+
+                if (code === 38 || code === 19) {
+                    stopEvent(e);
+                    moveOrLeave('up');
+                    return false;
+                }
+
+                if (code === 40 || code === 20) {
+                    stopEvent(e);
+                    moveOrLeave('down');
+                    return false;
+                }
+
+                if (code === 13 || code === 23 || code === 66) {
+                    stopEvent(e);
+                    playFocused();
+                    return false;
+                }
+
+                if (code === 4 || code === 8 || code === 27 || code === 461 || code === 10009) {
+                    stopEvent(e);
+                    unbindKeys();
+                    Lampa.Activity.backward();
+                    return false;
+                }
+            });
+        }
+
+        function unbindKeys() {
+            keyBound = false;
+            $(document).off(KEY_NAMESPACE);
+        }
 
         this.create = function () {
             var that = this;
@@ -233,13 +490,7 @@
         };
 
         this.build = function (data) {
-            var stations = [];
-
-            try {
-                stations = (data.result && data.result.stations ? data.result.stations : []).sort(function (a, b) {
-                    return (a.sort || 0) - (b.sort || 0);
-                });
-            } catch (e) {}
+            var stations = parseStations(data);
 
             scroll.minus();
             this.append(stations);
@@ -254,19 +505,26 @@
                 var stationItem = new StationItem(station);
 
                 stationItem.render().on('hover:focus', function () {
-                    last = stationItem.render()[0];
-                    active = items.indexOf(stationItem);
-                    scroll.update(items[active].render(), true);
-                }).on('hover:enter', function () {
+                    setFocus(items.indexOf(stationItem));
+                }).on('hover:enter click', function (e) {
+                    if (e && e.preventDefault) e.preventDefault();
+                    setFocus(items.indexOf(stationItem));
                     player.play(station);
                 });
 
                 body.append(stationItem.render());
                 items.push(stationItem);
             });
+
+            if (items.length && typeof active !== 'number') {
+                active = 0;
+                last = items[0].render()[0];
+                items[0].render().addClass('focus');
+            }
         };
 
         this.back = function () {
+            unbindKeys();
             Lampa.Activity.backward();
         };
 
@@ -277,39 +535,42 @@
         this.start = function () {
             if (Lampa.Activity.active().activity !== this.activity) return;
 
+            activity = this.activity;
             this.background();
             Lampa.Controller.add('content', {
                 toggle: function () {
                     Lampa.Controller.collectionSet(scroll.render());
-                    Lampa.Controller.collectionFocus(last || false, scroll.render());
+                    bindKeys();
+                    if (items && items.length) setFocus(typeof active === 'number' ? active : 0);
+                    else Lampa.Controller.collectionFocus(last || false, scroll.render());
                 },
                 left: function () {
-                    if (Navigator.canmove('left')) Navigator.move('left');
-                    else Lampa.Controller.toggle('menu');
+                    moveOrLeave('left');
                 },
                 right: function () {
-                    Navigator.move('right');
+                    moveOrLeave('right');
                 },
                 up: function () {
-                    if (Navigator.canmove('up')) Navigator.move('up');
-                    else Lampa.Controller.toggle('head');
+                    moveOrLeave('up');
                 },
                 down: function () {
-                    if (Navigator.canmove('down')) Navigator.move('down');
+                    moveOrLeave('down');
                 },
+                enter: playFocused,
                 back: this.back
             });
             Lampa.Controller.toggle('content');
         };
 
-        this.pause = function () {};
-        this.stop = function () {};
+        this.pause = unbindKeys;
+        this.stop = unbindKeys;
 
         this.render = function () {
             return html;
         };
 
         this.destroy = function () {
+            unbindKeys();
             network.clear();
             Lampa.Arrays.destroy(items);
             scroll.destroy();
