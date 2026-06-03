@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.5.5
+ * version: 1.5.6
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -53,7 +53,8 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v14').length) return;
+        if ($('#home-plugins-store-style-clean-v15').length) return;
+        $('#home-plugins-store-style-clean-v14').remove();
         $('#home-plugins-store-style-clean-v13').remove();
         $('#home-plugins-store-style-clean-v12').remove();
         $('#home-plugins-store-style-clean-v11').remove();
@@ -62,11 +63,13 @@
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v14">' +
-            '[data-component="' + COMPONENT + '"] .settings-folder__icon{color:#fff!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-folder__icon svg,[data-component="' + COMPONENT + '"] .settings-folder__icon svg *{max-width:100%;}' +
-            '[data-component="' + COMPONENT + '"] .settings-folder__icon svg{width:2.42em!important;height:2.42em!important;display:block!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-folder__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v15">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:#fff!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.28em!important;height:2.28em!important;display:block!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__descr{display:none!important;}' +
 
             '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:#202121;color:#fff;padding:1.55em 0 0 0;box-sizing:border-box;overflow:hidden;}' +
             '.hps-head{height:2.4em;display:flex;align-items:flex-start;justify-content:space-between;padding:0 1.8em;margin-bottom:.35em;box-sizing:border-box;}' +
@@ -1116,9 +1119,11 @@
 
     function createSettingsItem() {
         return $(
-            '<div class="settings-folder selector" data-component="' + COMPONENT + '">' +
-                '<div class="settings-folder__icon">' + smallIcon() + '</div>' +
-                '<div class="settings-folder__name">' + Lampa.Lang.translate('home_plugins_store_title') + '</div>' +
+            '<div class="settings-param selector" data-component="' + COMPONENT + '">' +
+                '<div class="settings-param__icon">' + smallIcon() + '</div>' +
+                '<div class="settings-param__body">' +
+                    '<div class="settings-param__name">' + Lampa.Lang.translate('home_plugins_store_title') + '</div>' +
+                '</div>' +
             '</div>'
         );
     }
@@ -1135,7 +1140,7 @@
             if (!render || !render.length || typeof render.find !== 'function') return;
             var exists = render.find('[data-component="' + COMPONENT + '"]');
             if (exists.length) {
-                if (!exists.is('.settings-folder')) {
+                if (!exists.is('.settings-param')) {
                     exists.replaceWith(createSettingsItem());
                 }
 
