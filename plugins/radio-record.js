@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.2
+ * version: 1.1.3
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
@@ -18,7 +18,7 @@
         $('body').append('<style id="home-radio-record-style">' +
             '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.22em;border-radius:.36em;transition:background-color .12s ease;}' +
             '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
-            '.home-radio-record-item__img{position:absolute;top:12%;left:12%;width:76%;height:76%;object-fit:contain;filter:brightness(0) invert(1);opacity:.82;transition:opacity .12s ease;}' +
+            '.home-radio-record-item__img{position:absolute;top:14%;left:14%;width:72%;height:72%;object-fit:contain;opacity:.86;transition:opacity .12s ease;}' +
             '.home-radio-record-item__name{font-size:1.02em;margin-top:.7em;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.045);}' +
             '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
@@ -62,28 +62,24 @@
     }
 
     function normalizeStation(station, index) {
-        var normalized = {};
-        var key;
+        var iconGray = cleanUrl(station.icon_gray);
+        var iconWhite = cleanUrl(station.icon_fill_white);
+        var iconColored = cleanUrl(station.icon_fill_colored);
+        var sort = parseInt(station.sort, 10);
 
-        for (key in station) {
-            if (Object.prototype.hasOwnProperty.call(station, key)) normalized[key] = station[key];
-        }
+        if (isNaN(sort)) sort = index;
 
-        normalized.sort = parseInt(normalized.sort, 10);
-        if (isNaN(normalized.sort)) normalized.sort = index;
-
-        normalized.title = normalized.title || normalized.short_title || 'Radio Record';
-        normalized.icon_gray = cleanUrl(normalized.icon_gray);
-        normalized.icon_fill_colored = cleanUrl(normalized.icon_fill_colored);
-        normalized.icon_fill_white = cleanUrl(normalized.icon_fill_white);
-        normalized.icon = normalized.icon_gray || normalized.icon_fill_white || normalized.icon_fill_colored || cleanUrl(normalized.icon);
-        normalized.stream_64 = cleanUrl(normalized.stream_64);
-        normalized.stream_128 = cleanUrl(normalized.stream_128);
-        normalized.stream_320 = cleanUrl(normalized.stream_320);
-        normalized.stream_hls = cleanUrl(normalized.stream_hls);
-        normalized._index = index;
-
-        return normalized;
+        return {
+            id: station.id,
+            prefix: station.prefix,
+            title: station.title || station.short_title || 'Radio Record',
+            sort: sort,
+            icon: iconGray || iconWhite || iconColored || cleanUrl(station.icon),
+            stream_128: cleanUrl(station.stream_128),
+            stream_320: cleanUrl(station.stream_320),
+            stream_hls: cleanUrl(station.stream_hls),
+            _index: index
+        };
     }
 
     function parseStations(data) {
@@ -117,6 +113,7 @@
             name: data.title || 'Radio Record'
         });
         var img = html.find('img')[0];
+        var loaded = false;
 
         html.attr('title', data.title || 'Radio Record');
         if (data.prefix) html.attr('data-prefix', data.prefix);
@@ -124,9 +121,16 @@
         img.onerror = function () {
             img.src = './img/img_broken.svg';
         };
-        img.src = data.icon_gray || data.icon || data.icon_fill_white || data.icon_fill_colored || '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
 
         this.data = data;
+
+        this.load = function () {
+            if (loaded) return;
+            loaded = true;
+            img.src = data.icon || '';
+        };
 
         this.render = function () {
             return html;
@@ -136,6 +140,7 @@
             img.onerror = function () {};
             img.onload = function () {};
             img.src = '';
+            loaded = false;
             html.remove();
         };
     }
@@ -312,6 +317,7 @@
             if (index >= items.length) index = items.length - 1;
 
             active = index;
+            loadIconsAround(active);
             item = items[active];
             itemHtml = item.render();
             last = itemHtml[0];
@@ -325,6 +331,16 @@
             } catch (e) {}
 
             return true;
+        }
+
+        function loadIconsAround(index) {
+            var start = Math.max(0, index - 16);
+            var end = Math.min(items.length - 1, index + 32);
+            var i;
+
+            for (i = start; i <= end; i++) {
+                if (items[i] && items[i].load) items[i].load();
+            }
         }
 
         function findMoveIndex(direction) {
@@ -539,6 +555,7 @@
                 active = 0;
                 last = items[0].render()[0];
                 items[0].render().addClass('focus');
+                loadIconsAround(active);
             }
         };
 
