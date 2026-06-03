@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.5.6
+ * version: 1.5.7
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -1119,7 +1119,7 @@
 
     function createSettingsItem() {
         return $(
-            '<div class="settings-param selector" data-component="' + COMPONENT + '">' +
+            '<div class="settings-param selector" data-component="' + COMPONENT + '" data-static="true">' +
                 '<div class="settings-param__icon">' + smallIcon() + '</div>' +
                 '<div class="settings-param__body">' +
                     '<div class="settings-param__name">' + Lampa.Lang.translate('home_plugins_store_title') + '</div>' +
@@ -1140,9 +1140,12 @@
             if (!render || !render.length || typeof render.find !== 'function') return;
             var exists = render.find('[data-component="' + COMPONENT + '"]');
             if (exists.length) {
-                if (!exists.is('.settings-param')) {
-                    exists.replaceWith(createSettingsItem());
-                }
+                exists.each(function () {
+                    var item = $(this);
+
+                    if (!item.is('.settings-param')) item.replaceWith(createSettingsItem());
+                    else item.attr('data-static', 'true');
+                });
 
                 bindSettingsItem(render);
                 return;
