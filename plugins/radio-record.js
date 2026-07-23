@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.11
+ * version: 1.1.12
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -550,6 +550,17 @@
             time: Date.now(),
             stations: stations
         });
+    }
+
+    function requestErrorData(xhr, status, error) {
+        var data = {};
+
+        if (xhr && typeof xhr.status !== 'undefined') data.http = xhr.status;
+        if (xhr && xhr.statusText) data.statusText = xhr.statusText;
+        if (status) data.status = status;
+        if (error) data.error = error.message || String(error);
+
+        return data;
     }
 
     function StationItem(data) {
@@ -2030,15 +2041,24 @@
                     });
                     scheduleTrackPrefetch();
                 }
-            }, function () {
+            }, function (xhr, status, error) {
+                var errorData = requestErrorData(xhr, status, error);
+
+                errorData.url = 'stations';
+                errorData.cached = stationsBuilt ? 'yes' : 'no';
+                errorData._message = true;
+                RadioDebug.log(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', errorData);
+                RadioDebug.scheduleDocument(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', 500);
+
                 if (stationsBuilt) {
-                    RadioDebug.log('stations.refresh.error');
                     return;
                 }
 
                 var empty = new Lampa.Empty();
                 html.append(empty.render());
-                that.start = empty.start;
+                that.start = function () {
+                    return empty.start.apply(empty, arguments);
+                };
                 that.activity.loader(false);
                 that.activity.toggle();
             });
