@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.7
+ * version: 1.1.8
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -17,6 +17,10 @@
     var TRACK_POLL_INTERVAL = 12000;
     var ICON_PRELOAD_CHUNK = 10;
     var ICON_PRELOAD_DELAY = 140;
+    var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
+    var DEBUG_STORAGE_TOKEN = 'radio_record_debug_bot_token';
+    var DEBUG_STORAGE_CHAT = 'radio_record_debug_chat_id';
+    var DEBUG_DEFAULT_CHAT = '-1001301222162';
 
     function addCss() {
         if ($('#home-radio-record-style').length) return;
@@ -30,6 +34,7 @@
             '.home-radio-record-panel__station{font-size:.9em;color:#F64900;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-panel__track{font-size:1.24em;color:#fff;font-weight:700;line-height:1.12;margin-top:.12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-panel__artist{font-size:.95em;color:rgba(255,255,255,.62);margin-top:.18em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__debug{font-size:.78em;color:rgba(255,255,255,.45);margin-top:.22em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-panel__actions{display:flex;align-items:center;margin-left:.8em;}' +
             '.home-radio-record-panel__btn{width:3.05em;height:3.05em;margin-left:.45em;border-radius:.28em;background-color:rgba(255,255,255,.07);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.09);position:relative;flex-shrink:0;transition:background-color .12s ease,box-shadow .12s ease;}' +
             '.home-radio-record-panel__btn.focus,.home-radio-record-panel__btn.hover,.home-radio-record-panel__btn.radio-record-focus{background-color:rgba(246,73,0,.22);box-shadow:0 0 0 .1em rgba(255,255,255,.88),0 .22em .9em rgba(246,73,0,.22);}' +
@@ -89,6 +94,271 @@
         return (url || '').replace('http://localhost:6081', '');
     }
 
+    var RadioDebug = (function () {
+        var listeners = [];
+        var queue = [];
+        var flushTimer = false;
+        var session = false;
+        var lastEvent = 'ready';
+        var lastText = 'diag ready';
+        var sequence = 0;
+
+        function now() {
+            return window.performance && performance.now ? performance.now() : Date.now();
+        }
+
+        function storageGet(key, fallback) {
+            try {
+                if (Lampa.Storage && typeof Lampa.Storage.get === 'function') return Lampa.Storage.get(key, fallback);
+            } catch (e) {}
+
+            return fallback;
+        }
+
+        function storageSet(key, value) {
+            try {
+                if (Lampa.Storage && typeof Lampa.Storage.set === 'function') Lampa.Storage.set(key, value);
+            } catch (e) {}
+        }
+
+        function enabled() {
+            return String(storageGet(DEBUG_STORAGE_ENABLED, '1')) !== '0';
+        }
+
+        function telegramToken() {
+            var config = window.home_radio_record_debug || {};
+
+            return storageGet(DEBUG_STORAGE_TOKEN, config.token || '');
+        }
+
+        function telegramChat() {
+            var config = window.home_radio_record_debug || {};
+
+            return storageGet(DEBUG_STORAGE_CHAT, config.chat || DEBUG_DEFAULT_CHAT);
+        }
+
+        function ms(value) {
+            value = Math.max(0, Math.round(value || 0));
+
+            if (value < 1000) return value + 'ms';
+
+            return (value / 1000).toFixed(value < 10000 ? 2 : 1) + 's';
+        }
+
+        function since(start) {
+            return start ? now() - start : 0;
+        }
+
+        function compactValue(value) {
+            if (value === null || typeof value === 'undefined') return '';
+            if (typeof value === 'number') return Math.round(value) === value ? String(value) : value.toFixed(2);
+            if (typeof value === 'boolean') return value ? 'true' : 'false';
+
+            value = String(value);
+            if (value.length > 120) value = value.substring(0, 117) + '...';
+
+            return value;
+        }
+
+        function compact(data) {
+            var result = [];
+
+            data = data || {};
+
+            Object.keys(data).forEach(function (key) {
+                var value = data[key];
+
+                if (typeof value === 'undefined' || value === null || value === '') return;
+                result.push(key + '=' + compactValue(value));
+            });
+
+            return result.join(', ');
+        }
+
+        function emit() {
+            listeners.slice().forEach(function (listener) {
+                try {
+                    listener(statusText());
+                } catch (e) {}
+            });
+        }
+
+        function setLast(event, data) {
+            var prefix = session && !session.done ? ms(since(session.start)) + ' ' : '';
+
+            lastEvent = event;
+            lastText = prefix + event + (data ? ' | ' + compact(data) : '');
+            emit();
+        }
+
+        function telegramLine(item) {
+            var lines = [
+                'Radio Record debug #' + item.id,
+                item.time,
+                item.event
+            ];
+
+            if (item.session) lines.push('timer: ' + item.session);
+            if (item.data) lines.push(item.data);
+
+            return lines.join('\n');
+        }
+
+        function sendByImage(token, chat, text) {
+            var img = new Image();
+
+            img.src = 'https://api.telegram.org/bot' + token + '/sendMessage?chat_id=' +
+                encodeURIComponent(chat) + '&disable_web_page_preview=true&text=' + encodeURIComponent(text);
+        }
+
+        function flush() {
+            var token = telegramToken();
+            var chat = telegramChat();
+            var text;
+            var form;
+
+            clearTimeout(flushTimer);
+            flushTimer = false;
+
+            if (!queue.length || !token || !chat) return;
+
+            text = queue.splice(0, 8).map(telegramLine).join('\n\n');
+
+            if (window.fetch && window.FormData) {
+                form = new FormData();
+                form.append('chat_id', chat);
+                form.append('disable_web_page_preview', 'true');
+                form.append('text', text);
+
+                fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+                    method: 'POST',
+                    body: form,
+                    mode: 'no-cors'
+                })["catch"](function () {
+                    sendByImage(token, chat, text);
+                });
+            } else {
+                sendByImage(token, chat, text);
+            }
+
+            if (queue.length) flushTimer = setTimeout(flush, 1200);
+        }
+
+        function log(event, data) {
+            var elapsed;
+            var item;
+            var localOnly;
+
+            if (!enabled()) return false;
+
+            data = data || {};
+            localOnly = data._local;
+            delete data._local;
+            elapsed = session ? since(session.start) : 0;
+            sequence++;
+
+            item = {
+                id: sequence,
+                time: new Date().toISOString(),
+                event: event,
+                session: session ? ms(elapsed) : '',
+                data: compact(data)
+            };
+
+            setLast(event, data);
+
+            try {
+                console.log('Radio Record debug', item.event, item.session, data);
+            } catch (e) {}
+
+            if (telegramToken() && !localOnly) {
+                queue.push(item);
+                if (!flushTimer) flushTimer = setTimeout(flush, 900);
+            }
+
+            return item;
+        }
+
+        function startSession(name, data) {
+            session = {
+                name: name,
+                start: now(),
+                done: false
+            };
+
+            log(name + '.start', data);
+            return session;
+        }
+
+        function finishSession(event, data) {
+            if (session) {
+                data = data || {};
+                data.total = ms(since(session.start));
+                session.done = true;
+            }
+
+            log(event, data);
+            session = false;
+            emit();
+        }
+
+        function measure(name, data) {
+            return {
+                name: name,
+                start: now(),
+                data: data || {}
+            };
+        }
+
+        function end(mark, event, data) {
+            data = data || {};
+            data.duration = ms(since(mark && mark.start));
+
+            log(event || mark.name + '.done', data);
+        }
+
+        function statusText() {
+            if (!enabled()) return '';
+            if (session && !session.done) return ms(since(session.start)) + ' | ' + lastEvent;
+
+            return lastText;
+        }
+
+        window.home_radio_record_set_debug = function (token, chat, isEnabled) {
+            storageSet(DEBUG_STORAGE_TOKEN, token || '');
+            storageSet(DEBUG_STORAGE_CHAT, chat || DEBUG_DEFAULT_CHAT);
+            storageSet(DEBUG_STORAGE_ENABLED, isEnabled === false ? '0' : '1');
+            log('debug.config.saved', {
+                telegram: token ? 'enabled' : 'missing-token',
+                chat: chat || DEBUG_DEFAULT_CHAT
+            });
+        };
+
+        return {
+            now: now,
+            ms: ms,
+            since: since,
+            log: log,
+            startSession: startSession,
+            finishSession: finishSession,
+            measure: measure,
+            end: end,
+            enabled: enabled,
+            statusText: statusText,
+            onStatus: function (listener) {
+                if (typeof listener !== 'function') return function () {};
+
+                listeners.push(listener);
+                listener(statusText());
+
+                return function () {
+                    var index = listeners.indexOf(listener);
+                    if (index > -1) listeners.splice(index, 1);
+                };
+            }
+        };
+    })();
+
     function normalizeStation(station, index) {
         var iconGray = cleanUrl(station.icon_gray);
         var iconWhite = cleanUrl(station.icon_fill_white);
@@ -142,11 +412,25 @@
         });
         var img = html.find('img')[0];
         var loaded = false;
+        var iconRequestAt = 0;
 
         html.attr('title', data.title || 'Radio Record');
         if (data.prefix) html.attr('data-prefix', data.prefix);
 
+        img.onload = function () {
+            RadioDebug.log('station.icon.loaded', {
+                station: data.title,
+                ms: RadioDebug.ms(RadioDebug.since(iconRequestAt)),
+                _local: true
+            });
+        };
+
         img.onerror = function () {
+            RadioDebug.log('station.icon.error', {
+                station: data.title,
+                ms: RadioDebug.ms(RadioDebug.since(iconRequestAt)),
+                _local: true
+            });
             img.src = './img/img_broken.svg';
         };
         img.loading = 'lazy';
@@ -158,6 +442,11 @@
             if (loaded) return;
             loaded = true;
             img.loading = 'eager';
+            iconRequestAt = RadioDebug.now();
+            RadioDebug.log('station.icon.request', {
+                station: data.title,
+                _local: true
+            });
             img.src = data.icon || '';
         };
 
@@ -207,15 +496,55 @@
 
         audio.addEventListener('play', function () {
             manualStop = false;
+            RadioDebug.log('audio.event.play', {
+                station: currentStation && currentStation.title
+            });
+        });
+
+        audio.addEventListener('loadstart', function () {
+            RadioDebug.log('audio.event.loadstart', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1
+            });
+        });
+
+        audio.addEventListener('loadedmetadata', function () {
+            RadioDebug.log('audio.event.loadedmetadata', {
+                station: currentStation && currentStation.title
+            });
+        });
+
+        audio.addEventListener('canplay', function () {
+            RadioDebug.log('audio.event.canplay', {
+                station: currentStation && currentStation.title
+            });
         });
 
         audio.addEventListener('error', function () {
+            RadioDebug.log('audio.event.error', {
+                station: currentStation && currentStation.title,
+                code: audio.error && audio.error.code
+            });
             scheduleReconnect();
         });
 
-        audio.addEventListener('ended', scheduleReconnect);
-        audio.addEventListener('stalled', scheduleReconnect);
+        audio.addEventListener('ended', function () {
+            RadioDebug.log('audio.event.ended', {
+                station: currentStation && currentStation.title
+            });
+            scheduleReconnect();
+        });
+        audio.addEventListener('stalled', function () {
+            RadioDebug.log('audio.event.stalled', {
+                station: currentStation && currentStation.title
+            });
+            scheduleReconnect();
+        });
         audio.addEventListener('waiting', function () {
+            RadioDebug.log('audio.event.waiting', {
+                station: currentStation && currentStation.title,
+                readyState: audio.readyState
+            });
             clearTimeout(waitingTimer);
             waitingTimer = setTimeout(function () {
                 if (!manualStop && !audio.paused && audio.readyState < 3) scheduleReconnect();
@@ -229,6 +558,11 @@
             clearTimeout(startTimer);
             clearReconnect();
             updateControls();
+            RadioDebug.finishSession('stream.playing', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1,
+                readyState: audio.readyState
+            });
             scheduleTrackPoll(0);
         });
 
@@ -314,6 +648,11 @@
             if (trackKey(normalized) === trackKey(currentTrack)) return;
 
             currentTrack = normalized;
+            RadioDebug.log('track.info.received', {
+                artist: normalized.artist,
+                song: normalized.song,
+                image: normalized.image ? 'yes' : 'no'
+            });
             emitState();
         }
 
@@ -347,6 +686,7 @@
 
         function fetchNow(done, fail) {
             var requestId;
+            var mark;
 
             done = done || function () {};
             fail = fail || function () {};
@@ -360,6 +700,12 @@
             nowRequestBusy = true;
             nowRequestId++;
             requestId = nowRequestId;
+            mark = RadioDebug.measure('track.api', {
+                url: 'stations/now'
+            });
+            RadioDebug.log('track.api.request', {
+                url: 'stations/now'
+            });
 
             function ok(data) {
                 data = parseResponse(data);
@@ -371,11 +717,15 @@
                     nowCacheTime = Date.now();
                 }
 
+                RadioDebug.end(mark, 'track.api.response', {
+                    count: Array.isArray(data.result) ? data.result.length : 0
+                });
                 runNowCallbacks(true, data);
             }
 
             function bad() {
                 if (requestId !== nowRequestId) return;
+                RadioDebug.end(mark, 'track.api.error');
                 runNowCallbacks(false);
             }
 
@@ -456,9 +806,17 @@
         function start() {
             var promise;
 
+            RadioDebug.log('audio.play.call', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1
+            });
+
             try {
                 promise = audio.play();
             } catch (e) {
+                RadioDebug.log('audio.play.throw', {
+                    message: e && e.message
+                });
                 scheduleReconnect();
                 return;
             }
@@ -466,16 +824,30 @@
             if (promise && promise.then) {
                 promise.then(function () {
                     console.log('Radio Record', 'start playing');
+                    RadioDebug.log('audio.play.promise.ok', {
+                        station: currentStation && currentStation.title
+                    });
                 })["catch"](function (e) {
                     console.log('Radio Record', 'play promise error:', e && e.message);
+                    RadioDebug.log('audio.play.promise.error', {
+                        message: e && e.message
+                    });
                     scheduleReconnect();
                 });
             }
         }
 
         function loadNative() {
+            RadioDebug.log('audio.src.set', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1,
+                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac'
+            });
             audio.src = url;
             try {
+                RadioDebug.log('audio.load.call', {
+                    station: currentStation && currentStation.title
+                });
                 audio.load();
             } catch (e) {}
             start();
@@ -513,12 +885,22 @@
 
             loading = true;
             updateControls();
+            RadioDebug.log('stream.fallback.wait', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1,
+                total: urlCandidates.length
+            });
 
             reconnectTimer = setTimeout(function () {
                 reconnectTimer = false;
                 if (manualStop || !urlCandidates.length) return;
                 if (urlCandidates.length > 1) urlIndex = (urlIndex + 1) % urlCandidates.length;
                 url = urlCandidates[urlIndex];
+                RadioDebug.log('stream.fallback.next', {
+                    station: currentStation && currentStation.title,
+                    candidate: urlIndex + 1,
+                    total: urlCandidates.length
+                });
                 startCurrent();
             }, 200);
         }
@@ -534,6 +916,10 @@
             }
 
             try {
+                RadioDebug.log('hls.load.source', {
+                    station: currentStation && currentStation.title,
+                    candidate: urlIndex + 1
+                });
                 hls = new Hls();
                 hls.attachMedia(audio);
                 hls.loadSource(url);
@@ -557,9 +943,21 @@
             played = false;
             loading = true;
             updateControls();
+            RadioDebug.log('stream.start', {
+                station: currentStation && currentStation.title,
+                candidate: urlIndex + 1,
+                total: urlCandidates.length,
+                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac'
+            });
             prepare();
             startTimer = setTimeout(function () {
-                if (!manualStop && !played) scheduleReconnect();
+                if (!manualStop && !played) {
+                    RadioDebug.log('stream.start.timeout', {
+                        station: currentStation && currentStation.title,
+                        timeout: RadioDebug.ms(STREAM_START_TIMEOUT)
+                    });
+                    scheduleReconnect();
+                }
             }, STREAM_START_TIMEOUT);
         }
 
@@ -600,9 +998,16 @@
             urlCandidates = streamCandidates(currentStation);
             urlIndex = 0;
             url = urlCandidates[0] || '';
+            RadioDebug.startSession('connect', {
+                station: currentStation.title,
+                candidates: urlCandidates.length
+            });
 
             if (!url) {
                 if (Lampa.Noty) Lampa.Noty.show('У станции нет ссылки на поток');
+                RadioDebug.finishSession('stream.no-url', {
+                    station: currentStation.title
+                });
                 currentStation = false;
                 updateControls();
                 return;
@@ -671,6 +1076,7 @@
         var panelActions = panel.find('.home-radio-record-panel__btn');
         var panelCover = panel.find('.home-radio-record-panel__cover');
         var panelImage = panel.find('.home-radio-record-panel__cover img');
+        var panelDebug = panel.find('.home-radio-record-panel__debug');
         var body = $('<div class="category-full"></div>');
         var activity;
         var active;
@@ -686,6 +1092,9 @@
         var columnWidthCache = 0;
         var panelBound = false;
         var playerStateOff = false;
+        var debugStateOff = false;
+        var debugTimer = false;
+        var panelImageAt = 0;
 
         function stopEvent(e) {
             if (!e) return;
@@ -782,7 +1191,14 @@
             panelMeta('.home-radio-record-panel__artist', artist);
             panelCover.toggleClass('is-icon', imageIsIcon);
 
-            if (image && panelImage.attr('src') !== image) panelImage.attr('src', image);
+            if (image && panelImage.attr('src') !== image) {
+                panelImageAt = RadioDebug.now();
+                RadioDebug.log(imageIsIcon ? 'panel.icon.request' : 'track.image.request', {
+                    station: title,
+                    image: imageIsIcon ? 'station' : 'track'
+                });
+                panelImage.attr('src', image);
+            }
             else if (!image) panelImage.removeAttr('src');
 
             if (state && state.station && (state.played || state.loading)) markPlaying(state.station);
@@ -801,8 +1217,18 @@
                 triggerPanelAction();
             });
 
+            panelImage.on('load', function () {
+                RadioDebug.log(panelCover.hasClass('is-icon') ? 'panel.icon.loaded' : 'track.image.loaded', {
+                    ms: RadioDebug.ms(RadioDebug.since(panelImageAt))
+                });
+            });
+
             panelImage.on('error', function () {
                 var fallback = panel.data('fallback-icon');
+
+                RadioDebug.log(panelCover.hasClass('is-icon') ? 'panel.icon.error' : 'track.image.error', {
+                    ms: RadioDebug.ms(RadioDebug.since(panelImageAt))
+                });
 
                 if (fallback && panelImage.attr('src') !== fallback) {
                     panelCover.addClass('is-icon');
@@ -814,6 +1240,29 @@
         function attachPlayerState() {
             if (playerStateOff || !player || typeof player.onState !== 'function') return;
             playerStateOff = player.onState(updatePanel);
+        }
+
+        function updateDebugStatus() {
+            if (!panelDebug.length) return;
+
+            panelDebug.text(RadioDebug.statusText());
+        }
+
+        function attachDebugStatus() {
+            if (debugStateOff) return;
+
+            debugStateOff = RadioDebug.onStatus(updateDebugStatus);
+            debugTimer = setInterval(updateDebugStatus, 250);
+        }
+
+        function detachDebugStatus() {
+            clearInterval(debugTimer);
+            debugTimer = false;
+
+            if (debugStateOff) {
+                debugStateOff();
+                debugStateOff = false;
+            }
         }
 
         function setFocus(index) {
@@ -976,6 +1425,11 @@
             item = items[active];
 
             if (item && item.data) {
+                RadioDebug.log('station.select', {
+                    station: item.data.title,
+                    index: active,
+                    source: 'joystick'
+                });
                 markPlaying(item.data);
                 player.play(item.data);
                 return true;
@@ -1039,6 +1493,33 @@
             else if (direction === 'up') focusPanel(0);
         }
 
+        function keyName(code) {
+            if (code === 37 || code === 21) return 'left';
+            if (code === 39 || code === 22) return 'right';
+            if (code === 38 || code === 19) return 'up';
+            if (code === 40 || code === 20) return 'down';
+            if (code === 13 || code === 23 || code === 66) return 'enter';
+            if (code === 4 || code === 8 || code === 27 || code === 461 || code === 10009) return 'back';
+
+            return 'key-' + code;
+        }
+
+        function keyMark(code) {
+            return RadioDebug.measure('joystick.' + keyName(code), {
+                code: code,
+                area: focusArea,
+                active: active
+            });
+        }
+
+        function keyDone(mark) {
+            RadioDebug.end(mark, 'joystick.response', {
+                area: focusArea,
+                active: active,
+                panel: panelFocus
+            });
+        }
+
         function bindKeys() {
             if (keyBound) return;
             keyBound = true;
@@ -1051,38 +1532,50 @@
                 code = e.keyCode || e.which;
 
                 if (code === 37 || code === 21) {
+                    var markLeft = keyMark(code);
                     stopEvent(e);
                     moveOrLeave('left');
+                    keyDone(markLeft);
                     return false;
                 }
 
                 if (code === 39 || code === 22) {
+                    var markRight = keyMark(code);
                     stopEvent(e);
                     moveOrLeave('right');
+                    keyDone(markRight);
                     return false;
                 }
 
                 if (code === 38 || code === 19) {
+                    var markUp = keyMark(code);
                     stopEvent(e);
                     moveOrLeave('up');
+                    keyDone(markUp);
                     return false;
                 }
 
                 if (code === 40 || code === 20) {
+                    var markDown = keyMark(code);
                     stopEvent(e);
                     moveOrLeave('down');
+                    keyDone(markDown);
                     return false;
                 }
 
                 if (code === 13 || code === 23 || code === 66) {
+                    var markEnter = keyMark(code);
                     stopEvent(e);
                     playFocused();
+                    keyDone(markEnter);
                     return false;
                 }
 
                 if (code === 4 || code === 8 || code === 27 || code === 461 || code === 10009) {
+                    var markBack = keyMark(code);
                     stopEvent(e);
                     closeRadio();
+                    keyDone(markBack);
                     return false;
                 }
             });
@@ -1113,6 +1606,10 @@
             if (!panel.parent().length) html.append(panel);
             bindPanelActions();
             attachPlayerState();
+            attachDebugStatus();
+            RadioDebug.log('component.create', {
+                component: COMPONENT
+            });
             if (player && typeof player.prefetchTracks === 'function') player.prefetchTracks();
             this.activity.loader(true);
             network["native"](STATIONS_URL, this.build.bind(this), function () {
@@ -1129,6 +1626,9 @@
         this.build = function (data) {
             var stations = parseStations(data);
 
+            RadioDebug.log('stations.loaded', {
+                count: stations.length
+            });
             scroll.minus();
             this.append(stations);
             scroll.append(body);
@@ -1148,6 +1648,11 @@
                 }).on('hover:enter click', function (e) {
                     if (e && e.preventDefault) e.preventDefault();
                     setFocus(items.indexOf(stationItem));
+                    RadioDebug.log('station.select', {
+                        station: station.title,
+                        index: items.indexOf(stationItem),
+                        source: e && e.type || 'click'
+                    });
                     markPlaying(station);
                     player.play(station);
                 });
@@ -1224,6 +1729,7 @@
                 playerStateOff();
                 playerStateOff = false;
             }
+            detachDebugStatus();
             network.clear();
             Lampa.Arrays.destroy(items);
             scroll.destroy();
@@ -1269,6 +1775,7 @@
                 '<div class="home-radio-record-panel__station">Radio Record</div>' +
                 '<div class="home-radio-record-panel__track">Выберите станцию</div>' +
                 '<div class="home-radio-record-panel__artist">Все каналы Radio Record</div>' +
+                '<div class="home-radio-record-panel__debug">diag ready</div>' +
             '</div>' +
             '<div class="home-radio-record-panel__actions">' +
                 '<div class="selector home-radio-record-panel__btn home-radio-record-panel__toggle" data-action="toggle"></div>' +
