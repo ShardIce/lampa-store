@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.5
+ * version: 1.1.6
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -12,9 +12,9 @@
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
     var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
-    var NAVIGATION_DELAY = 35;
-    var STREAM_START_TIMEOUT = 8000;
-    var TRACK_POLL_INTERVAL = 25000;
+    var NAVIGATION_DELAY = 0;
+    var STREAM_START_TIMEOUT = 4500;
+    var TRACK_POLL_INTERVAL = 12000;
     var ICON_PRELOAD_CHUNK = 10;
     var ICON_PRELOAD_DELAY = 140;
 
@@ -22,7 +22,7 @@
         if ($('#home-radio-record-style').length) return;
 
         $('body').append('<style id="home-radio-record-style">' +
-            '.home-radio-record-panel{display:flex;align-items:center;margin:0 1em 1.15em 1em;min-height:5.35em;padding:.7em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.18),rgba(38,38,38,.96) 28%,rgba(28,28,28,.96));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
+            '.home-radio-record-panel{display:flex;align-items:center;margin:0 1.22em 1.15em 1.22em;min-height:5.35em;padding:.7em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.18),rgba(38,38,38,.96) 28%,rgba(28,28,28,.96));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
             '.home-radio-record-panel__cover{width:4.15em;height:4.15em;border-radius:.3em;background-color:rgba(0,0,0,.24);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}' +
             '.home-radio-record-panel__cover img{width:100%;height:100%;object-fit:cover;opacity:.96;}' +
             '.home-radio-record-panel__cover.is-icon img{width:68%;height:68%;object-fit:contain;opacity:.78;}' +
@@ -32,12 +32,12 @@
             '.home-radio-record-panel__artist{font-size:.95em;color:rgba(255,255,255,.62);margin-top:.18em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-panel__actions{display:flex;align-items:center;margin-left:.8em;}' +
             '.home-radio-record-panel__btn{width:3.05em;height:3.05em;margin-left:.45em;border-radius:.28em;background-color:rgba(255,255,255,.07);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.09);position:relative;flex-shrink:0;transition:background-color .12s ease,box-shadow .12s ease;}' +
-            '.home-radio-record-panel__btn.focus,.home-radio-record-panel__btn.hover{background-color:rgba(246,73,0,.22);box-shadow:0 0 0 .1em rgba(255,255,255,.88),0 .22em .9em rgba(246,73,0,.22);}' +
+            '.home-radio-record-panel__btn.focus,.home-radio-record-panel__btn.hover,.home-radio-record-panel__btn.radio-record-focus{background-color:rgba(246,73,0,.22);box-shadow:0 0 0 .1em rgba(255,255,255,.88),0 .22em .9em rgba(246,73,0,.22);}' +
             '.home-radio-record-panel__toggle:before{content:"";position:absolute;left:50%;top:50%;transform:translate(-37%,-50%);width:0;height:0;border-top:.58em solid transparent;border-bottom:.58em solid transparent;border-left:.88em solid #fff;}' +
             '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:before,.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:after{content:"";position:absolute;top:32%;width:.28em;height:36%;border:0;background-color:#fff;transform:none;}' +
             '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:before{left:38%;}' +
             '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:after{left:55%;}' +
-            '.home-radio-record-panel.is-loading .home-radio-record-panel__toggle:before{content:"";left:50%;top:50%;width:1em;height:1em;border:.18em solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:100%;transform:translate(-50%,-50%);animation:home-radio-record-loading .85s linear infinite;}' +
+            '.home-radio-record-panel.is-loading .home-radio-record-panel__toggle:before{content:"";left:50%;top:50%;width:1em;height:1em;border:.18em solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:100%;transform:translate(-50%,-50%);animation:home-radio-record-panel-loading .85s linear infinite;}' +
             '.home-radio-record-panel.is-loading .home-radio-record-panel__toggle:after{display:none;}' +
             '.home-radio-record-panel__close:before,.home-radio-record-panel__close:after{content:"";position:absolute;left:32%;top:48%;width:36%;height:.14em;background-color:#fff;border-radius:.1em;}' +
             '.home-radio-record-panel__close:before{transform:rotate(45deg);}' +
@@ -46,14 +46,15 @@
             '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
             '.home-radio-record-item__img{position:absolute;top:14%;left:14%;width:72%;height:72%;object-fit:contain;opacity:.86;transition:opacity .12s ease;}' +
             '.home-radio-record-item__name{font-size:1.02em;margin-top:.7em;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.045);}' +
-            '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
-            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img{opacity:1;}' +
+            '.home-radio-record-item.focus,.home-radio-record-item.hover,.home-radio-record-item.radio-record-focus{background-color:rgba(255,255,255,.045);}' +
+            '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox,.home-radio-record-item.radio-record-focus .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
+            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img,.home-radio-record-item.radio-record-focus .home-radio-record-item__img{opacity:1;}' +
             '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:#F64900;background-color:rgba(246,73,0,.13);box-shadow:0 0 0 .08em rgba(246,73,0,.5),0 .3em 1em rgba(246,73,0,.2);}' +
-            '.home-radio-record-item.playing.focus .home-radio-record-item__imgbox,.home-radio-record-item.playing.hover .home-radio-record-item__imgbox{border-color:#F64900;box-shadow:0 0 0 .1em rgba(255,255,255,.92),0 0 0 .22em rgba(246,73,0,.7),0 .35em 1.15em rgba(246,73,0,.28);}' +
+            '.home-radio-record-item.playing.focus .home-radio-record-item__imgbox,.home-radio-record-item.playing.hover .home-radio-record-item__imgbox,.home-radio-record-item.playing.radio-record-focus .home-radio-record-item__imgbox{border-color:#F64900;box-shadow:0 0 0 .1em rgba(255,255,255,.92),0 0 0 .22em rgba(246,73,0,.7),0 .35em 1.15em rgba(246,73,0,.28);}' +
             '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
             '@keyframes home-radio-record-sound{0%{height:.1em}100%{height:1em}}' +
             '@keyframes home-radio-record-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}' +
+            '@keyframes home-radio-record-panel-loading{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}' +
             '.home-radio-record-player{display:flex;align-items:center;border-radius:.3em;padding:.2em .8em;background-color:#3e3e3e;}' +
             '.home-radio-record-player__name{margin-right:1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em;}' +
             '.home-radio-record-player__button{position:relative;width:1.5em;height:1.5em;display:flex;align-items:center;justify-content:center;flex-shrink:0;}' +
@@ -71,8 +72,8 @@
             '.home-radio-record-player.focus .home-radio-record-player__button{border-color:#000;}' +
             '.home-radio-record-player.focus .home-radio-record-player__button i,.home-radio-record-player.focus .home-radio-record-player__button:after{background-color:#000;}' +
             '.home-radio-record-player.focus .home-radio-record-player__button:before{border-top-color:#000;}' +
-            '@media screen and (max-width:580px){.home-radio-record-panel{margin:.2em .7em 1em .7em}.home-radio-record-panel__cover{width:3.55em;height:3.55em}.home-radio-record-panel__track{font-size:1.05em}.home-radio-record-panel__artist{font-size:.85em}.home-radio-record-panel__btn{width:2.65em;height:2.65em}.home-radio-record-item{width:20%;}}' +
-            '@media screen and (max-width:385px){.home-radio-record-player__name,.home-radio-record-item__name{display:none}.home-radio-record-panel__artist{display:none}.home-radio-record-panel__cover{width:3.1em;height:3.1em}.home-radio-record-panel__actions{margin-left:.45em}.home-radio-record-panel__btn{width:2.35em;height:2.35em}.home-radio-record-item{width:25%;}}' +
+            '@media screen and (max-width:580px){.home-radio-record-panel{margin:.2em 1.22em 1em 1.22em}.home-radio-record-panel__cover{width:3.55em;height:3.55em}.home-radio-record-panel__track{font-size:1.05em}.home-radio-record-panel__artist{font-size:.85em}.home-radio-record-panel__btn{width:2.65em;height:2.65em}.home-radio-record-item{width:20%;}}' +
+            '@media screen and (max-width:385px){.home-radio-record-player__name,.home-radio-record-item__name{display:none}.home-radio-record-panel{margin-left:1.22em;margin-right:1.22em}.home-radio-record-panel__artist{display:none}.home-radio-record-panel__cover{width:3.1em;height:3.1em}.home-radio-record-panel__actions{margin-left:.45em}.home-radio-record-panel__btn{width:2.35em;height:2.35em}.home-radio-record-item{width:25%;}}' +
         '</style>');
     }
 
@@ -192,6 +193,11 @@
         var currentTrack = false;
         var stateListeners = [];
         var trackRequest = false;
+        var nowCache = false;
+        var nowCacheTime = 0;
+        var nowRequestBusy = false;
+        var nowRequestId = 0;
+        var nowCallbacks = [];
 
         try {
             trackRequest = new Lampa.Reguest();
@@ -263,12 +269,12 @@
             var result = [];
             var hlsUrl = data && data.stream_hls;
 
-            addCandidate(result, data && data.stream_128);
             addCandidate(result, data && data.stream_320);
+            addCandidate(result, data && data.stream_128);
 
             if (hlsUrl) {
-                addCandidate(result, hlsUrl);
                 addCandidate(result, hlsUrl.replace('playlist.m3u8', '96/playlist.m3u8'));
+                addCandidate(result, hlsUrl);
             }
 
             return result;
@@ -312,7 +318,8 @@
         }
 
         function findNowItem(data) {
-            var list = parseResponse(data).result || [];
+            var response = data ? parseResponse(data) : {};
+            var list = response.result || nowCache || [];
             var i;
 
             if (!Array.isArray(list) || !currentStation || !currentStation.id) return false;
@@ -324,11 +331,87 @@
             return false;
         }
 
-        function clearTrackPoll() {
+        function runNowCallbacks(success, data) {
+            var callbacks = nowCallbacks.slice();
+
+            nowCallbacks = [];
+            nowRequestBusy = false;
+
+            callbacks.forEach(function (callback) {
+                try {
+                    if (success) callback.done(data);
+                    else callback.fail();
+                } catch (e) {}
+            });
+        }
+
+        function fetchNow(done, fail) {
+            var requestId;
+
+            done = done || function () {};
+            fail = fail || function () {};
+            nowCallbacks.push({
+                done: done,
+                fail: fail
+            });
+
+            if (nowRequestBusy) return;
+
+            nowRequestBusy = true;
+            nowRequestId++;
+            requestId = nowRequestId;
+
+            function ok(data) {
+                data = parseResponse(data);
+
+                if (requestId !== nowRequestId) return;
+
+                if (Array.isArray(data.result)) {
+                    nowCache = data.result;
+                    nowCacheTime = Date.now();
+                }
+
+                runNowCallbacks(true, data);
+            }
+
+            function bad() {
+                if (requestId !== nowRequestId) return;
+                runNowCallbacks(false);
+            }
+
+            if (window.fetch) {
+                fetch(NOW_URL).then(function (response) {
+                    return response.json();
+                }).then(ok)["catch"](bad);
+            } else if (trackRequest && typeof trackRequest["native"] === 'function') {
+                trackRequest["native"](NOW_URL, ok, bad, false, {
+                    dataType: 'json'
+                });
+            } else {
+                bad();
+            }
+        }
+
+        function setTrackFromCache() {
+            var item = findNowItem();
+
+            if (item && item.track) {
+                setTrack(item.track);
+                return true;
+            }
+
+            return false;
+        }
+
+        function clearTrackPoll(cancelRequest) {
             clearTimeout(trackTimer);
             trackTimer = false;
 
-            if (trackRequest && typeof trackRequest.clear === 'function') {
+            if (cancelRequest && trackRequest && typeof trackRequest.clear === 'function') {
+                nowCallbacks = [];
+                nowRequestBusy = false;
+                nowRequestId++;
+
                 try {
                     trackRequest.clear();
                 } catch (e) {}
@@ -357,17 +440,7 @@
                 scheduleTrackPoll(TRACK_POLL_INTERVAL);
             }
 
-            if (trackRequest && typeof trackRequest["native"] === 'function') {
-                trackRequest["native"](NOW_URL, done, fail, false, {
-                    dataType: 'json'
-                });
-            } else if (window.fetch) {
-                fetch(NOW_URL).then(function (response) {
-                    return response.json();
-                }).then(done)["catch"](fail);
-            } else {
-                fail();
-            }
+            fetchNow(done, fail);
         }
 
         function clearStartupTimer() {
@@ -402,7 +475,6 @@
 
         function loadNative() {
             audio.src = url;
-            audio.load();
             start();
         }
 
@@ -443,7 +515,7 @@
                 if (urlCandidates.length > 1) urlIndex = (urlIndex + 1) % urlCandidates.length;
                 url = urlCandidates[urlIndex];
                 startCurrent();
-            }, 1800);
+            }, 700);
         }
 
         function prepare() {
@@ -486,18 +558,18 @@
             }, STREAM_START_TIMEOUT);
         }
 
-        function pausePlayback() {
+        function pausePlayback(cancelRequest) {
             manualStop = true;
             played = false;
             loading = false;
-            clearTrackPoll();
+            clearTrackPoll(cancelRequest !== false);
             cleanupMedia();
             updateControls();
         }
 
         html.on('hover:enter click', function (e) {
             if (e && e.preventDefault) e.preventDefault();
-            if (played || loading) pausePlayback();
+            if (played || loading) pausePlayback(true);
             else if (url) {
                 startCurrent();
                 scheduleTrackPoll(0);
@@ -516,7 +588,7 @@
         };
 
         this.play = function (data) {
-            pausePlayback();
+            pausePlayback(false);
 
             currentStation = data || {};
             currentTrack = false;
@@ -535,7 +607,8 @@
             html.toggleClass('hide', false);
             updateControls();
             startCurrent();
-            scheduleTrackPoll(0);
+            if (setTrackFromCache()) scheduleTrackPoll(TRACK_POLL_INTERVAL);
+            else scheduleTrackPoll(0);
         };
 
         this.toggle = function () {
@@ -547,7 +620,7 @@
         };
 
         this.stop = function (hide) {
-            pausePlayback();
+            pausePlayback(true);
             url = '';
             urlCandidates = [];
             urlIndex = 0;
@@ -568,6 +641,15 @@
                 if (index > -1) stateListeners.splice(index, 1);
             };
         };
+
+        this.prefetchTracks = function () {
+            if (nowRequestBusy) return;
+            if (nowCache && Date.now() - nowCacheTime < TRACK_POLL_INTERVAL) return;
+
+            fetchNow(function () {
+                if (currentStation) setTrackFromCache();
+            });
+        };
     }
 
     function RadioComponent() {
@@ -575,7 +657,7 @@
         var scroll = new Lampa.Scroll({
             mask: true,
             over: true,
-            step: 250
+            step: 90
         });
         var player = window.home_radio_record_player;
         var items = [];
@@ -618,13 +700,13 @@
 
         function clearGridFocus() {
             if (typeof active === 'number' && items && items[active]) {
-                items[active].render().removeClass('focus hover');
+                items[active].render().removeClass('focus hover radio-record-focus');
             }
         }
 
         function clearPanelFocus() {
             panelFocus = -1;
-            panelActions.removeClass('focus hover');
+            panelActions.removeClass('focus hover radio-record-focus');
         }
 
         function focusPanel(index) {
@@ -638,10 +720,10 @@
             focusArea = 'panel';
             panelFocus = index;
             clearGridFocus();
-            panelActions.removeClass('focus hover');
+            panelActions.removeClass('focus hover radio-record-focus');
 
             button = panelActions.eq(panelFocus);
-            button.addClass('focus');
+            button.addClass('focus radio-record-focus');
             last = button[0];
 
             try {
@@ -739,6 +821,13 @@
             if (index < 0) index = 0;
             if (index >= items.length) index = items.length - 1;
 
+            if (focusArea === 'grid' && active === index && items[active]) {
+                itemHtml = items[active].render();
+                itemHtml.addClass('focus radio-record-focus');
+                last = itemHtml[0];
+                return true;
+            }
+
             active = index;
             focusArea = 'grid';
             clearPanelFocus();
@@ -747,12 +836,12 @@
             itemHtml = item.render();
             last = itemHtml[0];
 
-            if (typeof previous === 'number' && items[previous]) items[previous].render().removeClass('focus hover');
-            itemHtml.addClass('focus');
+            if (typeof previous === 'number' && items[previous]) items[previous].render().removeClass('focus hover radio-record-focus');
+            itemHtml.addClass('focus radio-record-focus');
             scroll.update(itemHtml, true);
 
             try {
-                Lampa.Controller.collectionFocus(itemHtml, scroll.render());
+                Lampa.Controller.collectionFocus(itemHtml, html);
             } catch (e) {}
 
             return true;
@@ -761,6 +850,7 @@
         function canNavigate() {
             var now = Date.now();
 
+            if (!NAVIGATION_DELAY) return true;
             if (now - lastNavTime < NAVIGATION_DELAY) return false;
 
             lastNavTime = now;
@@ -1018,6 +1108,7 @@
             if (!panel.parent().length) html.append(panel);
             bindPanelActions();
             attachPlayerState();
+            if (player && typeof player.prefetchTracks === 'function') player.prefetchTracks();
             this.activity.loader(true);
             network["native"](STATIONS_URL, this.build.bind(this), function () {
                 var empty = new Lampa.Empty();
@@ -1063,7 +1154,7 @@
             if (items.length && typeof active !== 'number') {
                 active = 0;
                 last = items[0].render()[0];
-                items[0].render().addClass('focus');
+                items[0].render().addClass('focus radio-record-focus');
                 loadIconsAround(active);
                 preloadIconsChunked();
             }
@@ -1084,10 +1175,10 @@
             this.background();
             Lampa.Controller.add('content', {
                 toggle: function () {
-                    Lampa.Controller.collectionSet(scroll.render());
+                    Lampa.Controller.collectionSet(html);
                     bindKeys();
                     if (items && items.length) setFocus(typeof active === 'number' ? active : 0);
-                    else Lampa.Controller.collectionFocus(last || false, scroll.render());
+                    else Lampa.Controller.collectionFocus(last || false, html);
                 },
                 left: function () {
                     moveOrLeave('left');

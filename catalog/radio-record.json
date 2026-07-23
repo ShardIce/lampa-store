@@ -8,7 +8,7 @@
           "id": "radio_record",
           "name": "Radio Record",
           "title": "Radio Record",
-          "version": "1.1.5",
+          "version": "1.1.6",
           "descr": "Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.",
           "description": "Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.",
           "author": "@shardice",
