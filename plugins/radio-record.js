@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.10
+ * version: 1.1.11
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -15,10 +15,8 @@
     var NAVIGATION_DELAY = 0;
     var STREAM_START_TIMEOUT = 3000;
     var TRACK_POLL_INTERVAL = 12000;
-    var ICON_PRELOAD_CHUNK = 2;
-    var ICON_PRELOAD_DELAY = 380;
-    var ICON_PRELOAD_START_DELAY = 4500;
-    var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v3';
+    var ACTION_LOCK_DELAY = 650;
+    var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v4';
     var STATIONS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
     var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
     var DEBUG_STORAGE_VERBOSE = 'radio_record_debug_verbose';
@@ -34,7 +32,7 @@
             '.home-radio-record-panel{display:flex;align-items:center;margin:0 1.22em 1.15em 1.22em;min-height:5.35em;padding:.7em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.18),rgba(38,38,38,.96) 28%,rgba(28,28,28,.96));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
             '.home-radio-record-panel__cover{width:4.15em;height:4.15em;border-radius:.3em;background-color:rgba(0,0,0,.24);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}' +
             '.home-radio-record-panel__cover img{width:100%;height:100%;object-fit:cover;opacity:.96;}' +
-            '.home-radio-record-panel__cover.is-icon img{width:68%;height:68%;object-fit:contain;opacity:.78;}' +
+            '.home-radio-record-panel__cover.is-icon img{width:78%;height:78%;object-fit:contain;opacity:1;}' +
             '.home-radio-record-panel__meta{min-width:0;margin-left:1em;flex:1;}' +
             '.home-radio-record-panel__station{font-size:.9em;color:#F64900;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-panel__track{font-size:1.24em;color:#fff;font-weight:700;line-height:1.12;margin-top:.12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
@@ -53,12 +51,12 @@
             '.home-radio-record-panel__close:before{transform:rotate(45deg);}' +
             '.home-radio-record-panel__close:after{transform:rotate(-45deg);}' +
             '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.22em;border-radius:.36em;transition:background-color .12s ease;}' +
-            '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
-            '.home-radio-record-item__img{position:absolute;top:18%;left:18%;width:64%;height:64%;object-fit:contain;opacity:.78;transition:opacity .12s ease;}' +
+            '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.025);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.07);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
+            '.home-radio-record-item__img{position:absolute;top:11%;left:11%;width:78%;height:78%;object-fit:contain;opacity:1;transition:opacity .12s ease;}' +
             '.home-radio-record-item__name{font-size:1.02em;margin-top:.7em;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-item.focus,.home-radio-record-item.hover,.home-radio-record-item.radio-record-focus{background-color:rgba(255,255,255,.045);}' +
             '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox,.home-radio-record-item.radio-record-focus .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
-            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img,.home-radio-record-item.radio-record-focus .home-radio-record-item__img{opacity:.96;}' +
+            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img,.home-radio-record-item.radio-record-focus .home-radio-record-item__img{opacity:1;}' +
             '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:#F64900;background-color:rgba(246,73,0,.13);box-shadow:0 0 0 .08em rgba(246,73,0,.5),0 .3em 1em rgba(246,73,0,.2);}' +
             '.home-radio-record-item.playing.focus .home-radio-record-item__imgbox,.home-radio-record-item.playing.hover .home-radio-record-item__imgbox,.home-radio-record-item.playing.radio-record-focus .home-radio-record-item__imgbox{border-color:#F64900;box-shadow:0 0 0 .1em rgba(255,255,255,.92),0 0 0 .22em rgba(246,73,0,.7),0 .35em 1.15em rgba(246,73,0,.28);}' +
             '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
@@ -476,6 +474,7 @@
         var iconGray = cleanUrl(station.icon_gray);
         var iconWhite = cleanUrl(station.icon_fill_white);
         var iconColored = cleanUrl(station.icon_fill_colored);
+        var iconActive = cleanUrl(station.icon_active);
         var sort = parseInt(station.sort, 10);
 
         if (isNaN(sort)) sort = index;
@@ -485,7 +484,8 @@
             prefix: station.prefix,
             title: station.title || station.short_title || 'Radio Record',
             sort: sort,
-            icon: iconWhite || iconGray || iconColored || cleanUrl(station.icon),
+            icon: iconGray || iconColored || iconWhite || cleanUrl(station.icon),
+            icon_active: iconColored || iconActive || iconGray || iconWhite || cleanUrl(station.icon),
             stream_128: cleanUrl(station.stream_128),
             stream_320: cleanUrl(station.stream_320),
             stream_hls: cleanUrl(station.stream_hls),
@@ -558,6 +558,8 @@
         });
         var img = html.find('img')[0];
         var loaded = false;
+        var activeIcon = false;
+        var currentSrc = '';
         var iconRequestAt = 0;
 
         html.attr('title', data.title || 'Radio Record');
@@ -586,17 +588,37 @@
 
         this.data = data;
 
+        function wantedIcon() {
+            return activeIcon && data.icon_active || data.icon || '';
+        }
+
+        function setIconSource(force) {
+            var next = wantedIcon();
+
+            if (!next || (!force && currentSrc === next)) return;
+
+            currentSrc = next;
+            iconRequestAt = RadioDebug.now();
+            RadioDebug.log('station.icon.request', {
+                station: data.title,
+                active: activeIcon ? 'yes' : 'no',
+                _local: true,
+                _quiet: true
+            });
+            img.src = next;
+        }
+
         this.load = function () {
             if (loaded) return;
             loaded = true;
             img.loading = 'eager';
-            iconRequestAt = RadioDebug.now();
-            RadioDebug.log('station.icon.request', {
-                station: data.title,
-                _local: true,
-                _quiet: true
-            });
-            img.src = data.icon || '';
+            setIconSource(true);
+        };
+
+        this.setPlaying = function (isPlaying) {
+            activeIcon = !!isPlaying;
+            html.toggleClass('playing', activeIcon);
+            if (loaded) setIconSource(false);
         };
 
         this.render = function () {
@@ -608,6 +630,8 @@
             img.onload = function () {};
             img.src = '';
             loaded = false;
+            activeIcon = false;
+            currentSrc = '';
             html.remove();
         };
     }
@@ -628,6 +652,9 @@
         var trackTimer = false;
         var playRequestId = 0;
         var reconnectAttempts = 0;
+        var lastToggleAt = 0;
+        var lastPlayAt = 0;
+        var lastPlayKey = '';
         var manualStop = true;
         var currentStation = false;
         var currentTrack = false;
@@ -645,14 +672,21 @@
 
         audio.preload = 'auto';
 
+        function staleAudioEvent() {
+            return manualStop || !currentStation;
+        }
+
         audio.addEventListener('play', function () {
-            manualStop = false;
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.play', {
                 station: currentStation && currentStation.title
             });
         });
 
         audio.addEventListener('loadstart', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.loadstart', {
                 station: currentStation && currentStation.title,
                 candidate: urlIndex + 1
@@ -660,37 +694,56 @@
         });
 
         audio.addEventListener('loadedmetadata', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.loadedmetadata', {
                 station: currentStation && currentStation.title
             });
         });
 
         audio.addEventListener('canplay', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.canplay', {
                 station: currentStation && currentStation.title
             });
         });
 
         audio.addEventListener('error', function () {
+            if (staleAudioEvent()) {
+                RadioDebug.log('audio.event.error.stale', {
+                    code: audio.error && audio.error.code,
+                    _local: true,
+                    _quiet: true
+                });
+                return;
+            }
+
             RadioDebug.log('audio.event.error', {
                 station: currentStation && currentStation.title,
                 code: audio.error && audio.error.code
             });
-            if (!manualStop && (!audio.error || audio.error.code !== 1)) scheduleReconnect('audio-error');
+            if (!audio.error || audio.error.code !== 1) scheduleReconnect('audio-error');
         });
 
         audio.addEventListener('ended', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.ended', {
                 station: currentStation && currentStation.title
             });
-            if (!manualStop) scheduleReconnect('audio-ended');
+            scheduleReconnect('audio-ended');
         });
         audio.addEventListener('stalled', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.stalled', {
                 station: currentStation && currentStation.title
             });
         });
         audio.addEventListener('waiting', function () {
+            if (staleAudioEvent()) return;
+
             RadioDebug.log('audio.event.waiting', {
                 station: currentStation && currentStation.title,
                 readyState: audio.readyState
@@ -702,6 +755,14 @@
         });
 
         audio.addEventListener('playing', function () {
+            if (staleAudioEvent()) {
+                RadioDebug.log('audio.event.playing.stale', {
+                    _local: true,
+                    _quiet: true
+                });
+                return;
+            }
+
             played = true;
             loading = false;
             reconnectAttempts = 0;
@@ -759,6 +820,29 @@
             addCandidate(result, data && data.stream_128);
 
             return result;
+        }
+
+        function stationKey(data) {
+            return data && (data.prefix || data.id || data.title) || '';
+        }
+
+        function sameStation(data) {
+            return stationKey(data) && stationKey(data) === stationKey(currentStation);
+        }
+
+        function lockToggle() {
+            var now = Date.now();
+
+            if (now - lastToggleAt < ACTION_LOCK_DELAY) {
+                RadioDebug.log('player.toggle.duplicate', {
+                    _local: true,
+                    _quiet: true
+                });
+                return true;
+            }
+
+            lastToggleAt = now;
+            return false;
         }
 
         function parseResponse(data) {
@@ -1196,6 +1280,7 @@
 
         html.on('hover:enter click', function (e) {
             if (e && e.preventDefault) e.preventDefault();
+            if (lockToggle()) return false;
             if (played || loading) pausePlayback(true, true);
             else if (url) {
                 startCurrent();
@@ -1215,6 +1300,20 @@
         };
 
         this.play = function (data) {
+            var key = stationKey(data);
+            var now = Date.now();
+
+            if (key && key === lastPlayKey && now - lastPlayAt < ACTION_LOCK_DELAY && sameStation(data) && (played || loading)) {
+                RadioDebug.log('station.select.duplicate', {
+                    station: data && data.title,
+                    _local: true,
+                    _quiet: true
+                });
+                return;
+            }
+
+            lastPlayKey = key;
+            lastPlayAt = now;
             pausePlayback(false, false);
 
             currentStation = data || {};
@@ -1247,6 +1346,7 @@
         };
 
         this.toggle = function () {
+            if (lockToggle()) return;
             if (played || loading) pausePlayback(true, true);
             else if (url) {
                 startCurrent();
@@ -1311,8 +1411,6 @@
         var playing = '';
         var keyBound = false;
         var lastNavTime = 0;
-        var iconPreloadTimer = false;
-        var iconPreloadIndex = 0;
         var columnCountCache = 0;
         var columnWidthCache = 0;
         var panelBound = false;
@@ -1321,8 +1419,10 @@
         var debugTimer = false;
         var panelImageAt = 0;
         var stationsBuilt = false;
-        var playerLoading = false;
         var prefetchTimer = false;
+        var iconObserver = false;
+        var lastActionKey = '';
+        var lastActionAt = 0;
 
         function stopEvent(e) {
             if (!e) return;
@@ -1386,15 +1486,34 @@
             action = button.attr('data-action');
 
             if (action === 'close') {
+                if (actionLocked('panel-close')) return true;
                 closeRadio();
                 return true;
             }
 
             if (action === 'toggle' && player && typeof player.toggle === 'function') {
+                if (actionLocked('panel-toggle')) return true;
                 player.toggle();
                 return true;
             }
 
+            return false;
+        }
+
+        function actionLocked(key) {
+            var now = Date.now();
+
+            if (key && lastActionKey === key && now - lastActionAt < ACTION_LOCK_DELAY) {
+                RadioDebug.log('action.duplicate', {
+                    action: key,
+                    _local: true,
+                    _quiet: true
+                });
+                return true;
+            }
+
+            lastActionKey = key;
+            lastActionAt = now;
             return false;
         }
 
@@ -1411,7 +1530,6 @@
             var image = track && track.image || station && station.icon || '';
             var imageIsIcon = !(track && track.image);
 
-            playerLoading = !!(state && state.loading);
             panel.toggleClass('is-playing', !!(state && state.played));
             panel.toggleClass('is-loading', !!(state && state.loading));
             panel.data('fallback-icon', station && station.icon || '');
@@ -1559,37 +1677,60 @@
             }
         }
 
-        function clearIconPreload() {
-            clearTimeout(iconPreloadTimer);
-            iconPreloadTimer = false;
-        }
+        function setupIconObserver() {
+            if (iconObserver !== false) return;
 
-        function preloadIconsChunked() {
-            clearIconPreload();
-            iconPreloadIndex = 0;
-
-            function tick() {
-                var count = 0;
-
-                if (!items) return;
-
-                if (playerLoading) {
-                    iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_DELAY);
-                    return;
-                }
-
-                while (iconPreloadIndex < items.length && count < ICON_PRELOAD_CHUNK) {
-                    loadIcon(iconPreloadIndex);
-                    iconPreloadIndex++;
-                    count++;
-                }
-
-                if (iconPreloadIndex < items.length) {
-                    iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_DELAY);
-                }
+            if (!window.IntersectionObserver) {
+                iconObserver = null;
+                return;
             }
 
-            iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_START_DELAY);
+            iconObserver = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    var stationItem;
+
+                    if (!entry || !entry.isIntersecting) return;
+
+                    stationItem = $(entry.target).data('radio-record-item');
+                    if (stationItem && stationItem.load) stationItem.load();
+
+                    try {
+                        iconObserver.unobserve(entry.target);
+                    } catch (e) {}
+                });
+            }, {
+                root: null,
+                rootMargin: '180px 0px',
+                threshold: 0.01
+            });
+        }
+
+        function observeIcon(stationItem) {
+            var itemHtml;
+
+            if (!stationItem || !stationItem.render) return;
+
+            setupIconObserver();
+            itemHtml = stationItem.render();
+            itemHtml.data('radio-record-item', stationItem);
+
+            if (iconObserver && itemHtml[0]) {
+                try {
+                    iconObserver.observe(itemHtml[0]);
+                } catch (e) {
+                    stationItem.load();
+                }
+            }
+        }
+
+        function disconnectIconObserver() {
+            if (iconObserver && iconObserver.disconnect) {
+                try {
+                    iconObserver.disconnect();
+                } catch (e) {}
+            }
+
+            iconObserver = false;
         }
 
         function scheduleTrackPrefetch() {
@@ -1672,6 +1813,7 @@
             item = items[active];
 
             if (item && item.data) {
+                if (actionLocked('station-' + stationKey(item.data))) return true;
                 RadioDebug.log('station.select', {
                     station: item.data.title,
                     index: active,
@@ -1697,7 +1839,8 @@
             playing = key;
 
             items.forEach(function (item) {
-                item.render().toggleClass('playing', stationKey(item.data) === playing);
+                if (item.setPlaying) item.setPlaying(stationKey(item.data) === playing);
+                else item.render().toggleClass('playing', stationKey(item.data) === playing);
             });
         }
 
@@ -1931,6 +2074,7 @@
                 }).on('hover:enter click', function (e) {
                     if (e && e.preventDefault) e.preventDefault();
                     setFocus(items.indexOf(stationItem));
+                    if (actionLocked('station-' + stationKey(station))) return false;
                     RadioDebug.log('station.select', {
                         station: station.title,
                         index: items.indexOf(stationItem),
@@ -1938,10 +2082,12 @@
                     });
                     markPlaying(station);
                     player.play(station);
+                    return false;
                 });
 
                 body.append(stationItem.render());
                 items.push(stationItem);
+                observeIcon(stationItem);
             });
 
             if (items.length && typeof active !== 'number') {
@@ -1949,7 +2095,6 @@
                 last = items[0].render()[0];
                 items[0].render().addClass('focus radio-record-focus');
                 loadIconsAround(active);
-                preloadIconsChunked();
             }
         };
 
@@ -2007,7 +2152,7 @@
 
         this.destroy = function () {
             stopRadio(true);
-            clearIconPreload();
+            disconnectIconObserver();
             clearTimeout(prefetchTimer);
             if (playerStateOff) {
                 playerStateOff();
