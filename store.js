@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.6.0
+ * version: 1.6.1
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -53,7 +53,8 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v17').length) return;
+        if ($('#home-plugins-store-style-clean-v18').length) return;
+        $('#home-plugins-store-style-clean-v17').remove();
         $('#home-plugins-store-style-clean-v16').remove();
         $('#home-plugins-store-style-clean-v15').remove();
         $('#home-plugins-store-style-clean-v14').remove();
@@ -65,10 +66,12 @@
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v17">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v18">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:.72em!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:#fff!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;margin-right:.72em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:inherit!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;margin-right:.72em!important;}' +
+            '[data-component="' + COMPONENT + '"].focus .settings-param__icon,[data-component="' + COMPONENT + '"].hover .settings-param__icon{color:#111!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon svg *{stroke:currentColor!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.28em!important;height:2.28em!important;display:block!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__body{min-width:0!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
