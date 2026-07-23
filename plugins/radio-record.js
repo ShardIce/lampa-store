@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.4
+ * version: 1.1.5
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
@@ -10,13 +10,38 @@
 
     var COMPONENT = 'home_radio_record';
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
+    var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
-    var NAVIGATION_DELAY = 80;
+    var NAVIGATION_DELAY = 35;
+    var STREAM_START_TIMEOUT = 8000;
+    var TRACK_POLL_INTERVAL = 25000;
+    var ICON_PRELOAD_CHUNK = 10;
+    var ICON_PRELOAD_DELAY = 140;
 
     function addCss() {
         if ($('#home-radio-record-style').length) return;
 
         $('body').append('<style id="home-radio-record-style">' +
+            '.home-radio-record-panel{display:flex;align-items:center;margin:0 1em 1.15em 1em;min-height:5.35em;padding:.7em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.18),rgba(38,38,38,.96) 28%,rgba(28,28,28,.96));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
+            '.home-radio-record-panel__cover{width:4.15em;height:4.15em;border-radius:.3em;background-color:rgba(0,0,0,.24);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}' +
+            '.home-radio-record-panel__cover img{width:100%;height:100%;object-fit:cover;opacity:.96;}' +
+            '.home-radio-record-panel__cover.is-icon img{width:68%;height:68%;object-fit:contain;opacity:.78;}' +
+            '.home-radio-record-panel__meta{min-width:0;margin-left:1em;flex:1;}' +
+            '.home-radio-record-panel__station{font-size:.9em;color:#F64900;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__track{font-size:1.24em;color:#fff;font-weight:700;line-height:1.12;margin-top:.12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__artist{font-size:.95em;color:rgba(255,255,255,.62);margin-top:.18em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__actions{display:flex;align-items:center;margin-left:.8em;}' +
+            '.home-radio-record-panel__btn{width:3.05em;height:3.05em;margin-left:.45em;border-radius:.28em;background-color:rgba(255,255,255,.07);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.09);position:relative;flex-shrink:0;transition:background-color .12s ease,box-shadow .12s ease;}' +
+            '.home-radio-record-panel__btn.focus,.home-radio-record-panel__btn.hover{background-color:rgba(246,73,0,.22);box-shadow:0 0 0 .1em rgba(255,255,255,.88),0 .22em .9em rgba(246,73,0,.22);}' +
+            '.home-radio-record-panel__toggle:before{content:"";position:absolute;left:50%;top:50%;transform:translate(-37%,-50%);width:0;height:0;border-top:.58em solid transparent;border-bottom:.58em solid transparent;border-left:.88em solid #fff;}' +
+            '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:before,.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:after{content:"";position:absolute;top:32%;width:.28em;height:36%;border:0;background-color:#fff;transform:none;}' +
+            '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:before{left:38%;}' +
+            '.home-radio-record-panel.is-playing .home-radio-record-panel__toggle:after{left:55%;}' +
+            '.home-radio-record-panel.is-loading .home-radio-record-panel__toggle:before{content:"";left:50%;top:50%;width:1em;height:1em;border:.18em solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:100%;transform:translate(-50%,-50%);animation:home-radio-record-loading .85s linear infinite;}' +
+            '.home-radio-record-panel.is-loading .home-radio-record-panel__toggle:after{display:none;}' +
+            '.home-radio-record-panel__close:before,.home-radio-record-panel__close:after{content:"";position:absolute;left:32%;top:48%;width:36%;height:.14em;background-color:#fff;border-radius:.1em;}' +
+            '.home-radio-record-panel__close:before{transform:rotate(45deg);}' +
+            '.home-radio-record-panel__close:after{transform:rotate(-45deg);}' +
             '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.22em;border-radius:.36em;transition:background-color .12s ease;}' +
             '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
             '.home-radio-record-item__img{position:absolute;top:14%;left:14%;width:72%;height:72%;object-fit:contain;opacity:.86;transition:opacity .12s ease;}' +
@@ -24,8 +49,9 @@
             '.home-radio-record-item.focus,.home-radio-record-item.hover{background-color:rgba(255,255,255,.045);}' +
             '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
             '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img{opacity:1;}' +
-            '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.36);background-color:rgba(255,255,255,.055);}' +
-            '.home-radio-record-item.playing .home-radio-record-item__name{color:rgba(255,255,255,.92);}' +
+            '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:#F64900;background-color:rgba(246,73,0,.13);box-shadow:0 0 0 .08em rgba(246,73,0,.5),0 .3em 1em rgba(246,73,0,.2);}' +
+            '.home-radio-record-item.playing.focus .home-radio-record-item__imgbox,.home-radio-record-item.playing.hover .home-radio-record-item__imgbox{border-color:#F64900;box-shadow:0 0 0 .1em rgba(255,255,255,.92),0 0 0 .22em rgba(246,73,0,.7),0 .35em 1.15em rgba(246,73,0,.28);}' +
+            '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
             '@keyframes home-radio-record-sound{0%{height:.1em}100%{height:1em}}' +
             '@keyframes home-radio-record-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}' +
             '.home-radio-record-player{display:flex;align-items:center;border-radius:.3em;padding:.2em .8em;background-color:#3e3e3e;}' +
@@ -45,8 +71,8 @@
             '.home-radio-record-player.focus .home-radio-record-player__button{border-color:#000;}' +
             '.home-radio-record-player.focus .home-radio-record-player__button i,.home-radio-record-player.focus .home-radio-record-player__button:after{background-color:#000;}' +
             '.home-radio-record-player.focus .home-radio-record-player__button:before{border-top-color:#000;}' +
-            '@media screen and (max-width:580px){.home-radio-record-item{width:20%;}}' +
-            '@media screen and (max-width:385px){.home-radio-record-player__name,.home-radio-record-item__name{display:none}.home-radio-record-item{width:25%;}}' +
+            '@media screen and (max-width:580px){.home-radio-record-panel{margin:.2em .7em 1em .7em}.home-radio-record-panel__cover{width:3.55em;height:3.55em}.home-radio-record-panel__track{font-size:1.05em}.home-radio-record-panel__artist{font-size:.85em}.home-radio-record-panel__btn{width:2.65em;height:2.65em}.home-radio-record-item{width:20%;}}' +
+            '@media screen and (max-width:385px){.home-radio-record-player__name,.home-radio-record-item__name{display:none}.home-radio-record-panel__artist{display:none}.home-radio-record-panel__cover{width:3.1em;height:3.1em}.home-radio-record-panel__actions{margin-left:.45em}.home-radio-record-panel__btn{width:2.35em;height:2.35em}.home-radio-record-item{width:25%;}}' +
         '</style>');
     }
 
@@ -130,6 +156,7 @@
         this.load = function () {
             if (loaded) return;
             loaded = true;
+            img.loading = 'eager';
             img.src = data.icon || '';
         };
 
@@ -150,20 +177,30 @@
         var html = Lampa.Template.get('home_radio_record_player', {});
         var audio = new Audio();
         var url = '';
+        var urlCandidates = [];
+        var urlIndex = 0;
         var played = false;
+        var loading = false;
         var hls = false;
         var created = false;
         var reconnectTimer = false;
         var waitingTimer = false;
+        var startTimer = false;
+        var trackTimer = false;
         var manualStop = true;
+        var currentStation = false;
+        var currentTrack = false;
+        var stateListeners = [];
+        var trackRequest = false;
 
-        audio.preload = 'none';
+        try {
+            trackRequest = new Lampa.Reguest();
+        } catch (e) {}
+
+        audio.preload = 'auto';
 
         audio.addEventListener('play', function () {
-            played = true;
             manualStop = false;
-            clearReconnect();
-            html.toggleClass('loading', false);
         });
 
         audio.addEventListener('error', function () {
@@ -180,16 +217,160 @@
         });
 
         audio.addEventListener('playing', function () {
+            played = true;
+            loading = false;
             clearTimeout(waitingTimer);
+            clearTimeout(startTimer);
             clearReconnect();
-            html.toggleClass('loading', false);
+            updateControls();
+            scheduleTrackPoll(0);
         });
 
-        function chooseUrl(data) {
-            if (data.stream_128) return data.stream_128;
-            if (data.stream_320) return data.stream_320;
-            if (data.stream_hls) return data.stream_hls.replace('playlist.m3u8', '96/playlist.m3u8');
-            return '';
+        function currentState() {
+            return {
+                station: currentStation,
+                track: currentTrack,
+                played: played,
+                loading: loading,
+                stopped: manualStop && !loading,
+                hasUrl: !!url
+            };
+        }
+
+        function emitState() {
+            var state = currentState();
+
+            stateListeners.slice().forEach(function (listener) {
+                try {
+                    listener(state);
+                } catch (e) {}
+            });
+        }
+
+        function updateControls() {
+            html.toggleClass('loading', loading);
+            html.toggleClass('stop', !played && !loading);
+            emitState();
+        }
+
+        function addCandidate(result, value) {
+            value = cleanUrl(value);
+
+            if (value && result.indexOf(value) === -1) result.push(value);
+        }
+
+        function streamCandidates(data) {
+            var result = [];
+            var hlsUrl = data && data.stream_hls;
+
+            addCandidate(result, data && data.stream_128);
+            addCandidate(result, data && data.stream_320);
+
+            if (hlsUrl) {
+                addCandidate(result, hlsUrl);
+                addCandidate(result, hlsUrl.replace('playlist.m3u8', '96/playlist.m3u8'));
+            }
+
+            return result;
+        }
+
+        function parseResponse(data) {
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    data = {};
+                }
+            }
+
+            return data || {};
+        }
+
+        function normalizeTrack(track) {
+            if (!track) return false;
+
+            return {
+                id: track.id,
+                artist: track.artist || '',
+                song: track.song || '',
+                image: cleanUrl(track.image100 || track.image200 || track.image600 || ''),
+                shareUrl: cleanUrl(track.shareUrl || '')
+            };
+        }
+
+        function trackKey(track) {
+            return track && ((track.id || '') + '|' + (track.artist || '') + '|' + (track.song || '')) || '';
+        }
+
+        function setTrack(track) {
+            var normalized = normalizeTrack(track);
+
+            if (trackKey(normalized) === trackKey(currentTrack)) return;
+
+            currentTrack = normalized;
+            emitState();
+        }
+
+        function findNowItem(data) {
+            var list = parseResponse(data).result || [];
+            var i;
+
+            if (!Array.isArray(list) || !currentStation || !currentStation.id) return false;
+
+            for (i = 0; i < list.length; i++) {
+                if (String(list[i].id) === String(currentStation.id)) return list[i];
+            }
+
+            return false;
+        }
+
+        function clearTrackPoll() {
+            clearTimeout(trackTimer);
+            trackTimer = false;
+
+            if (trackRequest && typeof trackRequest.clear === 'function') {
+                try {
+                    trackRequest.clear();
+                } catch (e) {}
+            }
+        }
+
+        function scheduleTrackPoll(delay) {
+            clearTimeout(trackTimer);
+
+            if (manualStop || !currentStation || !currentStation.id) return;
+
+            trackTimer = setTimeout(refreshTrack, typeof delay === 'number' ? delay : TRACK_POLL_INTERVAL);
+        }
+
+        function refreshTrack() {
+            if (manualStop || !currentStation || !currentStation.id) return;
+
+            function done(data) {
+                var item = findNowItem(data);
+
+                if (item && item.track) setTrack(item.track);
+                scheduleTrackPoll(TRACK_POLL_INTERVAL);
+            }
+
+            function fail() {
+                scheduleTrackPoll(TRACK_POLL_INTERVAL);
+            }
+
+            if (trackRequest && typeof trackRequest["native"] === 'function') {
+                trackRequest["native"](NOW_URL, done, fail, false, {
+                    dataType: 'json'
+                });
+            } else if (window.fetch) {
+                fetch(NOW_URL).then(function (response) {
+                    return response.json();
+                }).then(done)["catch"](fail);
+            }
+        }
+
+        function clearStartupTimer() {
+            clearTimeout(startTimer);
+            startTimer = false;
         }
 
         function clearReconnect() {
@@ -202,7 +383,10 @@
 
             try {
                 promise = audio.play();
-            } catch (e) {}
+            } catch (e) {
+                scheduleReconnect();
+                return;
+            }
 
             if (promise && promise.then) {
                 promise.then(function () {
@@ -215,7 +399,6 @@
         }
 
         function loadNative() {
-            clearReconnect();
             audio.src = url;
             audio.load();
             start();
@@ -224,9 +407,12 @@
         function cleanupMedia() {
             clearReconnect();
             clearTimeout(waitingTimer);
+            clearStartupTimer();
 
             if (hls) {
                 try {
+                    if (typeof hls.stopLoad === 'function') hls.stopLoad();
+                    if (typeof hls.detachMedia === 'function') hls.detachMedia();
                     hls.destroy();
                 } catch (e) {}
                 hls = false;
@@ -237,30 +423,33 @@
             } catch (e2) {}
 
             audio.removeAttribute('src');
+            audio.src = '';
             try {
                 audio.load();
             } catch (e3) {}
         }
 
         function scheduleReconnect() {
-            if (manualStop || !url || reconnectTimer) return;
+            if (manualStop || !urlCandidates.length || reconnectTimer) return;
 
-            html.toggleClass('loading', true);
-            html.toggleClass('stop', false);
+            loading = true;
+            updateControls();
 
             reconnectTimer = setTimeout(function () {
                 reconnectTimer = false;
-                if (manualStop || !url) return;
-                cleanupMedia();
-                prepare();
-            }, 2500);
+                if (manualStop || !urlCandidates.length) return;
+                if (urlCandidates.length > 1) urlIndex = (urlIndex + 1) % urlCandidates.length;
+                url = urlCandidates[urlIndex];
+                startCurrent();
+            }, 1800);
         }
 
         function prepare() {
+            var isHls = url.indexOf('.m3u8') > -1;
             var canNativeHls = audio.canPlayType && audio.canPlayType('audio/vnd.apple.mpegurl');
             var canHlsJs = typeof Hls !== 'undefined' && Hls && typeof Hls.isSupported === 'function' && Hls.isSupported();
 
-            if (canNativeHls || url.indexOf('.aacp') > 0 || !canHlsJs) {
+            if (!isHls || canNativeHls || !canHlsJs) {
                 loadNative();
                 return;
             }
@@ -273,33 +462,44 @@
                     if (data && data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR) {
                         Lampa.Noty.show('Ошибка в загрузке потока');
                     }
+                    if (data && data.fatal) scheduleReconnect();
                 });
                 hls.on(Hls.Events.MANIFEST_LOADED, start);
             } catch (e) {
-                Lampa.Noty.show('Ошибка в загрузке потока');
+                scheduleReconnect();
             }
         }
 
-        function play() {
+        function startCurrent() {
             if (!url) return;
+
+            cleanupMedia();
             manualStop = false;
-            html.toggleClass('loading', true);
-            html.toggleClass('stop', false);
+            played = false;
+            loading = true;
+            updateControls();
             prepare();
+            startTimer = setTimeout(function () {
+                if (!manualStop && !played) scheduleReconnect();
+            }, STREAM_START_TIMEOUT);
         }
 
-        function stop() {
+        function pausePlayback() {
             manualStop = true;
             played = false;
-            html.toggleClass('stop', true);
-            html.toggleClass('loading', false);
+            loading = false;
+            clearTrackPoll();
             cleanupMedia();
+            updateControls();
         }
 
         html.on('hover:enter click', function (e) {
             if (e && e.preventDefault) e.preventDefault();
-            if (played) stop();
-            else if (url) play();
+            if (played || loading) pausePlayback();
+            else if (url) {
+                startCurrent();
+                scheduleTrackPoll(0);
+            }
         });
 
         this.create = function () {
@@ -314,23 +514,57 @@
         };
 
         this.play = function (data) {
-            stop();
-            url = chooseUrl(data || {});
+            pausePlayback();
+
+            currentStation = data || {};
+            currentTrack = false;
+            urlCandidates = streamCandidates(currentStation);
+            urlIndex = 0;
+            url = urlCandidates[0] || '';
 
             if (!url) {
                 if (Lampa.Noty) Lampa.Noty.show('У станции нет ссылки на поток');
+                currentStation = false;
+                updateControls();
                 return;
             }
 
             html.find('.home-radio-record-player__name').text(data.title || 'Radio Record');
             html.toggleClass('hide', false);
-            play();
+            updateControls();
+            startCurrent();
+            scheduleTrackPoll(0);
+        };
+
+        this.toggle = function () {
+            if (played || loading) pausePlayback();
+            else if (url) {
+                startCurrent();
+                scheduleTrackPoll(0);
+            }
         };
 
         this.stop = function (hide) {
-            stop();
+            pausePlayback();
             url = '';
+            urlCandidates = [];
+            urlIndex = 0;
+            currentStation = false;
+            currentTrack = false;
             if (hide) html.toggleClass('hide', true);
+            updateControls();
+        };
+
+        this.onState = function (listener) {
+            if (typeof listener !== 'function') return function () {};
+
+            stateListeners.push(listener);
+            listener(currentState());
+
+            return function () {
+                var index = stateListeners.indexOf(listener);
+                if (index > -1) stateListeners.splice(index, 1);
+            };
         };
     }
 
