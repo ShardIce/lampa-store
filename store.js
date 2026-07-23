@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.5.7
+ * version: 1.5.8
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -53,7 +53,8 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v15').length) return;
+        if ($('#home-plugins-store-style-clean-v16').length) return;
+        $('#home-plugins-store-style-clean-v15').remove();
         $('#home-plugins-store-style-clean-v14').remove();
         $('#home-plugins-store-style-clean-v13').remove();
         $('#home-plugins-store-style-clean-v12').remove();
@@ -63,7 +64,7 @@
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v15">' +
+        $('body').append('<style id="home-plugins-store-style-clean-v16">' +
             '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon{color:#fff!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
@@ -71,55 +72,68 @@
             '[data-component="' + COMPONENT + '"] .settings-param__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__descr{display:none!important;}' +
 
-            '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:#202121;color:#fff;padding:1.55em 0 0 0;box-sizing:border-box;overflow:hidden;}' +
-            '.hps-head{height:2.4em;display:flex;align-items:flex-start;justify-content:space-between;padding:0 1.8em;margin-bottom:.35em;box-sizing:border-box;}' +
+            '.hps-screen{position:fixed;left:0;top:0;right:0;bottom:0;z-index:999999;background:#202121;color:#fff;padding:1.1em 0 0 0;box-sizing:border-box;overflow:hidden;}' +
+            '.hps-head{height:2.15em;display:flex;align-items:flex-start;justify-content:space-between;padding:0 1.45em;margin-bottom:.2em;box-sizing:border-box;}' +
             '.hps-brand{display:flex;align-items:center;gap:.65em;min-width:0;}' +
             '.hps-logo{display:none;}' +
             '.hps-title{font-size:1.05em;font-weight:900;line-height:1.1;white-space:nowrap;letter-spacing:0;}' +
             '.hps-subtitle{display:none;}' +
             '.hps-actions{display:flex;align-items:center;gap:.7em;flex-shrink:0;}' +
-            '.hps-topbtn{padding:.45em .75em;border-radius:.5em;background:rgba(255,255,255,.08);border:0;font-weight:800;font-size:.82em;white-space:nowrap;color:rgba(255,255,255,.78);}' +
-            '.hps-scroll{height:calc(100% - 2.75em);overflow-y:auto;overflow-x:hidden;padding:0 0 5em 0;box-sizing:border-box;scroll-behavior:auto;overscroll-behavior:contain;}' +
-            '.hps-section{position:relative;margin:0 0 1.95em 0;}' +
-            '.hps-section:before{content:"‹";position:absolute;left:0;top:2.05em;bottom:.65em;width:4.4em;display:flex;align-items:center;justify-content:flex-start;padding-left:1.1em;box-sizing:border-box;font-size:2.4em;font-weight:300;color:rgba(255,255,255,.46);pointer-events:none;background:linear-gradient(270deg,rgba(32,33,33,0),#202121 76%);z-index:2;}' +
-            '.hps-section:after{content:"›";position:absolute;right:0;top:2.05em;bottom:.65em;width:4.4em;display:flex;align-items:center;justify-content:flex-end;padding-right:1.1em;box-sizing:border-box;font-size:2.4em;font-weight:300;color:rgba(255,255,255,.46);pointer-events:none;background:linear-gradient(90deg,rgba(32,33,33,0),#202121 76%);}' +
+            '.hps-topbtn{padding:.38em .65em;border-radius:.42em;background:rgba(255,255,255,.08);border:0;font-weight:800;font-size:.78em;white-space:nowrap;color:rgba(255,255,255,.78);}' +
+            '.hps-scroll{height:calc(100% - 2.35em);overflow-y:auto;overflow-x:hidden;padding:0 0 4em 0;box-sizing:border-box;scroll-behavior:auto;overscroll-behavior:contain;}' +
+            '.hps-section{position:relative;margin:0 0 1.2em 0;}' +
+            '.hps-section:before{content:"‹";position:absolute;left:0;top:1.8em;bottom:.45em;width:3.7em;display:flex;align-items:center;justify-content:flex-start;padding-left:.8em;box-sizing:border-box;font-size:2.1em;font-weight:300;color:rgba(255,255,255,.42);pointer-events:none;background:linear-gradient(270deg,rgba(32,33,33,0),#202121 76%);z-index:2;}' +
+            '.hps-section:after{content:"›";position:absolute;right:0;top:1.8em;bottom:.45em;width:3.7em;display:flex;align-items:center;justify-content:flex-end;padding-right:.8em;box-sizing:border-box;font-size:2.1em;font-weight:300;color:rgba(255,255,255,.42);pointer-events:none;background:linear-gradient(90deg,rgba(32,33,33,0),#202121 76%);}' +
             '.hps-section--start:before{display:none;}' +
             '.hps-section--end:after{display:none;}' +
-            '.hps-section-title{font-size:1.05em;font-weight:900;margin:0 0 .75em 0;padding:0 1.8em;color:rgba(255,255,255,.94);}' +
-            '.hps-grid{display:flex;gap:1em;overflow-x:auto;overflow-y:hidden;padding:0 1.8em .75em 1.8em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}' +
+            '.hps-section-title{font-size:.95em;font-weight:900;margin:0 0 .5em 0;padding:0 1.45em;color:rgba(255,255,255,.92);}' +
+            '.hps-grid{display:flex;gap:.72em;overflow-x:auto;overflow-y:hidden;padding:0 1.45em .55em 1.45em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}' +
             '.hps-grid::-webkit-scrollbar,.hps-scroll::-webkit-scrollbar{width:.45em;height:.45em;}' +
             '.hps-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:1em;margin:0 1.8em;}' +
             '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.30);border-radius:1em;}' +
-            '.hps-card{position:relative;flex:0 0 21.4em;min-height:13.9em;border-radius:.72em;background:#3c3c3c;border:0;box-shadow:none;overflow:hidden;padding:1em 1em 3.25em 1em;box-sizing:border-box;}' +
-            '.hps-card:before{content:"";position:absolute;left:0;right:0;top:0;height:.32em;z-index:1;pointer-events:none;background:rgba(255,255,255,.18);}' +
-            '.hps-card--own{background:linear-gradient(180deg,rgba(48,73,69,.72),#3c3c3c 44%);}' +
-            '.hps-card--external{background:linear-gradient(180deg,rgba(69,63,56,.62),#3c3c3c 44%);}' +
+            '.hps-card{position:relative;flex:0 0 18.2em;min-height:11.8em;border-radius:.55em;background:#343636;border:0;box-shadow:none;overflow:hidden;padding:.82em .82em 3.05em .82em;box-sizing:border-box;}' +
+            '.hps-card:before{content:"";position:absolute;left:0;right:0;top:0;height:.24em;z-index:1;pointer-events:none;background:rgba(255,255,255,.16);}' +
+            '.hps-card--own{background:linear-gradient(180deg,rgba(44,68,65,.68),#343636 42%);}' +
+            '.hps-card--external{background:linear-gradient(180deg,rgba(65,60,52,.58),#343636 42%);}' +
             '.hps-card--own:before{background:rgba(112,214,178,.70);}' +
             '.hps-card--external:before{background:rgba(214,186,128,.58);}' +
+            '.hps-card--cover{min-height:13em;}' +
             '.hps-cover{height:0;border-radius:.45em;background:transparent;overflow:hidden;box-shadow:none;margin:0;}' +
-            '.hps-card--cover .hps-cover{height:9.45em;margin:-1em -1em .9em -1em;border-radius:.72em .72em 0 0;background:#2c2c2c;}' +
+            '.hps-card--cover .hps-cover{height:6.9em;margin:-.82em -.82em .75em -.82em;border-radius:.55em .55em 0 0;background:#2c2c2c;}' +
             '.hps-cover img{display:block;width:100%;height:100%;object-fit:cover;}' +
-            '.hps-name{margin-top:0;font-size:1.05em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-desc{margin-top:.58em;max-height:4.2em;color:rgba(255,255,255,.82);font-size:.78em;font-weight:400;line-height:1.38;overflow:hidden;}' +
-            '.hps-meta{position:absolute;left:1em;right:8.8em;bottom:1.1em;color:rgba(255,255,255,.44);font-size:.74em;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-card-footer{position:absolute;right:1em;bottom:.82em;display:flex;align-items:center;justify-content:flex-end;}' +
-            '.hps-install{height:2.05em;padding:0 .95em;border-radius:.5em;background:#7ee05f;color:#101510;font-size:.78em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:6.7em;box-shadow:none;}' +
-            '.hps-card--installed .hps-install{background:rgba(255,255,255,.11);color:rgba(255,255,255,.45);}' +
+            '.hps-name{margin-top:0;font-size:.98em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-desc{margin-top:.45em;max-height:2.95em;color:rgba(255,255,255,.80);font-size:.72em;font-weight:400;line-height:1.34;overflow:hidden;}' +
+            '.hps-meta{position:absolute;left:.82em;right:7.6em;bottom:.85em;color:rgba(255,255,255,.42);font-size:.68em;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-status{position:absolute;left:.82em;right:.82em;bottom:2.72em;display:flex;align-items:center;gap:.45em;min-height:1.35em;overflow:hidden;}' +
+            '.hps-card--cover .hps-status{top:.55em;bottom:auto;left:.62em;right:.62em;z-index:2;}' +
+            '.hps-state{height:1.45em;padding:0 .55em;border-radius:.35em;background:rgba(255,255,255,.08);font-size:.66em;font-weight:900;line-height:1;display:flex;align-items:center;white-space:nowrap;}' +
+            '.hps-runtime{min-width:0;color:rgba(255,255,255,.58);font-size:.68em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-card--ready .hps-state{background:rgba(126,224,95,.18);color:#aef08e;}' +
+            '.hps-card--loaded .hps-state{background:rgba(112,214,178,.18);color:#8ee8c7;}' +
+            '.hps-card--pending .hps-state{background:rgba(255,221,128,.16);color:#f1d384;}' +
+            '.hps-card--error .hps-state{background:rgba(255,111,111,.16);color:#ffb0b0;}' +
+            '.hps-card--disabled .hps-state{background:rgba(255,255,255,.08);color:rgba(255,255,255,.62);}' +
+            '.hps-card-footer{position:absolute;right:.82em;bottom:.62em;display:flex;align-items:center;justify-content:flex-end;}' +
+            '.hps-install{height:1.85em;padding:0 .78em;border-radius:.4em;background:#7ee05f;color:#101510;font-size:.72em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:6.1em;box-shadow:none;}' +
+            '.hps-card--installed .hps-install{background:rgba(255,255,255,.11);color:rgba(255,255,255,.62);}' +
             '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:none;}' +
             '.hps-card--disabled .hps-install{background:rgba(255,255,255,.09);color:rgba(255,255,255,.58);box-shadow:none;}' +
-            '.hps-empty{margin:0 1.8em;padding:2em;border-radius:.7em;background:#3c3c3c;font-weight:850;color:rgba(255,255,255,.72);}' +
+            '.hps-empty{margin:0 1.45em;padding:1.4em;border-radius:.55em;background:#343636;font-weight:850;color:rgba(255,255,255,.72);}' +
             '.hps-action-shade{position:absolute;z-index:8;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.34);display:flex;justify-content:flex-end;}' +
-            '.hps-action-panel{width:34em;max-width:46vw;height:100%;background:rgba(31,34,38,.98);box-shadow:-2em 0 3em rgba(0,0,0,.30);padding:2em 0;box-sizing:border-box;}' +
-            '.hps-action-title{font-size:2.3em;font-weight:300;margin:0 1.05em 1.2em;line-height:1.1;}' +
-            '.hps-action-plugin{margin:-1.8em 2.45em 1.4em;color:rgba(255,255,255,.48);font-size:.95em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-action-item{font-size:1.28em;font-weight:800;padding:1.05em 2em;min-height:3.2em;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:1em;color:#fff;}' +
+            '.hps-action-panel{width:28em;max-width:42vw;height:100%;background:rgba(31,34,38,.98);box-shadow:-1.4em 0 2.4em rgba(0,0,0,.28);padding:1.5em 0;box-sizing:border-box;}' +
+            '.hps-action-title{font-size:1.65em;font-weight:800;margin:0 1.1em .8em;line-height:1.1;}' +
+            '.hps-action-plugin{margin:-.55em 1.95em .85em;color:rgba(255,255,255,.48);font-size:.82em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-action-summary{margin:0 1.6em 1em;padding:.75em .8em;border-radius:.45em;background:rgba(255,255,255,.06);display:flex;align-items:center;gap:.55em;min-width:0;}' +
+            '.hps-action-summary-state{font-size:.68em;font-weight:900;color:#8ee8c7;white-space:nowrap;}' +
+            '.hps-action-summary-text{font-size:.74em;font-weight:750;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-action-item{font-size:1.05em;font-weight:800;padding:.78em 1.65em;min-height:2.65em;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:1em;color:#fff;}' +
             '.hps-action-item.focus{background:rgba(255,255,255,.10);box-shadow:none!important;transform:none!important;border-color:transparent!important;}' +
             '.hps-action-item--disabled{opacity:.36;pointer-events:none;}' +
             '.hps-action-item--danger{color:#ffb3b3;}' +
-            '.hps-action-item-status{font-size:.75em;font-weight:800;color:rgba(255,255,255,.58);white-space:nowrap;}' +
+            '.hps-action-item-status{font-size:.7em;font-weight:800;color:rgba(255,255,255,.58);white-space:nowrap;}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 .18em rgba(255,255,255,.78)!important;transform:none!important;}' +
-            '@media(max-width:1280px){.hps-card{flex-basis:19.6em}.hps-screen{padding-top:1.25em}.hps-meta{right:8.1em}}' +
-            '@media(max-width:760px){.hps-head{padding:0 1em}.hps-section-title{padding:0 1em}.hps-grid{padding-left:1em;padding-right:1em}.hps-card{flex-basis:17.8em}.hps-card--cover .hps-cover{height:8em}.hps-desc{font-size:.75em}.hps-section:before,.hps-section:after{width:3em}}' +
+            '@media(max-width:1280px){.hps-card{flex-basis:16.8em}.hps-card--cover .hps-cover{height:6.2em}.hps-screen{padding-top:1em}.hps-meta{right:7.2em}.hps-action-panel{max-width:52vw}}' +
+            '@media(max-width:760px){.hps-head{padding:0 1em}.hps-section-title{padding:0 1em}.hps-grid{padding-left:1em;padding-right:1em}.hps-card{flex-basis:15.6em;min-height:11.2em}.hps-card--cover .hps-cover{height:5.8em}.hps-desc{font-size:.7em;max-height:2.8em}.hps-section:before,.hps-section:after{width:2.7em}.hps-action-panel{width:100%;max-width:100vw}}' +
         '</style>');
     }
 
@@ -232,28 +246,76 @@
         return String(url || '').replace(/\s+/g, '').replace('cub.watch', (window.lampa_settings && window.lampa_settings.cub_domain) || 'cub.red');
     }
 
-    function installedPlugins() {
-        var list = [];
-
-        try {
-            if (Lampa.Plugins && typeof Lampa.Plugins.get === 'function') {
-                list = Lampa.Plugins.get();
-            } else if (Lampa.Storage && typeof Lampa.Storage.get === 'function') {
-                list = Lampa.Storage.get('plugins', '[]');
-            }
-        } catch (e) {
-            list = [];
-        }
-
+    function parsePluginList(list) {
         if (typeof list == 'string') {
             try {
                 list = JSON.parse(list);
-            } catch (e2) {
+            } catch (e) {
                 list = [];
             }
         }
 
         return Array.isArray(list) ? list : [];
+    }
+
+    function managerPlugins() {
+        try {
+            if (Lampa.Plugins && typeof Lampa.Plugins.get === 'function') {
+                return parsePluginList(Lampa.Plugins.get());
+            }
+        } catch (e) {
+            return [];
+        }
+
+        return [];
+    }
+
+    function storagePlugins() {
+        try {
+            if (Lampa.Storage && typeof Lampa.Storage.get === 'function') {
+                return parsePluginList(Lampa.Storage.get('plugins', '[]'));
+            }
+        } catch (e) {
+            return [];
+        }
+
+        return [];
+    }
+
+    function normalizeInstalledEntry(item) {
+        if (typeof item == 'string') {
+            return { url: item, status: 1 };
+        }
+
+        if (item && typeof item == 'object') {
+            if (!item.url && item.link) item.url = item.link;
+            if (item.status == null) item.status = 1;
+            return item;
+        }
+
+        return null;
+    }
+
+    function installedPlugins() {
+        var list = [];
+        var seen = {};
+
+        function append(items) {
+            parsePluginList(items).forEach(function (item) {
+                var entry = normalizeInstalledEntry(item);
+                var key = normalizePluginUrl(entry && entry.url);
+
+                if (!key || seen[key]) return;
+
+                seen[key] = true;
+                list.push(entry);
+            });
+        }
+
+        append(managerPlugins());
+        append(storagePlugins());
+
+        return list;
     }
 
     function findInstalledPlugin(plugin) {
@@ -264,14 +326,9 @@
         if (!url) return result;
 
         list.some(function (item, index) {
-            var installed = typeof item == 'string' ? item : item && (item.url || item.link);
+            var installed = item && (item.url || item.link);
 
             if (normalizePluginUrl(installed) == url) {
-                if (typeof item == 'string') {
-                    item = { url: item, status: 1 };
-                    list[index] = item;
-                }
-
                 result = {
                     item: item,
                     index: index,
@@ -292,67 +349,143 @@
     }
 
     function saveInstalledList(list) {
-        if (Lampa.Plugins && typeof Lampa.Plugins.save === 'function') {
-            Lampa.Plugins.save();
-        } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
+        if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
             Lampa.Storage.set('plugins', list);
+        } else if (Lampa.Plugins && typeof Lampa.Plugins.save === 'function') {
+            Lampa.Plugins.save();
         }
+    }
+
+    function hasPluginUrl(list, plugin) {
+        var url = normalizePluginUrl(plugin && plugin.url);
+        var found = false;
+
+        if (!url) return found;
+
+        parsePluginList(list).some(function (item) {
+            var entry = typeof item == 'string' ? item : item && (item.url || item.link);
+
+            if (normalizePluginUrl(entry) == url) {
+                found = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return found;
+    }
+
+    function cardStateInfo(plugin, state) {
+        if (state == 'installing') {
+            return {
+                classes: 'hps-card--installing',
+                button: 'Ждите',
+                label: 'Установка',
+                runtime: 'Сохраняю'
+            };
+        }
+
+        var installed = findInstalledPlugin(plugin);
+
+        if (!installed) {
+            return {
+                classes: 'hps-card--ready',
+                button: 'Установить',
+                label: 'Не установлен',
+                runtime: 'Можно установить'
+            };
+        }
+
+        if (installed.item.status == 0 || state == 'disabled') {
+            return {
+                classes: 'hps-card--disabled',
+                button: 'Включить',
+                label: 'Отключен',
+                runtime: 'Не запускается'
+            };
+        }
+
+        try {
+            if (Lampa.Plugins && typeof Lampa.Plugins.errors === 'function' && hasPluginUrl(Lampa.Plugins.errors(), plugin)) {
+                return {
+                    classes: 'hps-card--installed hps-card--error',
+                    button: 'Управлять',
+                    label: 'Ошибка',
+                    runtime: 'Не загрузился'
+                };
+            }
+        } catch (e) {}
+
+        try {
+            if (Lampa.Plugins && typeof Lampa.Plugins.loaded === 'function' && hasPluginUrl(Lampa.Plugins.loaded(), plugin)) {
+                return {
+                    classes: 'hps-card--installed hps-card--loaded',
+                    button: 'Управлять',
+                    label: 'Установлен',
+                    runtime: 'Запущен'
+                };
+            }
+        } catch (e2) {}
+
+        return {
+            classes: 'hps-card--installed hps-card--pending',
+            button: 'Управлять',
+            label: 'Установлен',
+            runtime: 'После перезапуска'
+        };
     }
 
     function updateCardState(card, plugin, state) {
         if (!card || !card.length) return;
 
-        if (!state) {
-            var installed = findInstalledPlugin(plugin);
-            state = installed ? (installed.item.status === 0 ? 'disabled' : 'installed') : 'ready';
-        }
+        var info = cardStateInfo(plugin, state);
 
-        card.removeClass('hps-card--installed hps-card--installing hps-card--disabled');
-
-        if (state == 'installing') {
-            card.addClass('hps-card--installing');
-            card.find('.hps-install').text('Устанавливаю');
-        } else if (state == 'installed') {
-            card.addClass('hps-card--installed');
-            card.find('.hps-install').text('Установлен');
-        } else if (state == 'disabled') {
-            card.addClass('hps-card--disabled');
-            card.find('.hps-install').text('Отключен');
-        } else {
-            card.find('.hps-install').text('Установить');
-        }
+        card.removeClass('hps-card--ready hps-card--installed hps-card--installing hps-card--disabled hps-card--loaded hps-card--pending hps-card--error');
+        card.addClass(info.classes);
+        card.find('.hps-install').text(info.button);
+        card.find('.hps-state').text(info.label);
+        card.find('.hps-runtime').text(info.runtime);
     }
 
     function savePluginFallback(data) {
-        var list = installedPlugins().map(function (item) {
-            return typeof item == 'string' ? { url: item, status: 1 } : item;
-        });
+        var list = installedPlugins();
+        var saved = false;
 
-        list.push(data);
+        if (!hasPluginUrl(list, data)) list.push(data);
         if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
             Lampa.Storage.set('plugins', list);
+            saved = true;
         }
 
         if (Lampa.Utils && typeof Lampa.Utils.putScriptAsync === 'function') {
             Lampa.Utils.putScriptAsync([data.url], false, false, function () {}, false);
+            return true;
         } else if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
             Lampa.Utils.putScript([data.url], function () {}, false, function () {}, true);
+            return true;
         }
+
+        return saved;
     }
 
     function addInstalledPlugin(data) {
-        var source = installedPlugins();
-        var list = source.map(function (item) {
-            return typeof item == 'string' ? { url: item, status: 1 } : item;
-        });
+        if (Lampa.Plugins && typeof Lampa.Plugins.add === 'function') {
+            Lampa.Plugins.add(data);
+            return true;
+        }
 
-        list.push(data);
+        var list = installedPlugins();
+        var saved = false;
+
+        if (!hasPluginUrl(list, data)) list.push(data);
 
         if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
             Lampa.Storage.set('plugins', list);
+            saved = true;
         } else if (Lampa.Plugins && typeof Lampa.Plugins.save === 'function') {
-            if (Array.isArray(source)) source.push(data);
             Lampa.Plugins.save();
+            saved = true;
         }
 
         if (Lampa.Plugins && typeof Lampa.Plugins.push === 'function') {
@@ -361,11 +494,15 @@
             Lampa.Utils.putScriptAsync([data.url], false, false, function () {}, false);
         } else if (Lampa.Utils && typeof Lampa.Utils.putScript === 'function') {
             Lampa.Utils.putScript([data.url], function () {}, false, function () {}, true);
+        } else {
+            return saved;
         }
+
+        return true;
     }
 
     function installPlugin(plugin, card, complete) {
-        var url = plugin.url;
+        var url = String(plugin.url || '').trim();
 
         if (!url) {
             if (Lampa.Noty) Lampa.Noty.show('У плагина нет ссылки для установки');
@@ -390,25 +527,24 @@
             url: url,
             status: 1,
             name: plugin.name,
-            author: plugin.author
+            author: plugin.author,
+            from: 'Plugin Hub',
+            source: STORE_URL
         };
 
+        if (plugin.store) data.store = plugin.store;
+
         try {
-            if ((Lampa.Storage && typeof Lampa.Storage.set === 'function') ||
-                (Lampa.Plugins && typeof Lampa.Plugins.push === 'function')) {
-                addInstalledPlugin(data);
-            } else if (Lampa.Utils && (typeof Lampa.Utils.putScriptAsync === 'function' || typeof Lampa.Utils.putScript === 'function')) {
-                savePluginFallback(data);
-            } else {
+            if (!addInstalledPlugin(data)) {
                 throw new Error('Lampa.Plugins.add не найден');
             }
 
             setTimeout(function () {
                 installing[url] = false;
                 ignoreActionMenuUntil[url] = Date.now() + 1500;
-                updateCardState(card, plugin, 'installed');
-                if (complete) complete(true);
-            }, 350);
+                updateCardState(card, plugin);
+                if (complete) complete(isInstalled(plugin));
+            }, 550);
         } catch (e) {
             installing[url] = false;
             delete ignoreActionMenuUntil[url];
@@ -430,7 +566,7 @@
         return result;
     }
 
-    function checkPluginStatus(plugin, row) {
+    function checkPluginStatus(plugin, row, card) {
         var url = plugin.url;
         var status = row.find('.hps-action-item-status');
 
@@ -439,17 +575,21 @@
             return;
         }
 
-        status.text('проверка');
+        status.text('проверяю');
 
         function display(text) {
             status.text(text);
+
+            if (card && card.length) {
+                card.find('.hps-runtime').text(text);
+            }
         }
 
         try {
             var network = new Lampa.Reguest();
             if (typeof network.timeout === 'function') network.timeout(5000);
             network["native"](statusUrl(url), function (str) {
-                display(/Lampa\./.test(str || '') ? '200 рабочий' : '500 не подтверждён');
+                display(/Lampa\./.test(str || '') ? 'ссылка рабочая' : 'не подтверждён');
             }, function () {
                 display('ошибка');
             }, false, {
@@ -475,7 +615,7 @@
         var found = findInstalledPlugin(plugin);
         if (!found) return;
 
-        found.item.status = found.item.status === 0 ? 1 : 0;
+        found.item.status = found.item.status == 0 ? 1 : 0;
         saveInstalledList(found.list);
 
         if (found.item.status == 1 && Lampa.Plugins && typeof Lampa.Plugins.push === 'function') {
@@ -494,10 +634,10 @@
 
         if (Lampa.Plugins && typeof Lampa.Plugins.remove === 'function') {
             Lampa.Plugins.remove(found.item);
-        } else if (Lampa.Storage && typeof Lampa.Storage.set === 'function') {
-            found.list.splice(found.index, 1);
-            Lampa.Storage.set('plugins', found.list);
         }
+
+        found.list.splice(found.index, 1);
+        saveInstalledList(found.list);
 
         updateCardState(card, plugin, 'ready');
         closeActionMenu();
@@ -593,7 +733,7 @@
         } else if (action == 'toggle') {
             toggleInstalled(plugin, card);
         } else if (action == 'check') {
-            checkPluginStatus(plugin, row);
+            checkPluginStatus(plugin, row, card);
         } else if (action == 'name') {
             editInstalled(plugin, card, 'name');
         } else if (action == 'url') {
@@ -605,33 +745,31 @@
 
     function openActionMenu(plugin, card) {
         var found = findInstalledPlugin(plugin);
-        var enabled = found && found.item.status !== 0;
+        var enabled = found && found.item.status != 0;
+        var info = cardStateInfo(plugin);
         var items = [];
 
         closeActionMenu();
 
         items.push(found ? {
             title: enabled ? 'Отключить' : 'Включить',
-            action: 'toggle'
+            action: 'toggle',
+            status: enabled ? info.runtime : 'сейчас отключен'
         } : {
             title: 'Установить',
-            action: 'install'
+            action: 'install',
+            status: 'не установлен'
         });
 
         items.push({
-            title: 'Проверить статус',
+            title: 'Проверить ссылку',
             action: 'check',
             status: ''
         });
 
-        items.push({
-            title: 'Редактировать',
-            disabled: true
-        });
-
         if (found) {
-            items.push({ title: 'Изменить название', action: 'name' });
-            items.push({ title: 'Изменить ссылку', action: 'url' });
+            items.push({ title: 'Название', action: 'name' });
+            items.push({ title: 'Ссылка', action: 'url' });
             items.push({ title: 'Удалить', action: 'remove', danger: true });
         }
 
@@ -640,6 +778,10 @@
             '<div class="hps-action-panel">' +
                 '<div class="hps-action-title">Действие</div>' +
                 '<div class="hps-action-plugin">' + escapeHtml(plugin.name) + '</div>' +
+                '<div class="hps-action-summary">' +
+                    '<span class="hps-action-summary-state">' + escapeHtml(info.label) + '</span>' +
+                    '<span class="hps-action-summary-text">' + escapeHtml(info.runtime) + '</span>' +
+                '</div>' +
             '</div>' +
         '</div>');
 
@@ -698,6 +840,7 @@
                     '<div class="hps-cover">' + (plugin.cover ? '<img src="' + escapeHtml(plugin.cover) + '" alt="">' : '') + '</div>' +
                     '<div class="hps-name">' + escapeHtml(plugin.name) + '</div>' +
                     '<div class="hps-desc">' + escapeHtml(plugin.descr) + '</div>' +
+                    '<div class="hps-status"><span class="hps-state"></span><span class="hps-runtime"></span></div>' +
                     '<div class="hps-meta">' + escapeHtml(plugin.author) + ' • v' + escapeHtml(plugin.version) + '</div>' +
                     '<div class="hps-card-footer">' +
                         '<div class="hps-install">Установить</div>' +

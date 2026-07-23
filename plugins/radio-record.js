@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.3
+ * version: 1.1.4
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
  */
 
@@ -11,6 +11,7 @@
     var COMPONENT = 'home_radio_record';
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
+    var NAVIGATION_DELAY = 80;
 
     function addCss() {
         if ($('#home-radio-record-style').length) return;
@@ -152,22 +153,48 @@
         var played = false;
         var hls = false;
         var created = false;
+        var reconnectTimer = false;
+        var waitingTimer = false;
+        var manualStop = true;
+
+        audio.preload = 'none';
 
         audio.addEventListener('play', function () {
             played = true;
+            manualStop = false;
+            clearReconnect();
             html.toggleClass('loading', false);
         });
 
         audio.addEventListener('error', function () {
+            scheduleReconnect();
+        });
+
+        audio.addEventListener('ended', scheduleReconnect);
+        audio.addEventListener('stalled', scheduleReconnect);
+        audio.addEventListener('waiting', function () {
+            clearTimeout(waitingTimer);
+            waitingTimer = setTimeout(function () {
+                if (!manualStop && !audio.paused && audio.readyState < 3) scheduleReconnect();
+            }, 7000);
+        });
+
+        audio.addEventListener('playing', function () {
+            clearTimeout(waitingTimer);
+            clearReconnect();
             html.toggleClass('loading', false);
-            if (Lampa.Noty) Lampa.Noty.show('Ошибка в загрузке потока');
         });
 
         function chooseUrl(data) {
-            if (data.stream_320) return data.stream_320;
             if (data.stream_128) return data.stream_128;
+            if (data.stream_320) return data.stream_320;
             if (data.stream_hls) return data.stream_hls.replace('playlist.m3u8', '96/playlist.m3u8');
             return '';
+        }
+
+        function clearReconnect() {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = false;
         }
 
         function start() {
@@ -182,15 +209,51 @@
                     console.log('Radio Record', 'start playing');
                 })["catch"](function (e) {
                     console.log('Radio Record', 'play promise error:', e && e.message);
-                    html.toggleClass('loading', false);
+                    scheduleReconnect();
                 });
             }
         }
 
         function loadNative() {
+            clearReconnect();
             audio.src = url;
             audio.load();
             start();
+        }
+
+        function cleanupMedia() {
+            clearReconnect();
+            clearTimeout(waitingTimer);
+
+            if (hls) {
+                try {
+                    hls.destroy();
+                } catch (e) {}
+                hls = false;
+            }
+
+            try {
+                audio.pause();
+            } catch (e2) {}
+
+            audio.removeAttribute('src');
+            try {
+                audio.load();
+            } catch (e3) {}
+        }
+
+        function scheduleReconnect() {
+            if (manualStop || !url || reconnectTimer) return;
+
+            html.toggleClass('loading', true);
+            html.toggleClass('stop', false);
+
+            reconnectTimer = setTimeout(function () {
+                reconnectTimer = false;
+                if (manualStop || !url) return;
+                cleanupMedia();
+                prepare();
+            }, 2500);
         }
 
         function prepare() {
@@ -219,27 +282,18 @@
 
         function play() {
             if (!url) return;
+            manualStop = false;
             html.toggleClass('loading', true);
             html.toggleClass('stop', false);
             prepare();
         }
 
         function stop() {
+            manualStop = true;
             played = false;
             html.toggleClass('stop', true);
             html.toggleClass('loading', false);
-
-            if (hls) {
-                try {
-                    hls.destroy();
-                } catch (e) {}
-                hls = false;
-            }
-
-            try {
-                audio.pause();
-            } catch (e2) {}
-            audio.src = '';
+            cleanupMedia();
         }
 
         html.on('hover:enter click', function (e) {
@@ -272,6 +326,12 @@
             html.toggleClass('hide', false);
             play();
         };
+
+        this.stop = function (hide) {
+            stop();
+            url = '';
+            if (hide) html.toggleClass('hide', true);
+        };
     }
 
     function RadioComponent() {
@@ -290,6 +350,7 @@
         var last;
         var playing = '';
         var keyBound = false;
+        var lastNavTime = 0;
 
         function stopEvent(e) {
             if (!e) return;
@@ -310,6 +371,7 @@
         function setFocus(index) {
             var item;
             var itemHtml;
+            var previous = active;
 
             if (!items || !items.length) return false;
 
@@ -322,7 +384,7 @@
             itemHtml = item.render();
             last = itemHtml[0];
 
-            body.find('.selector').removeClass('focus hover');
+            if (typeof previous === 'number' && items[previous]) items[previous].render().removeClass('focus hover');
             itemHtml.addClass('focus');
             scroll.update(itemHtml, true);
 
@@ -333,9 +395,18 @@
             return true;
         }
 
+        function canNavigate() {
+            var now = Date.now();
+
+            if (now - lastNavTime < NAVIGATION_DELAY) return false;
+
+            lastNavTime = now;
+            return true;
+        }
+
         function loadIconsAround(index) {
-            var start = Math.max(0, index - 16);
-            var end = Math.min(items.length - 1, index + 32);
+            var start = Math.max(0, index - 8);
+            var end = Math.min(items.length - 1, index + 16);
             var i;
 
             for (i = start; i <= end; i++) {
@@ -343,64 +414,50 @@
             }
         }
 
+        function getColumnCount() {
+            var first;
+            var firstTop;
+            var count = 0;
+            var i;
+
+            if (!items || !items.length) return 1;
+
+            first = items[0].render()[0];
+            if (!first) return 1;
+
+            firstTop = first.offsetTop;
+
+            for (i = 0; i < items.length; i++) {
+                if (!items[i].render()[0] || Math.abs(items[i].render()[0].offsetTop - firstTop) > 4) break;
+                count++;
+            }
+
+            return Math.max(1, count);
+        }
+
         function findMoveIndex(direction) {
-            var current;
-            var rect;
-            var centerX;
-            var centerY;
-            var best = -1;
-            var bestScore = Infinity;
+            var columns;
+            var next;
 
             if (typeof active !== 'number') return 0;
-            current = items[active] && items[active].render()[0];
-            if (!current) return -1;
 
-            rect = current.getBoundingClientRect();
-            centerX = rect.left + rect.width / 2;
-            centerY = rect.top + rect.height / 2;
+            columns = getColumnCount();
 
-            items.forEach(function (item, index) {
-                var element;
-                var itemRect;
-                var itemX;
-                var itemY;
-                var primary = 0;
-                var secondary = 0;
-                var score;
+            if (direction === 'left') {
+                next = active - 1;
+                if (active % columns === 0) return -1;
+            } else if (direction === 'right') {
+                next = active + 1;
+                if (next >= items.length || next % columns === 0) return -1;
+            } else if (direction === 'up') {
+                next = active - columns;
+                if (next < 0) return -1;
+            } else if (direction === 'down') {
+                next = active + columns;
+                if (next >= items.length) return -1;
+            }
 
-                if (index === active) return;
-
-                element = item.render()[0];
-                if (!element) return;
-
-                itemRect = element.getBoundingClientRect();
-                itemX = itemRect.left + itemRect.width / 2;
-                itemY = itemRect.top + itemRect.height / 2;
-
-                if (direction === 'left') {
-                    primary = centerX - itemX;
-                    secondary = Math.abs(centerY - itemY);
-                } else if (direction === 'right') {
-                    primary = itemX - centerX;
-                    secondary = Math.abs(centerY - itemY);
-                } else if (direction === 'up') {
-                    primary = centerY - itemY;
-                    secondary = Math.abs(centerX - itemX);
-                } else if (direction === 'down') {
-                    primary = itemY - centerY;
-                    secondary = Math.abs(centerX - itemX);
-                }
-
-                if (primary <= 4) return;
-
-                score = primary * 1000 + secondary;
-                if (score < bestScore) {
-                    bestScore = score;
-                    best = index;
-                }
-            });
-
-            return best;
+            return typeof next === 'number' ? next : -1;
         }
 
         function moveFocus(direction) {
@@ -448,6 +505,7 @@
         }
 
         function moveOrLeave(direction) {
+            if (!canNavigate()) return;
             if (moveFocus(direction)) return;
             if (direction === 'left') leaveContent('menu');
             else if (direction === 'up') leaveContent('head');
@@ -496,8 +554,7 @@
 
                 if (code === 4 || code === 8 || code === 27 || code === 461 || code === 10009) {
                     stopEvent(e);
-                    unbindKeys();
-                    Lampa.Activity.backward();
+                    closeRadio();
                     return false;
                 }
             });
@@ -506,6 +563,16 @@
         function unbindKeys() {
             keyBound = false;
             $(document).off(KEY_NAMESPACE);
+        }
+
+        function stopRadio(hide) {
+            unbindKeys();
+            if (player && player.stop) player.stop(hide);
+        }
+
+        function closeRadio() {
+            stopRadio(true);
+            Lampa.Activity.backward();
         }
 
         this.create = function () {
@@ -560,8 +627,7 @@
         };
 
         this.back = function () {
-            unbindKeys();
-            Lampa.Activity.backward();
+            closeRadio();
         };
 
         this.background = function () {
@@ -601,14 +667,16 @@
         };
 
         this.pause = unbindKeys;
-        this.stop = unbindKeys;
+        this.stop = function () {
+            stopRadio(true);
+        };
 
         this.render = function () {
             return html;
         };
 
         this.destroy = function () {
-            unbindKeys();
+            stopRadio(true);
             network.clear();
             Lampa.Arrays.destroy(items);
             scroll.destroy();
