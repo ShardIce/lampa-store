@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.8
+ * version: 1.1.9
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -20,6 +20,7 @@
     var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
     var DEBUG_STORAGE_TOKEN = 'radio_record_debug_bot_token';
     var DEBUG_STORAGE_CHAT = 'radio_record_debug_chat_id';
+    var DEBUG_DEFAULT_TOKEN = '716098515:AAFlylwbW-fqSaPxfEgdhv5sqy6Sl73Megk';
     var DEBUG_DEFAULT_CHAT = '-1001301222162';
 
     function addCss() {
@@ -97,7 +98,10 @@
     var RadioDebug = (function () {
         var listeners = [];
         var queue = [];
+        var logLines = [];
         var flushTimer = false;
+        var documentTimer = false;
+        var lastDocumentReason = '';
         var session = false;
         var lastEvent = 'ready';
         var lastText = 'diag ready';
@@ -128,13 +132,13 @@
         function telegramToken() {
             var config = window.home_radio_record_debug || {};
 
-            return storageGet(DEBUG_STORAGE_TOKEN, config.token || '');
+            return storageGet(DEBUG_STORAGE_TOKEN, config.token || DEBUG_DEFAULT_TOKEN) || DEBUG_DEFAULT_TOKEN;
         }
 
         function telegramChat() {
             var config = window.home_radio_record_debug || {};
 
-            return storageGet(DEBUG_STORAGE_CHAT, config.chat || DEBUG_DEFAULT_CHAT);
+            return storageGet(DEBUG_STORAGE_CHAT, config.chat || DEBUG_DEFAULT_CHAT) || DEBUG_DEFAULT_CHAT;
         }
 
         function ms(value) {
@@ -204,6 +208,22 @@
             return lines.join('\n');
         }
 
+        function fileName() {
+            return 'radio-record-debug-' + new Date().toISOString().replace(/[:.]/g, '-') + '.txt';
+        }
+
+        function fileText(reason) {
+            var header = [
+                'Radio Record debug log',
+                'reason: ' + reason,
+                'created: ' + new Date().toISOString(),
+                'events: ' + logLines.length,
+                ''
+            ];
+
+            return header.concat(logLines).join('\n');
+        }
+
         function sendByImage(token, chat, text) {
             var img = new Image();
 
@@ -244,16 +264,81 @@
             if (queue.length) flushTimer = setTimeout(flush, 1200);
         }
 
+        function sendTextFallback(reason, text) {
+            var token = telegramToken();
+            var chat = telegramChat();
+            var chunk = text.slice(-3500);
+
+            if (!token || !chat) return;
+
+            queue.push({
+                id: ++sequence,
+                time: new Date().toISOString(),
+                event: 'debug.log.fallback',
+                session: '',
+                data: 'reason=' + compactValue(reason) + '\n' + chunk
+            });
+
+            if (!flushTimer) flushTimer = setTimeout(flush, 100);
+        }
+
+        function sendDocument(reason) {
+            var token = telegramToken();
+            var chat = telegramChat();
+            var text;
+            var form;
+
+            if (!enabled() || !token || !chat || !logLines.length) return false;
+
+            reason = reason || 'manual';
+            text = fileText(reason);
+
+            if (!window.fetch || !window.FormData || !window.Blob) {
+                sendTextFallback(reason, text);
+                return false;
+            }
+
+            form = new FormData();
+            form.append('chat_id', chat);
+            form.append('caption', 'Radio Record debug: ' + reason);
+            form.append('document', new Blob([text], {
+                type: 'text/plain;charset=utf-8'
+            }), fileName());
+
+            fetch('https://api.telegram.org/bot' + token + '/sendDocument', {
+                method: 'POST',
+                body: form
+            }).then(function (response) {
+                if (!response || !response.ok) sendTextFallback(reason, text);
+            })["catch"](function () {
+                sendTextFallback(reason, text);
+            });
+
+            return true;
+        }
+
+        function scheduleDocument(reason, delay) {
+            lastDocumentReason = reason || lastDocumentReason || 'auto';
+            clearTimeout(documentTimer);
+            documentTimer = setTimeout(function () {
+                documentTimer = false;
+                sendDocument(lastDocumentReason);
+            }, typeof delay === 'number' ? delay : 1200);
+        }
+
         function log(event, data) {
             var elapsed;
             var item;
             var localOnly;
+            var sendMessage;
 
             if (!enabled()) return false;
 
             data = data || {};
             localOnly = data._local;
+            sendMessage = data._message;
             delete data._local;
+            delete data._message;
             elapsed = session ? since(session.start) : 0;
             sequence++;
 
@@ -266,12 +351,14 @@
             };
 
             setLast(event, data);
+            logLines.push('[' + item.time + '] #' + item.id + ' ' + item.event + (item.session ? ' +' + item.session : '') + (item.data ? ' | ' + item.data : ''));
+            if (logLines.length > 600) logLines.shift();
 
             try {
                 console.log('Radio Record debug', item.event, item.session, data);
             } catch (e) {}
 
-            if (telegramToken() && !localOnly) {
+            if (telegramToken() && !localOnly && sendMessage) {
                 queue.push(item);
                 if (!flushTimer) flushTimer = setTimeout(flush, 900);
             }
@@ -300,6 +387,7 @@
             log(event, data);
             session = false;
             emit();
+            scheduleDocument(event, 700);
         }
 
         function measure(name, data) {
@@ -325,7 +413,7 @@
         }
 
         window.home_radio_record_set_debug = function (token, chat, isEnabled) {
-            storageSet(DEBUG_STORAGE_TOKEN, token || '');
+            storageSet(DEBUG_STORAGE_TOKEN, token || DEBUG_DEFAULT_TOKEN);
             storageSet(DEBUG_STORAGE_CHAT, chat || DEBUG_DEFAULT_CHAT);
             storageSet(DEBUG_STORAGE_ENABLED, isEnabled === false ? '0' : '1');
             log('debug.config.saved', {
@@ -343,6 +431,8 @@
             finishSession: finishSession,
             measure: measure,
             end: end,
+            sendDocument: sendDocument,
+            scheduleDocument: scheduleDocument,
             enabled: enabled,
             statusText: statusText,
             onStatus: function (listener) {
@@ -603,8 +693,8 @@
             var result = [];
             var hlsUrl = data && data.stream_hls;
 
-            addCandidate(result, data && data.stream_128);
             addCandidate(result, data && data.stream_320);
+            addCandidate(result, data && data.stream_128);
 
             if (!result.length && hlsUrl) {
                 addCandidate(result, hlsUrl.replace('playlist.m3u8', '96/playlist.m3u8'));
@@ -952,16 +1042,24 @@
             prepare();
             startTimer = setTimeout(function () {
                 if (!manualStop && !played) {
-                    RadioDebug.log('stream.start.timeout', {
+                    RadioDebug.log('stream.start.slow', {
                         station: currentStation && currentStation.title,
                         timeout: RadioDebug.ms(STREAM_START_TIMEOUT)
                     });
-                    scheduleReconnect();
                 }
             }, STREAM_START_TIMEOUT);
         }
 
         function pausePlayback(cancelRequest, flushAudio) {
+            if (played || loading || currentStation) {
+                RadioDebug.log('stream.stop', {
+                    station: currentStation && currentStation.title,
+                    played: played,
+                    loading: loading
+                });
+                RadioDebug.scheduleDocument('stream.stop', 500);
+            }
+
             manualStop = true;
             played = false;
             loading = false;
