@@ -2,7 +2,7 @@
  * name: Radio Record
  * author: shardice
  * version: 1.1.5
- * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и мини-плеер.
+ * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
 (function () {
@@ -365,6 +365,8 @@
                 fetch(NOW_URL).then(function (response) {
                     return response.json();
                 }).then(done)["catch"](fail);
+            } else {
+                fail();
             }
         }
 
@@ -578,13 +580,25 @@
         var player = window.home_radio_record_player;
         var items = [];
         var html = $('<div></div>');
+        var panel = Lampa.Template.get('home_radio_record_panel', {});
+        var panelActions = panel.find('.home-radio-record-panel__btn');
+        var panelCover = panel.find('.home-radio-record-panel__cover');
+        var panelImage = panel.find('.home-radio-record-panel__cover img');
         var body = $('<div class="category-full"></div>');
         var activity;
         var active;
+        var focusArea = 'grid';
+        var panelFocus = -1;
         var last;
         var playing = '';
         var keyBound = false;
         var lastNavTime = 0;
+        var iconPreloadTimer = false;
+        var iconPreloadIndex = 0;
+        var columnCountCache = 0;
+        var columnWidthCache = 0;
+        var panelBound = false;
+        var playerStateOff = false;
 
         function stopEvent(e) {
             if (!e) return;
@@ -602,6 +616,119 @@
             }
         }
 
+        function clearGridFocus() {
+            if (typeof active === 'number' && items && items[active]) {
+                items[active].render().removeClass('focus hover');
+            }
+        }
+
+        function clearPanelFocus() {
+            panelFocus = -1;
+            panelActions.removeClass('focus hover');
+        }
+
+        function focusPanel(index) {
+            var button;
+
+            if (!panelActions.length) return false;
+
+            if (index < 0) index = 0;
+            if (index >= panelActions.length) index = panelActions.length - 1;
+
+            focusArea = 'panel';
+            panelFocus = index;
+            clearGridFocus();
+            panelActions.removeClass('focus hover');
+
+            button = panelActions.eq(panelFocus);
+            button.addClass('focus');
+            last = button[0];
+
+            try {
+                Lampa.Controller.collectionFocus(button, html);
+            } catch (e) {}
+
+            return true;
+        }
+
+        function triggerPanelAction(index) {
+            var button;
+            var action;
+
+            if (typeof index === 'number') panelFocus = index;
+            if (panelFocus < 0) panelFocus = 0;
+
+            button = panelActions.eq(panelFocus);
+            action = button.attr('data-action');
+
+            if (action === 'close') {
+                closeRadio();
+                return true;
+            }
+
+            if (action === 'toggle' && player && typeof player.toggle === 'function') {
+                player.toggle();
+                return true;
+            }
+
+            return false;
+        }
+
+        function panelMeta(textClass, value) {
+            panel.find(textClass).text(value || '');
+        }
+
+        function updatePanel(state) {
+            var station = state && state.station;
+            var track = state && state.track;
+            var title = station && station.title || 'Radio Record';
+            var song = track && track.song || (station ? (state.loading ? 'Подключаю поток' : 'Прямой эфир') : 'Выберите станцию');
+            var artist = track && track.artist || (station ? 'Radio Record' : 'Все каналы Radio Record');
+            var image = track && track.image || station && station.icon || '';
+            var imageIsIcon = !(track && track.image);
+
+            panel.toggleClass('is-playing', !!(state && state.played));
+            panel.toggleClass('is-loading', !!(state && state.loading));
+            panel.data('fallback-icon', station && station.icon || '');
+            panelMeta('.home-radio-record-panel__station', title);
+            panelMeta('.home-radio-record-panel__track', song);
+            panelMeta('.home-radio-record-panel__artist', artist);
+            panelCover.toggleClass('is-icon', imageIsIcon);
+
+            if (image && panelImage.attr('src') !== image) panelImage.attr('src', image);
+            else if (!image) panelImage.removeAttr('src');
+
+            if (state && state.station && (state.played || state.loading)) markPlaying(state.station);
+            else if (!state || !state.station || (!state.played && !state.loading)) markPlaying(false);
+        }
+
+        function bindPanelActions() {
+            if (panelBound) return;
+            panelBound = true;
+
+            panelActions.on('hover:focus', function () {
+                focusPanel(panelActions.index(this));
+            }).on('hover:enter click', function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                focusPanel(panelActions.index(this));
+                triggerPanelAction();
+            });
+
+            panelImage.on('error', function () {
+                var fallback = panel.data('fallback-icon');
+
+                if (fallback && panelImage.attr('src') !== fallback) {
+                    panelCover.addClass('is-icon');
+                    panelImage.attr('src', fallback);
+                }
+            });
+        }
+
+        function attachPlayerState() {
+            if (playerStateOff || !player || typeof player.onState !== 'function') return;
+            playerStateOff = player.onState(updatePanel);
+        }
+
         function setFocus(index) {
             var item;
             var itemHtml;
@@ -613,6 +740,8 @@
             if (index >= items.length) index = items.length - 1;
 
             active = index;
+            focusArea = 'grid';
+            clearPanelFocus();
             loadIconsAround(active);
             item = items[active];
             itemHtml = item.render();
@@ -638,14 +767,46 @@
             return true;
         }
 
+        function loadIcon(index) {
+            if (items && items[index] && items[index].load) items[index].load();
+        }
+
         function loadIconsAround(index) {
-            var start = Math.max(0, index - 8);
-            var end = Math.min(items.length - 1, index + 16);
+            var start = Math.max(0, index - 5);
+            var end = Math.min(items.length - 1, index + 12);
             var i;
 
             for (i = start; i <= end; i++) {
-                if (items[i] && items[i].load) items[i].load();
+                loadIcon(i);
             }
+        }
+
+        function clearIconPreload() {
+            clearTimeout(iconPreloadTimer);
+            iconPreloadTimer = false;
+        }
+
+        function preloadIconsChunked() {
+            clearIconPreload();
+            iconPreloadIndex = 0;
+
+            function tick() {
+                var count = 0;
+
+                if (!items) return;
+
+                while (iconPreloadIndex < items.length && count < ICON_PRELOAD_CHUNK) {
+                    loadIcon(iconPreloadIndex);
+                    iconPreloadIndex++;
+                    count++;
+                }
+
+                if (iconPreloadIndex < items.length) {
+                    iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_DELAY);
+                }
+            }
+
+            iconPreloadTimer = setTimeout(tick, 60);
         }
 
         function getColumnCount() {
@@ -653,8 +814,10 @@
             var firstTop;
             var count = 0;
             var i;
+            var width = window.innerWidth || 0;
 
             if (!items || !items.length) return 1;
+            if (columnCountCache && columnWidthCache === width) return columnCountCache;
 
             first = items[0].render()[0];
             if (!first) return 1;
@@ -666,7 +829,10 @@
                 count++;
             }
 
-            return Math.max(1, count);
+            columnCountCache = Math.max(1, count);
+            columnWidthCache = width;
+
+            return columnCountCache;
         }
 
         function findMoveIndex(direction) {
@@ -709,6 +875,8 @@
         function playFocused() {
             var item;
 
+            if (focusArea === 'panel') return triggerPanelAction();
+
             if (typeof active !== 'number') active = 0;
             item = items[active];
 
@@ -726,7 +894,11 @@
         }
 
         function markPlaying(station) {
-            playing = stationKey(station);
+            var key = stationKey(station);
+
+            if (playing === key) return;
+
+            playing = key;
 
             items.forEach(function (item) {
                 item.render().toggleClass('playing', stationKey(item.data) === playing);
@@ -738,11 +910,38 @@
             if (Lampa.Controller) Lampa.Controller.toggle(target);
         }
 
+        function movePanel(direction) {
+            if (focusArea !== 'panel') return false;
+
+            if (direction === 'left') {
+                focusPanel(Math.max(0, panelFocus - 1));
+                return true;
+            }
+
+            if (direction === 'right') {
+                focusPanel(Math.min(panelActions.length - 1, panelFocus + 1));
+                return true;
+            }
+
+            if (direction === 'down') {
+                setFocus(typeof active === 'number' ? active : 0);
+                return true;
+            }
+
+            if (direction === 'up') {
+                leaveContent('head');
+                return true;
+            }
+
+            return false;
+        }
+
         function moveOrLeave(direction) {
             if (!canNavigate()) return;
+            if (movePanel(direction)) return;
             if (moveFocus(direction)) return;
             if (direction === 'left') leaveContent('menu');
-            else if (direction === 'up') leaveContent('head');
+            else if (direction === 'up') focusPanel(0);
         }
 
         function bindKeys() {
@@ -801,17 +1000,24 @@
 
         function stopRadio(hide) {
             unbindKeys();
+            markPlaying(false);
+            clearPanelFocus();
             if (player && player.stop) player.stop(hide);
         }
 
         function closeRadio() {
             stopRadio(true);
-            Lampa.Activity.backward();
+            try {
+                Lampa.Activity.backward();
+            } catch (e) {}
         }
 
         this.create = function () {
             var that = this;
 
+            if (!panel.parent().length) html.append(panel);
+            bindPanelActions();
+            attachPlayerState();
             this.activity.loader(true);
             network["native"](STATIONS_URL, this.build.bind(this), function () {
                 var empty = new Lampa.Empty();
@@ -836,6 +1042,8 @@
         };
 
         this.append = function (stations) {
+            columnCountCache = 0;
+
             stations.forEach(function (station) {
                 var stationItem = new StationItem(station);
 
@@ -857,6 +1065,7 @@
                 last = items[0].render()[0];
                 items[0].render().addClass('focus');
                 loadIconsAround(active);
+                preloadIconsChunked();
             }
         };
 
@@ -900,7 +1109,10 @@
             Lampa.Controller.toggle('content');
         };
 
-        this.pause = unbindKeys;
+        this.pause = function () {
+            if (isActiveActivity()) unbindKeys();
+            else stopRadio(true);
+        };
         this.stop = function () {
             stopRadio(true);
         };
@@ -911,6 +1123,11 @@
 
         this.destroy = function () {
             stopRadio(true);
+            clearIconPreload();
+            if (playerStateOff) {
+                playerStateOff();
+                playerStateOff = false;
+            }
             network.clear();
             Lampa.Arrays.destroy(items);
             scroll.destroy();
@@ -947,6 +1164,21 @@
         window.home_radio_record = true;
 
         Lampa.Component.add(COMPONENT, RadioComponent);
+
+        Lampa.Template.add('home_radio_record_panel', '<div class="home-radio-record-panel">' +
+            '<div class="home-radio-record-panel__cover is-icon">' +
+                '<img />' +
+            '</div>' +
+            '<div class="home-radio-record-panel__meta">' +
+                '<div class="home-radio-record-panel__station">Radio Record</div>' +
+                '<div class="home-radio-record-panel__track">Выберите станцию</div>' +
+                '<div class="home-radio-record-panel__artist">Все каналы Radio Record</div>' +
+            '</div>' +
+            '<div class="home-radio-record-panel__actions">' +
+                '<div class="selector home-radio-record-panel__btn home-radio-record-panel__toggle" data-action="toggle"></div>' +
+                '<div class="selector home-radio-record-panel__btn home-radio-record-panel__close" data-action="close"></div>' +
+            '</div>' +
+        '</div>');
 
         Lampa.Template.add('home_radio_record_item', '<div class="selector home-radio-record-item">' +
             '<div class="home-radio-record-item__imgbox">' +
