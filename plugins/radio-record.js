@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.6
+ * version: 1.1.7
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -13,7 +13,7 @@
     var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
     var NAVIGATION_DELAY = 0;
-    var STREAM_START_TIMEOUT = 4500;
+    var STREAM_START_TIMEOUT = 2200;
     var TRACK_POLL_INTERVAL = 12000;
     var ICON_PRELOAD_CHUNK = 10;
     var ICON_PRELOAD_DELAY = 140;
@@ -269,10 +269,10 @@
             var result = [];
             var hlsUrl = data && data.stream_hls;
 
-            addCandidate(result, data && data.stream_320);
             addCandidate(result, data && data.stream_128);
+            addCandidate(result, data && data.stream_320);
 
-            if (hlsUrl) {
+            if (!result.length && hlsUrl) {
                 addCandidate(result, hlsUrl.replace('playlist.m3u8', '96/playlist.m3u8'));
                 addCandidate(result, hlsUrl);
             }
@@ -475,10 +475,13 @@
 
         function loadNative() {
             audio.src = url;
+            try {
+                audio.load();
+            } catch (e) {}
             start();
         }
 
-        function cleanupMedia() {
+        function cleanupMedia(flushAudio) {
             clearReconnect();
             clearTimeout(waitingTimer);
             clearStartupTimer();
@@ -498,9 +501,11 @@
 
             audio.removeAttribute('src');
             audio.src = '';
-            try {
-                audio.load();
-            } catch (e3) {}
+            if (flushAudio !== false) {
+                try {
+                    audio.load();
+                } catch (e3) {}
+            }
         }
 
         function scheduleReconnect() {
@@ -515,7 +520,7 @@
                 if (urlCandidates.length > 1) urlIndex = (urlIndex + 1) % urlCandidates.length;
                 url = urlCandidates[urlIndex];
                 startCurrent();
-            }, 700);
+            }, 200);
         }
 
         function prepare() {
@@ -547,7 +552,7 @@
         function startCurrent() {
             if (!url) return;
 
-            cleanupMedia();
+            cleanupMedia(false);
             manualStop = false;
             played = false;
             loading = true;
@@ -558,18 +563,18 @@
             }, STREAM_START_TIMEOUT);
         }
 
-        function pausePlayback(cancelRequest) {
+        function pausePlayback(cancelRequest, flushAudio) {
             manualStop = true;
             played = false;
             loading = false;
             clearTrackPoll(cancelRequest !== false);
-            cleanupMedia();
+            cleanupMedia(flushAudio);
             updateControls();
         }
 
         html.on('hover:enter click', function (e) {
             if (e && e.preventDefault) e.preventDefault();
-            if (played || loading) pausePlayback(true);
+            if (played || loading) pausePlayback(true, true);
             else if (url) {
                 startCurrent();
                 scheduleTrackPoll(0);
@@ -588,7 +593,7 @@
         };
 
         this.play = function (data) {
-            pausePlayback(false);
+            pausePlayback(false, false);
 
             currentStation = data || {};
             currentTrack = false;
@@ -612,7 +617,7 @@
         };
 
         this.toggle = function () {
-            if (played || loading) pausePlayback();
+            if (played || loading) pausePlayback(true, true);
             else if (url) {
                 startCurrent();
                 scheduleTrackPoll(0);
@@ -620,7 +625,7 @@
         };
 
         this.stop = function (hide) {
-            pausePlayback(true);
+            pausePlayback(true, true);
             url = '';
             urlCandidates = [];
             urlIndex = 0;
