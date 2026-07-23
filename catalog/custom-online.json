@@ -1,0 +1,26 @@
+{
+  "secuses": true,
+  "results": [
+    {
+      "title": "Custom Online",
+      "results": [
+        {
+          "id": "custom_online",
+          "name": "Custom Online",
+          "title": "Custom Online",
+          "version": "1.0.0",
+          "descr": "Настраиваемая кнопка онлайн-источника для Lampa. Работает через ваш авторизованный JSON API с разрешёнными потоками.",
+          "description": "Настраиваемая кнопка онлайн-источника для Lampa. Работает через ваш авторизованный JSON API с разрешёнными потоками.",
+          "author": "@shardice",
+          "link": "https://shardice.github.io/lampa-store/plugins/custom-online.js",
+          "url": "https://shardice.github.io/lampa-store/plugins/custom-online.js",
+          "available_lampa": 1,
+          "cover": "https://shardice.github.io/lampa-store/covers/custom-online.svg",
+          "img": "https://shardice.github.io/lampa-store/covers/custom-online.svg",
+          "image": "https://shardice.github.io/lampa-store/covers/custom-online.svg",
+          "store": "https://shardice.github.io/lampa-store/catalog/custom-online.json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # lampa-store-clean-v3-safe-reload
 
+## v1.6.0
+- Добавлен плагин `Custom Online` с кнопкой источника просмотра в карточке Lampa.
+- Плагин работает через настраиваемый JSON API и принимает только уже разрешённые ссылки на видео.
+- Добавлены `plugins/custom-online.js`, `catalog/custom-online.json` и `covers/custom-online.svg`.
+- Версия Plugin Hub обновлена до `1.6.0` для нового каталожного релиза.
+
 ## v1.5.8
 - Plugin Hub устанавливает плагины через штатный `Lampa.Plugins.add`, чтобы список установленных и runtime-статус не расходились.
 - Магазин читает установленные плагины из `Lampa.Plugins.get()` и из `Storage`, поэтому старые установки через `store.js` видны в статусах.

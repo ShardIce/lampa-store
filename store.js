@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.5.9
+ * version: 1.6.0
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
