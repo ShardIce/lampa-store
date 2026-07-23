@@ -1,0 +1,12 @@
+{
+  "id": "com.shardice.cleanplayer",
+  "version": "@VERSION_NAME@",
+  "vendor": "Shardice",
+  "type": "web",
+  "main": "index.html",
+  "title": "Clean Player",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgColor": "#101312",
+  "uiRevision": 2
+}

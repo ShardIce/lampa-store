@@ -1,5 +1,12 @@
 # lampa-store-clean-v3-safe-reload
 
+## v1.7.0
+- Добавлен `clean-player` — чистый аналог медиакаталога/плеера для Android и LG webOS TV.
+- Android APK собирается в `clean-player/dist/CleanPlayer-android-0.1.0.apk` без Gradle и сторонних SDK.
+- LG webOS TV пакет собирается в `clean-player/dist/CleanPlayer-webos-0.1.0.ipk`; webOS использует формат IPK, не APK.
+- В приложении нет встроенных удалённых серверов, рекламных SDK, аналитики и автозагрузки внешних плагинов.
+- Добавлен сетевой аудит `clean-player/scripts/audit_network.sh` и версия Clean Player `0.1.0`.
+
 ## v1.6.0
 - Добавлен плагин `Custom Online` с кнопкой источника просмотра в карточке Lampa.
 - Плагин работает через настраиваемый JSON API и принимает только уже разрешённые ссылки на видео.

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self'; style-src 'self'; img-src 'self' data: blob: http: https:; media-src 'self' data: blob: http: https:; connect-src 'self' file: http: https:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <title>Clean Player</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="rail" aria-label="Разделы">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">CP</div>
+        <div>
+          <div class="brand-title">Clean Player</div>
+          <div class="brand-version" id="versionLabel">v0.1.0</div>
+        </div>
+      </div>
+
+      <nav class="tabs">
+        <button class="tab active" type="button" data-view="catalog">Каталог</button>
+        <button class="tab" type="button" data-view="favorites">Избранное</button>
+        <button class="tab" type="button" data-view="sources">Источники</button>
+        <button class="tab" type="button" data-view="network">Сеть</button>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="toolbar">
+        <label class="search">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Поиск">
+        </label>
+        <button id="refreshButton" class="icon-button" type="button" title="Обновить каталог" aria-label="Обновить каталог">
+          <span class="refresh-icon" aria-hidden="true"></span>
+        </button>
+      </header>
+
+      <section class="view active" id="catalogView" data-view-panel="catalog">
+        <div class="section-head">
+          <div>
+            <h1>Каталог</h1>
+            <p id="catalogCount" class="muted">0</p>
+          </div>
+          <select id="sourceFilter" class="select" aria-label="Источник"></select>
+        </div>
+        <div id="catalogGrid" class="media-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="favoritesView" data-view-panel="favorites">
+        <div class="section-head">
+          <div>
+            <h1>Избранное</h1>
+            <p id="favoritesCount" class="muted">0</p>
+          </div>
+        </div>
+        <div id="favoritesGrid" class="media-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="sourcesView" data-view-panel="sources">
+        <div class="section-head">
+          <div>
+            <h1>Источники</h1>
+            <p class="muted">JSON</p>
+          </div>
+        </div>
+
+        <form id="sourceForm" class="source-form" autocomplete="off">
+          <input id="sourceName" type="text" maxlength="48" placeholder="Название" required>
+          <input id="sourceUrl" type="url" inputmode="url" placeholder="https://example.com/catalog.json" required>
+          <button type="submit">Добавить</button>
+        </form>
+
+        <div id="sourceList" class="source-list"></div>
+      </section>
+
+      <section class="view" id="networkView" data-view-panel="network">
+        <div class="section-head">
+          <div>
+            <h1>Сеть</h1>
+            <p id="networkCount" class="muted">0</p>
+          </div>
+          <button id="clearNetworkButton" class="text-button" type="button">Очистить</button>
+        </div>
+        <div class="network-layout">
+          <div>
+            <h2>Разрешённые origin</h2>
+            <div id="allowedOrigins" class="token-list"></div>
+          </div>
+          <div>
+            <h2>Журнал</h2>
+            <div id="networkLog" class="log-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="detailsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="detailsTitle">
+    <div class="modal-scrim" data-close-modal></div>
+    <article class="details">
+      <button class="close-button" type="button" data-close-modal aria-label="Закрыть">×</button>
+      <div class="details-poster" id="detailsPoster"></div>
+      <div class="details-body">
+        <div class="details-meta" id="detailsMeta"></div>
+        <h1 id="detailsTitle"></h1>
+        <p id="detailsDescription"></p>
+        <div class="details-actions">
+          <button id="playButton" type="button">Смотреть</button>
+          <button id="favoriteButton" class="secondary" type="button">В избранное</button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div id="playerModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Плеер">
+    <div class="modal-scrim" data-close-player></div>
+    <article class="player">
+      <div class="player-head">
+        <h1 id="playerTitle">Плеер</h1>
+        <button class="close-button" type="button" data-close-player aria-label="Закрыть">×</button>
+      </div>
+      <video id="videoPlayer" controls playsinline preload="metadata"></video>
+      <form id="directPlayForm" class="direct-form" autocomplete="off">
+        <input id="directVideoUrl" type="url" inputmode="url" placeholder="https://example.com/video.m3u8">
+        <button type="submit">Открыть</button>
+      </form>
+    </article>
+  </div>
+</body>
+</html>

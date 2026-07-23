@@ -1,0 +1,15 @@
+{
+  "name": "Локальный пример",
+  "items": [
+    {
+      "id": "local-blank",
+      "title": "Локальная карточка",
+      "type": "movie",
+      "year": 2026,
+      "genres": ["Demo"],
+      "poster": "placeholder.svg",
+      "description": "Карточка из файла внутри приложения. Внешние адреса здесь не используются.",
+      "video": ""
+    }
+  ]
+}
