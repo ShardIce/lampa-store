@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.13
+ * version: 1.1.14
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -11,11 +11,11 @@
     var COMPONENT = 'home_radio_record';
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
     var STATIONS_SOURCES = [{
+        name: 'store',
+        url: 'https://shardice.github.io/lampa-store/data/radio-record-stations.json'
+    }, {
         name: 'official',
         url: STATIONS_URL
-    }, {
-        name: 'mirror',
-        url: 'https://lampaplugins.github.io/store/stations.json'
     }];
     var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
@@ -23,9 +23,10 @@
     var STREAM_START_TIMEOUT = 3000;
     var TRACK_POLL_INTERVAL = 12000;
     var ACTION_LOCK_DELAY = 650;
-    var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v4';
+    var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v5';
     var STATIONS_CACHE_KEYS = [STATIONS_CACHE_KEY, 'radio_record_stations_cache_v3', 'radio_record_stations_cache_v2'];
     var STATIONS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+    var STATIONS_MIN_COUNT = 110;
     var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
     var DEBUG_STORAGE_VERBOSE = 'radio_record_debug_verbose';
     var DEBUG_STORAGE_TOKEN = 'radio_record_debug_bot_token';
@@ -558,10 +559,12 @@
             if (!cache || !Array.isArray(cache.stations) || !cache.stations.length) continue;
 
             age = Date.now() - (cache.time || 0);
+            cache.stations = parseStations(cache.stations);
+            if (cache.stations.length < STATIONS_MIN_COUNT) continue;
 
             return {
                 key: key,
-                stations: parseStations(cache.stations),
+                stations: cache.stations,
                 stale: age > STATIONS_CACHE_TTL,
                 age: age
             };
@@ -2086,7 +2089,12 @@
                 network["native"](source.url, function (data) {
                     var stations = parseStations(data);
 
-                    if (!stations.length) {
+                    if (stations.length < STATIONS_MIN_COUNT) {
+                        RadioDebug.log('stations.source.too-small', {
+                            source: source.name,
+                            count: stations.length,
+                            min: STATIONS_MIN_COUNT
+                        });
                         loadSource(sourceIndex + 1);
                         return;
                     }
