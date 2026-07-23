@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.9
+ * version: 1.1.10
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -13,11 +13,15 @@
     var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
     var NAVIGATION_DELAY = 0;
-    var STREAM_START_TIMEOUT = 2200;
+    var STREAM_START_TIMEOUT = 3000;
     var TRACK_POLL_INTERVAL = 12000;
-    var ICON_PRELOAD_CHUNK = 10;
-    var ICON_PRELOAD_DELAY = 140;
+    var ICON_PRELOAD_CHUNK = 2;
+    var ICON_PRELOAD_DELAY = 380;
+    var ICON_PRELOAD_START_DELAY = 4500;
+    var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v3';
+    var STATIONS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
     var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
+    var DEBUG_STORAGE_VERBOSE = 'radio_record_debug_verbose';
     var DEBUG_STORAGE_TOKEN = 'radio_record_debug_bot_token';
     var DEBUG_STORAGE_CHAT = 'radio_record_debug_chat_id';
     var DEBUG_DEFAULT_TOKEN = '716098515:AAFlylwbW-fqSaPxfEgdhv5sqy6Sl73Megk';
@@ -50,16 +54,16 @@
             '.home-radio-record-panel__close:after{transform:rotate(-45deg);}' +
             '.home-radio-record-item{margin-left:1em;margin-bottom:1em;width:12.5%;flex-shrink:0;padding:.22em;border-radius:.36em;transition:background-color .12s ease;}' +
             '.home-radio-record-item__imgbox{background-color:rgba(255,255,255,.035);padding-bottom:83%;position:relative;border:.08em solid rgba(255,255,255,.08);border-radius:.18em;overflow:hidden;box-sizing:border-box;transition:border-color .12s ease,box-shadow .12s ease,background-color .12s ease;}' +
-            '.home-radio-record-item__img{position:absolute;top:14%;left:14%;width:72%;height:72%;object-fit:contain;opacity:.86;transition:opacity .12s ease;}' +
+            '.home-radio-record-item__img{position:absolute;top:18%;left:18%;width:64%;height:64%;object-fit:contain;opacity:.78;transition:opacity .12s ease;}' +
             '.home-radio-record-item__name{font-size:1.02em;margin-top:.7em;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
             '.home-radio-record-item.focus,.home-radio-record-item.hover,.home-radio-record-item.radio-record-focus{background-color:rgba(255,255,255,.045);}' +
             '.home-radio-record-item.focus .home-radio-record-item__imgbox,.home-radio-record-item.hover .home-radio-record-item__imgbox,.home-radio-record-item.radio-record-focus .home-radio-record-item__imgbox{border-color:rgba(255,255,255,.95);box-shadow:0 0 0 .08em rgba(255,255,255,.32),inset 0 0 0 .06em rgba(255,255,255,.12);background-color:rgba(255,255,255,.06);}' +
-            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img,.home-radio-record-item.radio-record-focus .home-radio-record-item__img{opacity:1;}' +
+            '.home-radio-record-item.focus .home-radio-record-item__img,.home-radio-record-item.hover .home-radio-record-item__img,.home-radio-record-item.radio-record-focus .home-radio-record-item__img{opacity:.96;}' +
             '.home-radio-record-item.playing .home-radio-record-item__imgbox{border-color:#F64900;background-color:rgba(246,73,0,.13);box-shadow:0 0 0 .08em rgba(246,73,0,.5),0 .3em 1em rgba(246,73,0,.2);}' +
             '.home-radio-record-item.playing.focus .home-radio-record-item__imgbox,.home-radio-record-item.playing.hover .home-radio-record-item__imgbox,.home-radio-record-item.playing.radio-record-focus .home-radio-record-item__imgbox{border-color:#F64900;box-shadow:0 0 0 .1em rgba(255,255,255,.92),0 0 0 .22em rgba(246,73,0,.7),0 .35em 1.15em rgba(246,73,0,.28);}' +
             '.home-radio-record-item.playing .home-radio-record-item__name{color:#fff;}' +
             '@keyframes home-radio-record-sound{0%{height:.1em}100%{height:1em}}' +
-            '@keyframes home-radio-record-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}' +
+            '@keyframes home-radio-record-loading{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}' +
             '@keyframes home-radio-record-panel-loading{0%{transform:translate(-50%,-50%) rotate(0deg)}100%{transform:translate(-50%,-50%) rotate(360deg)}}' +
             '.home-radio-record-player{display:flex;align-items:center;border-radius:.3em;padding:.2em .8em;background-color:#3e3e3e;}' +
             '.home-radio-record-player__name{margin-right:1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8em;}' +
@@ -72,7 +76,7 @@
             '.home-radio-record-player.stop .home-radio-record-player__button{border-radius:100%;border:.2em solid #fff;}' +
             '.home-radio-record-player.stop .home-radio-record-player__button i{display:none;}' +
             '.home-radio-record-player.stop .home-radio-record-player__button:after{content:"";width:.5em;height:.5em;background-color:#fff;}' +
-            '.home-radio-record-player.loading .home-radio-record-player__button:before{content:"";display:block;border-top:.2em solid #fff;border-left:.2em solid transparent;border-right:.2em solid transparent;border-bottom:.2em solid transparent;animation:home-radio-record-loading 1s linear infinite;width:.9em;height:.9em;border-radius:100%;flex-shrink:0;}' +
+            '.home-radio-record-player.loading .home-radio-record-player__button:before{content:"";position:absolute;left:50%;top:50%;display:block;box-sizing:border-box;border:.18em solid rgba(255,255,255,.32);border-top-color:#fff;transform:translate(-50%,-50%);animation:home-radio-record-loading 1s linear infinite;width:.95em;height:.95em;border-radius:100%;}' +
             '.home-radio-record-player.loading .home-radio-record-player__button i{display:none;}' +
             '.home-radio-record-player.focus{background-color:#fff;color:#000;}' +
             '.home-radio-record-player.focus .home-radio-record-player__button{border-color:#000;}' +
@@ -95,6 +99,20 @@
         return (url || '').replace('http://localhost:6081', '');
     }
 
+    function storageGet(key, fallback) {
+        try {
+            if (Lampa.Storage && typeof Lampa.Storage.get === 'function') return Lampa.Storage.get(key, fallback);
+        } catch (e) {}
+
+        return fallback;
+    }
+
+    function storageSet(key, value) {
+        try {
+            if (Lampa.Storage && typeof Lampa.Storage.set === 'function') Lampa.Storage.set(key, value);
+        } catch (e) {}
+    }
+
     var RadioDebug = (function () {
         var listeners = [];
         var queue = [];
@@ -111,22 +129,12 @@
             return window.performance && performance.now ? performance.now() : Date.now();
         }
 
-        function storageGet(key, fallback) {
-            try {
-                if (Lampa.Storage && typeof Lampa.Storage.get === 'function') return Lampa.Storage.get(key, fallback);
-            } catch (e) {}
-
-            return fallback;
-        }
-
-        function storageSet(key, value) {
-            try {
-                if (Lampa.Storage && typeof Lampa.Storage.set === 'function') Lampa.Storage.set(key, value);
-            } catch (e) {}
-        }
-
         function enabled() {
             return String(storageGet(DEBUG_STORAGE_ENABLED, '1')) !== '0';
+        }
+
+        function verbose() {
+            return String(storageGet(DEBUG_STORAGE_VERBOSE, '0')) === '1';
         }
 
         function telegramToken() {
@@ -307,9 +315,10 @@
 
             fetch('https://api.telegram.org/bot' + token + '/sendDocument', {
                 method: 'POST',
-                body: form
+                body: form,
+                mode: 'no-cors'
             }).then(function (response) {
-                if (!response || !response.ok) sendTextFallback(reason, text);
+                if (response && response.type !== 'opaque' && !response.ok) sendTextFallback(reason, text);
             })["catch"](function () {
                 sendTextFallback(reason, text);
             });
@@ -331,14 +340,20 @@
             var item;
             var localOnly;
             var sendMessage;
+            var quiet;
 
             if (!enabled()) return false;
 
             data = data || {};
             localOnly = data._local;
             sendMessage = data._message;
+            quiet = data._quiet;
             delete data._local;
             delete data._message;
+            delete data._quiet;
+
+            if (localOnly && !verbose()) return false;
+
             elapsed = session ? since(session.start) : 0;
             sequence++;
 
@@ -354,9 +369,11 @@
             logLines.push('[' + item.time + '] #' + item.id + ' ' + item.event + (item.session ? ' +' + item.session : '') + (item.data ? ' | ' + item.data : ''));
             if (logLines.length > 600) logLines.shift();
 
-            try {
-                console.log('Radio Record debug', item.event, item.session, data);
-            } catch (e) {}
+            if (!quiet) {
+                try {
+                    console.log('Radio Record debug', item.event, item.session, data);
+                } catch (e) {}
+            }
 
             if (telegramToken() && !localOnly && sendMessage) {
                 queue.push(item);
@@ -412,14 +429,20 @@
             return lastText;
         }
 
-        window.home_radio_record_set_debug = function (token, chat, isEnabled) {
+        window.home_radio_record_set_debug = function (token, chat, isEnabled, verboseMode) {
             storageSet(DEBUG_STORAGE_TOKEN, token || DEBUG_DEFAULT_TOKEN);
             storageSet(DEBUG_STORAGE_CHAT, chat || DEBUG_DEFAULT_CHAT);
             storageSet(DEBUG_STORAGE_ENABLED, isEnabled === false ? '0' : '1');
+            storageSet(DEBUG_STORAGE_VERBOSE, verboseMode ? '1' : '0');
             log('debug.config.saved', {
                 telegram: token ? 'enabled' : 'missing-token',
-                chat: chat || DEBUG_DEFAULT_CHAT
+                chat: chat || DEBUG_DEFAULT_CHAT,
+                verbose: verboseMode ? 'on' : 'off'
             });
+        };
+
+        window.home_radio_record_send_debug = function (reason) {
+            return sendDocument(reason || 'manual');
         };
 
         return {
@@ -462,7 +485,7 @@
             prefix: station.prefix,
             title: station.title || station.short_title || 'Radio Record',
             sort: sort,
-            icon: iconGray || iconWhite || iconColored || cleanUrl(station.icon),
+            icon: iconWhite || iconGray || iconColored || cleanUrl(station.icon),
             stream_128: cleanUrl(station.stream_128),
             stream_320: cleanUrl(station.stream_320),
             stream_hls: cleanUrl(station.stream_hls),
@@ -482,7 +505,8 @@
         }
 
         try {
-            if (data.result && Array.isArray(data.result.stations)) source = data.result.stations;
+            if (Array.isArray(data)) source = data;
+            else if (data.result && Array.isArray(data.result.stations)) source = data.result.stations;
             else if (Array.isArray(data.stations)) source = data.stations;
         } catch (e2) {}
 
@@ -493,6 +517,38 @@
         }).sort(function (a, b) {
             if (a.sort === b.sort) return a._index - b._index;
             return a.sort - b.sort;
+        });
+    }
+
+    function readStationsCache() {
+        var cache = storageGet(STATIONS_CACHE_KEY, false);
+        var age;
+
+        if (typeof cache === 'string') {
+            try {
+                cache = JSON.parse(cache);
+            } catch (e) {
+                cache = false;
+            }
+        }
+
+        if (!cache || !Array.isArray(cache.stations) || !cache.stations.length) return false;
+
+        age = Date.now() - (cache.time || 0);
+
+        return {
+            stations: parseStations(cache.stations),
+            stale: age > STATIONS_CACHE_TTL,
+            age: age
+        };
+    }
+
+    function writeStationsCache(stations) {
+        if (!stations || !stations.length) return;
+
+        storageSet(STATIONS_CACHE_KEY, {
+            time: Date.now(),
+            stations: stations
         });
     }
 
@@ -511,7 +567,8 @@
             RadioDebug.log('station.icon.loaded', {
                 station: data.title,
                 ms: RadioDebug.ms(RadioDebug.since(iconRequestAt)),
-                _local: true
+                _local: true,
+                _quiet: true
             });
         };
 
@@ -519,7 +576,8 @@
             RadioDebug.log('station.icon.error', {
                 station: data.title,
                 ms: RadioDebug.ms(RadioDebug.since(iconRequestAt)),
-                _local: true
+                _local: true,
+                _quiet: true
             });
             img.src = './img/img_broken.svg';
         };
@@ -535,7 +593,8 @@
             iconRequestAt = RadioDebug.now();
             RadioDebug.log('station.icon.request', {
                 station: data.title,
-                _local: true
+                _local: true,
+                _quiet: true
             });
             img.src = data.icon || '';
         };
@@ -567,6 +626,8 @@
         var waitingTimer = false;
         var startTimer = false;
         var trackTimer = false;
+        var playRequestId = 0;
+        var reconnectAttempts = 0;
         var manualStop = true;
         var currentStation = false;
         var currentTrack = false;
@@ -615,20 +676,19 @@
                 station: currentStation && currentStation.title,
                 code: audio.error && audio.error.code
             });
-            scheduleReconnect();
+            if (!manualStop && (!audio.error || audio.error.code !== 1)) scheduleReconnect('audio-error');
         });
 
         audio.addEventListener('ended', function () {
             RadioDebug.log('audio.event.ended', {
                 station: currentStation && currentStation.title
             });
-            scheduleReconnect();
+            if (!manualStop) scheduleReconnect('audio-ended');
         });
         audio.addEventListener('stalled', function () {
             RadioDebug.log('audio.event.stalled', {
                 station: currentStation && currentStation.title
             });
-            scheduleReconnect();
         });
         audio.addEventListener('waiting', function () {
             RadioDebug.log('audio.event.waiting', {
@@ -637,13 +697,14 @@
             });
             clearTimeout(waitingTimer);
             waitingTimer = setTimeout(function () {
-                if (!manualStop && !audio.paused && audio.readyState < 3) scheduleReconnect();
-            }, 7000);
+                if (!manualStop && !audio.paused && audio.readyState < 3) scheduleReconnect('waiting-long');
+            }, 12000);
         });
 
         audio.addEventListener('playing', function () {
             played = true;
             loading = false;
+            reconnectAttempts = 0;
             clearTimeout(waitingTimer);
             clearTimeout(startTimer);
             clearReconnect();
@@ -694,12 +755,8 @@
             var hlsUrl = data && data.stream_hls;
 
             addCandidate(result, data && data.stream_320);
+            if (hlsUrl) addCandidate(result, hlsUrl);
             addCandidate(result, data && data.stream_128);
-
-            if (!result.length && hlsUrl) {
-                addCandidate(result, hlsUrl.replace('playlist.m3u8', '96/playlist.m3u8'));
-                addCandidate(result, hlsUrl);
-            }
 
             return result;
         }
@@ -893,12 +950,25 @@
             reconnectTimer = false;
         }
 
-        function start() {
+        function isAbortPlayError(error) {
+            var name = String(error && error.name || '').toLowerCase();
+            var message = String(error && error.message || '').toLowerCase();
+
+            return name.indexOf('abort') > -1 ||
+                message.indexOf('interrupted') > -1 ||
+                message.indexOf('pause') > -1 ||
+                message.indexOf('load request') > -1;
+        }
+
+        function start(requestId) {
             var promise;
+
+            if (manualStop || requestId !== playRequestId) return;
 
             RadioDebug.log('audio.play.call', {
                 station: currentStation && currentStation.title,
-                candidate: urlIndex + 1
+                candidate: urlIndex + 1,
+                request: requestId
             });
 
             try {
@@ -907,40 +977,64 @@
                 RadioDebug.log('audio.play.throw', {
                     message: e && e.message
                 });
-                scheduleReconnect();
+                if (!isAbortPlayError(e)) scheduleReconnect('play-throw');
                 return;
             }
 
             if (promise && promise.then) {
                 promise.then(function () {
-                    console.log('Radio Record', 'start playing');
+                    if (manualStop || requestId !== playRequestId) return;
                     RadioDebug.log('audio.play.promise.ok', {
-                        station: currentStation && currentStation.title
+                        station: currentStation && currentStation.title,
+                        request: requestId
                     });
                 })["catch"](function (e) {
-                    console.log('Radio Record', 'play promise error:', e && e.message);
+                    if (requestId !== playRequestId) {
+                        RadioDebug.log('audio.play.promise.stale', {
+                            message: e && e.message,
+                            request: requestId,
+                            active: playRequestId,
+                            _local: true,
+                            _quiet: true
+                        });
+                        return;
+                    }
+
+                    if (isAbortPlayError(e)) {
+                        RadioDebug.log('audio.play.promise.abort', {
+                            message: e && e.message,
+                            request: requestId
+                        });
+                        return;
+                    }
+
                     RadioDebug.log('audio.play.promise.error', {
-                        message: e && e.message
+                        message: e && e.message,
+                        request: requestId
                     });
-                    scheduleReconnect();
+                    scheduleReconnect('play-promise');
                 });
             }
         }
 
-        function loadNative() {
+        function loadNative(requestId) {
+            if (manualStop || requestId !== playRequestId) return;
+
             RadioDebug.log('audio.src.set', {
                 station: currentStation && currentStation.title,
                 candidate: urlIndex + 1,
-                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac'
+                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac',
+                request: requestId
             });
             audio.src = url;
             try {
                 RadioDebug.log('audio.load.call', {
-                    station: currentStation && currentStation.title
+                    station: currentStation && currentStation.title,
+                    request: requestId
                 });
                 audio.load();
             } catch (e) {}
-            start();
+            start(requestId);
         }
 
         function cleanupMedia(flushAudio) {
@@ -970,64 +1064,91 @@
             }
         }
 
-        function scheduleReconnect() {
+        function scheduleReconnect(reason) {
+            var maxAttempts = Math.max(1, urlCandidates.length - 1);
+
             if (manualStop || !urlCandidates.length || reconnectTimer) return;
 
+            if (reconnectAttempts >= maxAttempts) {
+                loading = false;
+                updateControls();
+                RadioDebug.finishSession('stream.fallback.giveup', {
+                    station: currentStation && currentStation.title,
+                    reason: reason || 'unknown',
+                    attempts: reconnectAttempts,
+                    total: urlCandidates.length
+                });
+                return;
+            }
+
+            reconnectAttempts++;
             loading = true;
             updateControls();
             RadioDebug.log('stream.fallback.wait', {
                 station: currentStation && currentStation.title,
+                reason: reason || 'unknown',
                 candidate: urlIndex + 1,
-                total: urlCandidates.length
+                total: urlCandidates.length,
+                attempt: reconnectAttempts
             });
 
             reconnectTimer = setTimeout(function () {
                 reconnectTimer = false;
                 if (manualStop || !urlCandidates.length) return;
-                if (urlCandidates.length > 1) urlIndex = (urlIndex + 1) % urlCandidates.length;
+                if (urlCandidates.length > 1) urlIndex = Math.min(urlIndex + 1, urlCandidates.length - 1);
                 url = urlCandidates[urlIndex];
                 RadioDebug.log('stream.fallback.next', {
                     station: currentStation && currentStation.title,
+                    reason: reason || 'unknown',
                     candidate: urlIndex + 1,
                     total: urlCandidates.length
                 });
-                startCurrent();
+                startCurrent(reason || 'fallback');
             }, 200);
         }
 
-        function prepare() {
+        function prepare(requestId) {
             var isHls = url.indexOf('.m3u8') > -1;
             var canNativeHls = audio.canPlayType && audio.canPlayType('audio/vnd.apple.mpegurl');
             var canHlsJs = typeof Hls !== 'undefined' && Hls && typeof Hls.isSupported === 'function' && Hls.isSupported();
 
             if (!isHls || canNativeHls || !canHlsJs) {
-                loadNative();
+                loadNative(requestId);
                 return;
             }
 
             try {
+                if (manualStop || requestId !== playRequestId) return;
+
                 RadioDebug.log('hls.load.source', {
                     station: currentStation && currentStation.title,
-                    candidate: urlIndex + 1
+                    candidate: urlIndex + 1,
+                    request: requestId
                 });
                 hls = new Hls();
                 hls.attachMedia(audio);
                 hls.loadSource(url);
                 hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (manualStop || requestId !== playRequestId) return;
                     if (data && data.details === Hls.ErrorDetails.MANIFEST_PARSING_ERROR) {
                         Lampa.Noty.show('Ошибка в загрузке потока');
                     }
-                    if (data && data.fatal) scheduleReconnect();
+                    if (data && data.fatal) scheduleReconnect('hls-error');
                 });
-                hls.on(Hls.Events.MANIFEST_LOADED, start);
+                hls.on(Hls.Events.MANIFEST_LOADED, function () {
+                    start(requestId);
+                });
             } catch (e) {
-                scheduleReconnect();
+                scheduleReconnect('hls-prepare');
             }
         }
 
-        function startCurrent() {
+        function startCurrent(reason) {
+            var requestId;
+
             if (!url) return;
 
+            requestId = ++playRequestId;
             cleanupMedia(false);
             manualStop = false;
             played = false;
@@ -1037,14 +1158,17 @@
                 station: currentStation && currentStation.title,
                 candidate: urlIndex + 1,
                 total: urlCandidates.length,
-                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac'
+                type: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac',
+                request: requestId,
+                reason: reason || 'select'
             });
-            prepare();
+            prepare(requestId);
             startTimer = setTimeout(function () {
-                if (!manualStop && !played) {
+                if (!manualStop && !played && requestId === playRequestId) {
                     RadioDebug.log('stream.start.slow', {
                         station: currentStation && currentStation.title,
-                        timeout: RadioDebug.ms(STREAM_START_TIMEOUT)
+                        timeout: RadioDebug.ms(STREAM_START_TIMEOUT),
+                        request: requestId
                     });
                 }
             }, STREAM_START_TIMEOUT);
@@ -1061,6 +1185,8 @@
             }
 
             manualStop = true;
+            playRequestId++;
+            reconnectAttempts = 0;
             played = false;
             loading = false;
             clearTrackPoll(cancelRequest !== false);
@@ -1096,6 +1222,7 @@
             urlCandidates = streamCandidates(currentStation);
             urlIndex = 0;
             url = urlCandidates[0] || '';
+            reconnectAttempts = 0;
             RadioDebug.startSession('connect', {
                 station: currentStation.title,
                 candidates: urlCandidates.length
@@ -1193,6 +1320,9 @@
         var debugStateOff = false;
         var debugTimer = false;
         var panelImageAt = 0;
+        var stationsBuilt = false;
+        var playerLoading = false;
+        var prefetchTimer = false;
 
         function stopEvent(e) {
             if (!e) return;
@@ -1281,6 +1411,7 @@
             var image = track && track.image || station && station.icon || '';
             var imageIsIcon = !(track && track.image);
 
+            playerLoading = !!(state && state.loading);
             panel.toggleClass('is-playing', !!(state && state.played));
             panel.toggleClass('is-loading', !!(state && state.loading));
             panel.data('fallback-icon', station && station.icon || '');
@@ -1367,6 +1498,9 @@
             var item;
             var itemHtml;
             var previous = active;
+            var columns = getColumnCount();
+            var previousRow;
+            var nextRow;
 
             if (!items || !items.length) return false;
 
@@ -1390,7 +1524,9 @@
 
             if (typeof previous === 'number' && items[previous]) items[previous].render().removeClass('focus hover radio-record-focus');
             itemHtml.addClass('focus radio-record-focus');
-            scroll.update(itemHtml, true);
+            previousRow = typeof previous === 'number' ? Math.floor(previous / columns) : -1;
+            nextRow = Math.floor(active / columns);
+            if (previousRow !== nextRow) scroll.update(itemHtml, true);
 
             try {
                 Lampa.Controller.collectionFocus(itemHtml, html);
@@ -1414,8 +1550,8 @@
         }
 
         function loadIconsAround(index) {
-            var start = Math.max(0, index - 5);
-            var end = Math.min(items.length - 1, index + 12);
+            var start = Math.max(0, index - 2);
+            var end = Math.min(items.length - 1, index + 8);
             var i;
 
             for (i = start; i <= end; i++) {
@@ -1437,6 +1573,11 @@
 
                 if (!items) return;
 
+                if (playerLoading) {
+                    iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_DELAY);
+                    return;
+                }
+
                 while (iconPreloadIndex < items.length && count < ICON_PRELOAD_CHUNK) {
                     loadIcon(iconPreloadIndex);
                     iconPreloadIndex++;
@@ -1448,7 +1589,15 @@
                 }
             }
 
-            iconPreloadTimer = setTimeout(tick, 60);
+            iconPreloadTimer = setTimeout(tick, ICON_PRELOAD_START_DELAY);
+        }
+
+        function scheduleTrackPrefetch() {
+            clearTimeout(prefetchTimer);
+            prefetchTimer = setTimeout(function () {
+                prefetchTimer = false;
+                if (player && typeof player.prefetchTracks === 'function') player.prefetchTracks();
+            }, 700);
         }
 
         function getColumnCount() {
@@ -1614,7 +1763,8 @@
             RadioDebug.end(mark, 'joystick.response', {
                 area: focusArea,
                 active: active,
-                panel: panelFocus
+                panel: panelFocus,
+                _quiet: true
             });
         }
 
@@ -1699,8 +1849,6 @@
         }
 
         this.create = function () {
-            var that = this;
-
             if (!panel.parent().length) html.append(panel);
             bindPanelActions();
             attachPlayerState();
@@ -1708,24 +1856,60 @@
             RadioDebug.log('component.create', {
                 component: COMPONENT
             });
-            if (player && typeof player.prefetchTracks === 'function') player.prefetchTracks();
             this.activity.loader(true);
-            network["native"](STATIONS_URL, this.build.bind(this), function () {
+            this.loadStations();
+
+            return this.render();
+        };
+
+        this.loadStations = function () {
+            var that = this;
+            var cache = readStationsCache();
+
+            if (cache && cache.stations.length) {
+                RadioDebug.log('stations.cache.hit', {
+                    count: cache.stations.length,
+                    stale: cache.stale ? 'yes' : 'no',
+                    age: RadioDebug.ms(cache.age)
+                });
+                this.build(cache.stations, true);
+            }
+
+            network["native"](STATIONS_URL, function (data) {
+                var stations = parseStations(data);
+
+                writeStationsCache(stations);
+
+                if (!stationsBuilt) that.build(stations, false);
+                else {
+                    RadioDebug.log('stations.refresh.done', {
+                        count: stations.length
+                    });
+                    scheduleTrackPrefetch();
+                }
+            }, function () {
+                if (stationsBuilt) {
+                    RadioDebug.log('stations.refresh.error');
+                    return;
+                }
+
                 var empty = new Lampa.Empty();
                 html.append(empty.render());
                 that.start = empty.start;
                 that.activity.loader(false);
                 that.activity.toggle();
             });
-
-            return this.render();
         };
 
-        this.build = function (data) {
+        this.build = function (data, fromCache) {
             var stations = parseStations(data);
 
+            if (stationsBuilt) return;
+
+            stationsBuilt = true;
             RadioDebug.log('stations.loaded', {
-                count: stations.length
+                count: stations.length,
+                source: fromCache ? 'cache' : 'network'
             });
             scroll.minus();
             this.append(stations);
@@ -1733,6 +1917,7 @@
             html.append(scroll.render());
             this.activity.loader(false);
             this.activity.toggle();
+            scheduleTrackPrefetch();
         };
 
         this.append = function (stations) {
@@ -1823,6 +2008,7 @@
         this.destroy = function () {
             stopRadio(true);
             clearIconPreload();
+            clearTimeout(prefetchTimer);
             if (playerStateOff) {
                 playerStateOff();
                 playerStateOff = false;
