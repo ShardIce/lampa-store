@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.12
+ * version: 1.1.13
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -10,6 +10,13 @@
 
     var COMPONENT = 'home_radio_record';
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
+    var STATIONS_SOURCES = [{
+        name: 'official',
+        url: STATIONS_URL
+    }, {
+        name: 'mirror',
+        url: 'https://lampaplugins.github.io/store/stations.json'
+    }];
     var NOW_URL = 'https://www.radiorecord.ru/api/stations/now/';
     var KEY_NAMESPACE = 'keydown.home_radio_record';
     var NAVIGATION_DELAY = 0;
@@ -17,6 +24,7 @@
     var TRACK_POLL_INTERVAL = 12000;
     var ACTION_LOCK_DELAY = 650;
     var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v4';
+    var STATIONS_CACHE_KEYS = [STATIONS_CACHE_KEY, 'radio_record_stations_cache_v3', 'radio_record_stations_cache_v2'];
     var STATIONS_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
     var DEBUG_STORAGE_ENABLED = 'radio_record_debug_enabled';
     var DEBUG_STORAGE_VERBOSE = 'radio_record_debug_verbose';
@@ -94,7 +102,15 @@
     }
 
     function cleanUrl(url) {
-        return (url || '').replace('http://localhost:6081', '');
+        return String(url || '').replace('http://localhost:6081', '').trim();
+    }
+
+    function iconVariant(url, variant) {
+        url = cleanUrl(url);
+
+        if (!url || !variant) return '';
+
+        return url.replace(/_image600_(gray_outline|white_fill|colored_fill)(\.[a-z0-9]+)(\?|$)/i, '_image600_' + variant + '$2$3');
     }
 
     function storageGet(key, fallback) {
@@ -471,10 +487,11 @@
     })();
 
     function normalizeStation(station, index) {
-        var iconGray = cleanUrl(station.icon_gray);
-        var iconWhite = cleanUrl(station.icon_fill_white);
-        var iconColored = cleanUrl(station.icon_fill_colored);
-        var iconActive = cleanUrl(station.icon_active);
+        var rawIcon = cleanUrl(station.icon);
+        var iconGray = cleanUrl(station.icon_gray) || iconVariant(rawIcon, 'gray_outline');
+        var iconWhite = cleanUrl(station.icon_fill_white) || iconVariant(rawIcon, 'white_fill');
+        var iconColored = cleanUrl(station.icon_fill_colored) || iconVariant(rawIcon, 'colored_fill');
+        var iconActive = cleanUrl(station.icon_active) || iconVariant(rawIcon, 'colored_fill');
         var sort = parseInt(station.sort, 10);
 
         if (isNaN(sort)) sort = index;
@@ -484,8 +501,8 @@
             prefix: station.prefix,
             title: station.title || station.short_title || 'Radio Record',
             sort: sort,
-            icon: iconGray || iconColored || iconWhite || cleanUrl(station.icon),
-            icon_active: iconColored || iconActive || iconGray || iconWhite || cleanUrl(station.icon),
+            icon: iconGray || rawIcon || iconColored || iconWhite,
+            icon_active: iconColored || iconActive || rawIcon || iconGray || iconWhite,
             stream_128: cleanUrl(station.stream_128),
             stream_320: cleanUrl(station.stream_320),
             stream_hls: cleanUrl(station.stream_hls),
@@ -521,26 +538,36 @@
     }
 
     function readStationsCache() {
-        var cache = storageGet(STATIONS_CACHE_KEY, false);
+        var cache;
         var age;
+        var i;
+        var key;
 
-        if (typeof cache === 'string') {
-            try {
-                cache = JSON.parse(cache);
-            } catch (e) {
-                cache = false;
+        for (i = 0; i < STATIONS_CACHE_KEYS.length; i++) {
+            key = STATIONS_CACHE_KEYS[i];
+            cache = storageGet(key, false);
+
+            if (typeof cache === 'string') {
+                try {
+                    cache = JSON.parse(cache);
+                } catch (e) {
+                    cache = false;
+                }
             }
+
+            if (!cache || !Array.isArray(cache.stations) || !cache.stations.length) continue;
+
+            age = Date.now() - (cache.time || 0);
+
+            return {
+                key: key,
+                stations: parseStations(cache.stations),
+                stale: age > STATIONS_CACHE_TTL,
+                age: age
+            };
         }
 
-        if (!cache || !Array.isArray(cache.stations) || !cache.stations.length) return false;
-
-        age = Date.now() - (cache.time || 0);
-
-        return {
-            stations: parseStations(cache.stations),
-            stale: age > STATIONS_CACHE_TTL,
-            age: age
-        };
+        return false;
     }
 
     function writeStationsCache(stations) {
@@ -2023,48 +2050,89 @@
             if (cache && cache.stations.length) {
                 RadioDebug.log('stations.cache.hit', {
                     count: cache.stations.length,
+                    key: cache.key,
                     stale: cache.stale ? 'yes' : 'no',
                     age: RadioDebug.ms(cache.age)
                 });
                 this.build(cache.stations, true);
+
+                if (cache.key !== STATIONS_CACHE_KEY) writeStationsCache(cache.stations);
             }
 
-            network["native"](STATIONS_URL, function (data) {
-                var stations = parseStations(data);
-
-                writeStationsCache(stations);
-
-                if (!stationsBuilt) that.build(stations, false);
-                else {
-                    RadioDebug.log('stations.refresh.done', {
-                        count: stations.length
-                    });
-                    scheduleTrackPrefetch();
-                }
-            }, function (xhr, status, error) {
-                var errorData = requestErrorData(xhr, status, error);
-
-                errorData.url = 'stations';
-                errorData.cached = stationsBuilt ? 'yes' : 'no';
-                errorData._message = true;
-                RadioDebug.log(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', errorData);
-                RadioDebug.scheduleDocument(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', 500);
-
-                if (stationsBuilt) {
-                    return;
-                }
-
+            function showEmpty() {
                 var empty = new Lampa.Empty();
+
                 html.append(empty.render());
                 that.start = function () {
                     return empty.start.apply(empty, arguments);
                 };
                 that.activity.loader(false);
                 that.activity.toggle();
-            });
+            }
+
+            function loadSource(sourceIndex) {
+                var source = STATIONS_SOURCES[sourceIndex];
+
+                if (!source) {
+                    if (!stationsBuilt) showEmpty();
+                    return;
+                }
+
+                RadioDebug.log(sourceIndex ? 'stations.fallback.request' : 'stations.request', {
+                    source: source.name,
+                    cached: stationsBuilt ? 'yes' : 'no'
+                });
+
+                network["native"](source.url, function (data) {
+                    var stations = parseStations(data);
+
+                    if (!stations.length) {
+                        loadSource(sourceIndex + 1);
+                        return;
+                    }
+
+                    writeStationsCache(stations);
+
+                    if (!stationsBuilt) that.build(stations, false, source.name);
+                    else {
+                        RadioDebug.log('stations.refresh.done', {
+                            count: stations.length,
+                            source: source.name
+                        });
+                        scheduleTrackPrefetch();
+                    }
+
+                    if (sourceIndex) RadioDebug.scheduleDocument('stations.fallback.used', 800);
+                }, function (xhr, status, error) {
+                    var errorData = requestErrorData(xhr, status, error);
+
+                    errorData.source = source.name;
+                    errorData.url = source.url;
+                    errorData.cached = stationsBuilt ? 'yes' : 'no';
+                    RadioDebug.log('stations.source.error', errorData);
+
+                    if (sourceIndex + 1 < STATIONS_SOURCES.length) {
+                        RadioDebug.log('stations.fallback.next', {
+                            from: source.name,
+                            to: STATIONS_SOURCES[sourceIndex + 1].name,
+                            cached: stationsBuilt ? 'yes' : 'no'
+                        });
+                        loadSource(sourceIndex + 1);
+                        return;
+                    }
+
+                    errorData._message = true;
+                    RadioDebug.log(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', errorData);
+                    RadioDebug.scheduleDocument(stationsBuilt ? 'stations.refresh.error' : 'stations.load.error', 500);
+
+                    if (!stationsBuilt) showEmpty();
+                });
+            }
+
+            loadSource(0);
         };
 
-        this.build = function (data, fromCache) {
+        this.build = function (data, fromCache, sourceName) {
             var stations = parseStations(data);
 
             if (stationsBuilt) return;
@@ -2072,7 +2140,7 @@
             stationsBuilt = true;
             RadioDebug.log('stations.loaded', {
                 count: stations.length,
-                source: fromCache ? 'cache' : 'network'
+                source: fromCache ? 'cache' : sourceName || 'network'
             });
             scroll.minus();
             this.append(stations);
