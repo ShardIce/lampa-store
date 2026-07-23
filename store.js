@@ -1,7 +1,7 @@
 /*
  * name: Plugin Hub
  * author: shardice
- * version: 1.5.8
+ * version: 1.5.9
  * description: Красивый каталог плагинов для Lampa. Установка и управление плагинами происходят внутри магазина.
  */
 
@@ -53,7 +53,8 @@
     }
 
     function addCss() {
-        if ($('#home-plugins-store-style-clean-v16').length) return;
+        if ($('#home-plugins-store-style-clean-v17').length) return;
+        $('#home-plugins-store-style-clean-v16').remove();
         $('#home-plugins-store-style-clean-v15').remove();
         $('#home-plugins-store-style-clean-v14').remove();
         $('#home-plugins-store-style-clean-v13').remove();
@@ -64,11 +65,12 @@
         $('#home-plugins-store-style-clean-v8').remove();
         $('#home-plugins-store-style-clean-v7').remove();
 
-        $('body').append('<style id="home-plugins-store-style-clean-v16">' +
-            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;}' +
-            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:#fff!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;}' +
+        $('body').append('<style id="home-plugins-store-style-clean-v17">' +
+            '[data-component="' + COMPONENT + '"]{display:flex!important;align-items:center!important;gap:.72em!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__icon{color:#fff!important;background:transparent!important;border-radius:0!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;margin-right:.72em!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg,[data-component="' + COMPONENT + '"] .settings-param__icon svg *{max-width:100%;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__icon svg{width:2.28em!important;height:2.28em!important;display:block!important;}' +
+            '[data-component="' + COMPONENT + '"] .settings-param__body{min-width:0!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__name{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}' +
             '[data-component="' + COMPONENT + '"] .settings-param__descr{display:none!important;}' +
 
@@ -87,34 +89,34 @@
             '.hps-section--start:before{display:none;}' +
             '.hps-section--end:after{display:none;}' +
             '.hps-section-title{font-size:.95em;font-weight:900;margin:0 0 .5em 0;padding:0 1.45em;color:rgba(255,255,255,.92);}' +
-            '.hps-grid{display:flex;gap:.72em;overflow-x:auto;overflow-y:hidden;padding:0 1.45em .55em 1.45em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}' +
+            '.hps-grid{display:flex;gap:.66em;overflow-x:auto;overflow-y:hidden;padding:0 1.45em .55em 1.45em;box-sizing:border-box;scroll-behavior:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;}' +
             '.hps-grid::-webkit-scrollbar,.hps-scroll::-webkit-scrollbar{width:.45em;height:.45em;}' +
             '.hps-grid::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:1em;margin:0 1.8em;}' +
             '.hps-grid::-webkit-scrollbar-thumb,.hps-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.30);border-radius:1em;}' +
-            '.hps-card{position:relative;flex:0 0 18.2em;min-height:11.8em;border-radius:.55em;background:#343636;border:0;box-shadow:none;overflow:hidden;padding:.82em .82em 3.05em .82em;box-sizing:border-box;}' +
+            '.hps-card{position:relative;flex:0 0 16.4em;min-height:10.55em;border-radius:.5em;background:#343636;border:0;box-shadow:none;overflow:hidden;padding:.72em .72em 2.75em .72em;box-sizing:border-box;}' +
             '.hps-card:before{content:"";position:absolute;left:0;right:0;top:0;height:.24em;z-index:1;pointer-events:none;background:rgba(255,255,255,.16);}' +
             '.hps-card--own{background:linear-gradient(180deg,rgba(44,68,65,.68),#343636 42%);}' +
             '.hps-card--external{background:linear-gradient(180deg,rgba(65,60,52,.58),#343636 42%);}' +
             '.hps-card--own:before{background:rgba(112,214,178,.70);}' +
             '.hps-card--external:before{background:rgba(214,186,128,.58);}' +
-            '.hps-card--cover{min-height:13em;}' +
+            '.hps-card--cover{min-height:11.85em;}' +
             '.hps-cover{height:0;border-radius:.45em;background:transparent;overflow:hidden;box-shadow:none;margin:0;}' +
-            '.hps-card--cover .hps-cover{height:6.9em;margin:-.82em -.82em .75em -.82em;border-radius:.55em .55em 0 0;background:#2c2c2c;}' +
+            '.hps-card--cover .hps-cover{height:5.95em;margin:-.72em -.72em .62em -.72em;border-radius:.5em .5em 0 0;background:#2c2c2c;}' +
             '.hps-cover img{display:block;width:100%;height:100%;object-fit:cover;}' +
-            '.hps-name{margin-top:0;font-size:.98em;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-desc{margin-top:.45em;max-height:2.95em;color:rgba(255,255,255,.80);font-size:.72em;font-weight:400;line-height:1.34;overflow:hidden;}' +
-            '.hps-meta{position:absolute;left:.82em;right:7.6em;bottom:.85em;color:rgba(255,255,255,.42);font-size:.68em;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
-            '.hps-status{position:absolute;left:.82em;right:.82em;bottom:2.72em;display:flex;align-items:center;gap:.45em;min-height:1.35em;overflow:hidden;}' +
-            '.hps-card--cover .hps-status{top:.55em;bottom:auto;left:.62em;right:.62em;z-index:2;}' +
-            '.hps-state{height:1.45em;padding:0 .55em;border-radius:.35em;background:rgba(255,255,255,.08);font-size:.66em;font-weight:900;line-height:1;display:flex;align-items:center;white-space:nowrap;}' +
-            '.hps-runtime{min-width:0;color:rgba(255,255,255,.58);font-size:.68em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-name{margin-top:0;font-size:.9em;font-weight:900;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-desc{margin-top:.38em;max-height:2.55em;color:rgba(255,255,255,.76);font-size:.66em;font-weight:400;line-height:1.28;overflow:hidden;}' +
+            '.hps-meta{position:absolute;left:.72em;right:6.75em;bottom:.76em;color:rgba(255,255,255,.42);font-size:.62em;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.hps-status{position:absolute;left:.72em;right:.72em;bottom:2.42em;display:flex;align-items:center;gap:.38em;min-height:1.22em;overflow:hidden;}' +
+            '.hps-card--cover .hps-status{top:.48em;bottom:auto;left:.55em;right:.55em;z-index:2;}' +
+            '.hps-state{height:1.32em;padding:0 .48em;border-radius:.32em;background:rgba(255,255,255,.08);font-size:.6em;font-weight:900;line-height:1;display:flex;align-items:center;white-space:nowrap;}' +
+            '.hps-runtime{min-width:0;color:rgba(255,255,255,.58);font-size:.62em;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
             '.hps-card--ready .hps-state{background:rgba(126,224,95,.18);color:#aef08e;}' +
             '.hps-card--loaded .hps-state{background:rgba(112,214,178,.18);color:#8ee8c7;}' +
             '.hps-card--pending .hps-state{background:rgba(255,221,128,.16);color:#f1d384;}' +
             '.hps-card--error .hps-state{background:rgba(255,111,111,.16);color:#ffb0b0;}' +
             '.hps-card--disabled .hps-state{background:rgba(255,255,255,.08);color:rgba(255,255,255,.62);}' +
-            '.hps-card-footer{position:absolute;right:.82em;bottom:.62em;display:flex;align-items:center;justify-content:flex-end;}' +
-            '.hps-install{height:1.85em;padding:0 .78em;border-radius:.4em;background:#7ee05f;color:#101510;font-size:.72em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:6.1em;box-shadow:none;}' +
+            '.hps-card-footer{position:absolute;right:.72em;bottom:.54em;display:flex;align-items:center;justify-content:flex-end;}' +
+            '.hps-install{height:1.65em;padding:0 .68em;border-radius:.35em;background:#7ee05f;color:#101510;font-size:.66em;font-weight:900;display:flex;align-items:center;justify-content:center;min-width:5.55em;box-shadow:none;}' +
             '.hps-card--installed .hps-install{background:rgba(255,255,255,.11);color:rgba(255,255,255,.62);}' +
             '.hps-card--installing .hps-install{background:rgba(255,255,255,.14);color:#fff;box-shadow:none;}' +
             '.hps-card--disabled .hps-install{background:rgba(255,255,255,.09);color:rgba(255,255,255,.58);box-shadow:none;}' +
@@ -132,8 +134,8 @@
             '.hps-action-item--danger{color:#ffb3b3;}' +
             '.hps-action-item-status{font-size:.7em;font-weight:800;color:rgba(255,255,255,.58);white-space:nowrap;}' +
             '.hps-screen .selector.focus,.hps-screen .selector.hover{box-shadow:0 0 0 .18em rgba(255,255,255,.78)!important;transform:none!important;}' +
-            '@media(max-width:1280px){.hps-card{flex-basis:16.8em}.hps-card--cover .hps-cover{height:6.2em}.hps-screen{padding-top:1em}.hps-meta{right:7.2em}.hps-action-panel{max-width:52vw}}' +
-            '@media(max-width:760px){.hps-head{padding:0 1em}.hps-section-title{padding:0 1em}.hps-grid{padding-left:1em;padding-right:1em}.hps-card{flex-basis:15.6em;min-height:11.2em}.hps-card--cover .hps-cover{height:5.8em}.hps-desc{font-size:.7em;max-height:2.8em}.hps-section:before,.hps-section:after{width:2.7em}.hps-action-panel{width:100%;max-width:100vw}}' +
+            '@media(max-width:1280px){.hps-card{flex-basis:15.3em}.hps-card--cover .hps-cover{height:5.45em}.hps-screen{padding-top:1em}.hps-meta{right:6.55em}.hps-action-panel{max-width:52vw}}' +
+            '@media(max-width:760px){.hps-head{padding:0 1em}.hps-section-title{padding:0 1em}.hps-grid{padding-left:1em;padding-right:1em}.hps-card{flex-basis:14.35em;min-height:10.15em}.hps-card--cover .hps-cover{height:5.1em}.hps-desc{font-size:.64em;max-height:2.45em}.hps-section:before,.hps-section:after{width:2.7em}.hps-action-panel{width:100%;max-width:100vw}}' +
         '</style>');
     }
 
