@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.14
+ * version: 1.1.15
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -9,6 +9,7 @@
     'use strict';
 
     var COMPONENT = 'home_radio_record';
+    var RECORD_ORIGIN = 'https://www.radiorecord.ru';
     var STATIONS_URL = 'https://www.radiorecord.ru/api/stations/';
     var STATIONS_SOURCES = [{
         name: 'store',
@@ -104,6 +105,16 @@
 
     function cleanUrl(url) {
         return String(url || '').replace('http://localhost:6081', '').trim();
+    }
+
+    function recordUrl(url) {
+        url = cleanUrl(url);
+
+        if (!url) return '';
+        if (url.indexOf('//') === 0) return 'https:' + url;
+        if (url.charAt(0) === '/') return RECORD_ORIGIN + url;
+
+        return url;
     }
 
     function iconVariant(url, variant) {
@@ -905,8 +916,8 @@
                 id: track.id,
                 artist: track.artist || '',
                 song: track.song || '',
-                image: cleanUrl(track.image100 || track.image200 || track.image600 || ''),
-                shareUrl: cleanUrl(track.shareUrl || '')
+                image: recordUrl(track.image200 || track.image100 || track.image600 || ''),
+                shareUrl: recordUrl(track.shareUrl || '')
             };
         }
 
@@ -959,6 +970,7 @@
         function fetchNow(done, fail) {
             var requestId;
             var mark;
+            var methods = [];
 
             done = done || function () {};
             fail = fail || function () {};
@@ -979,7 +991,7 @@
                 url: 'stations/now'
             });
 
-            function ok(data) {
+            function ok(data, method) {
                 data = parseResponse(data);
 
                 if (requestId !== nowRequestId) return;
@@ -990,28 +1002,80 @@
                 }
 
                 RadioDebug.end(mark, 'track.api.response', {
-                    count: Array.isArray(data.result) ? data.result.length : 0
+                    count: Array.isArray(data.result) ? data.result.length : 0,
+                    method: method || 'unknown'
                 });
                 runNowCallbacks(true, data);
             }
 
-            function bad() {
+            function bad(method, xhr, status, error) {
+                var data;
+
                 if (requestId !== nowRequestId) return;
-                RadioDebug.end(mark, 'track.api.error');
-                runNowCallbacks(false);
+
+                data = requestErrorData(xhr, status, error);
+                data.method = method || 'unknown';
+                RadioDebug.log('track.api.method.error', data);
+                next();
+            }
+
+            function next() {
+                var method = methods.shift();
+
+                if (requestId !== nowRequestId) return;
+
+                if (!method) {
+                    RadioDebug.end(mark, 'track.api.error');
+                    runNowCallbacks(false);
+                    return;
+                }
+
+                RadioDebug.log('track.api.method', {
+                    method: method.name
+                });
+
+                method.run(function (data) {
+                    data = parseResponse(data);
+
+                    if (!data || !Array.isArray(data.result)) {
+                        bad(method.name, false, 'empty', 'empty-result');
+                        return;
+                    }
+
+                    ok(data, method.name);
+                }, function (xhr, status, error) {
+                    bad(method.name, xhr, status, error);
+                });
+            }
+
+            if (trackRequest && typeof trackRequest["native"] === 'function') {
+                methods.push({
+                    name: 'native',
+                    run: function (success, failure) {
+                        trackRequest["native"](NOW_URL, success, failure, false, {
+                            dataType: 'json'
+                        });
+                    }
+                });
             }
 
             if (window.fetch) {
-                fetch(NOW_URL).then(function (response) {
-                    return response.json();
-                }).then(ok)["catch"](bad);
-            } else if (trackRequest && typeof trackRequest["native"] === 'function') {
-                trackRequest["native"](NOW_URL, ok, bad, false, {
-                    dataType: 'json'
+                methods.push({
+                    name: 'fetch',
+                    run: function (success, failure) {
+                        fetch(NOW_URL, {
+                            cache: 'no-store'
+                        }).then(function (response) {
+                            if (!response || !response.ok) throw response;
+                            return response.json();
+                        }).then(success)["catch"](function (error) {
+                            failure(error, error && error.statusText, error);
+                        });
+                    }
                 });
-            } else {
-                bad();
             }
+
+            next();
         }
 
         function setTrackFromCache() {
