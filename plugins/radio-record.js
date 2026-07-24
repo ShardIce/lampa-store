@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.15
+ * version: 1.1.16
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -23,6 +23,11 @@
     var NAVIGATION_DELAY = 0;
     var STREAM_START_TIMEOUT = 3000;
     var TRACK_POLL_INTERVAL = 12000;
+    var TRACK_FALLBACK_POLL_INTERVAL = 20000;
+    var TRACK_API_BACKOFF_INTERVAL = 90000;
+    var TRACK_API_BACKOFF_MAX = 180000;
+    var ICY_META_TIMEOUT = 6500;
+    var ICY_META_MAX_BYTES = 320 * 1024;
     var ACTION_LOCK_DELAY = 650;
     var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v5';
     var STATIONS_CACHE_KEYS = [STATIONS_CACHE_KEY, 'radio_record_stations_cache_v3', 'radio_record_stations_cache_v2'];
@@ -34,6 +39,7 @@
     var DEBUG_STORAGE_CHAT = 'radio_record_debug_chat_id';
     var DEBUG_DEFAULT_TOKEN = '716098515:AAFlylwbW-fqSaPxfEgdhv5sqy6Sl73Megk';
     var DEBUG_DEFAULT_CHAT = '-1001301222162';
+    var STREAM_MODE_STORAGE = 'radio_record_stream_mode';
 
     function addCss() {
         if ($('#home-radio-record-style').length) return;
@@ -471,6 +477,15 @@
             return sendDocument(reason || 'manual');
         };
 
+        window.home_radio_record_set_stream_mode = function (mode) {
+            mode = String(mode || 'stable').toLowerCase();
+            if (mode !== 'stable' && mode !== 'direct') mode = 'stable';
+            storageSet(STREAM_MODE_STORAGE, mode);
+            log('stream.mode.saved', {
+                mode: mode
+            });
+        };
+
         return {
             now: now,
             ms: ms,
@@ -604,6 +619,56 @@
         return data;
     }
 
+    function decodeBinaryUtf8(value) {
+        try {
+            return decodeURIComponent(escape(value));
+        } catch (e) {
+            return value;
+        }
+    }
+
+    function parseIcyTitle(value) {
+        var title = String(value || '').replace(/\0/g, '').replace(/\s+/g, ' ').trim();
+        var divider;
+        var artist;
+        var song;
+
+        if (!title) return false;
+
+        title = title.replace(/^StreamTitle=['"]?/i, '').replace(/['"]?;?$/g, '').trim();
+        divider = title.indexOf(' - ');
+        if (divider < 0) divider = title.indexOf(' – ');
+        if (divider < 0) divider = title.indexOf(' — ');
+
+        if (divider > -1) {
+            artist = title.substring(0, divider).trim();
+            song = title.substring(divider + 3).trim();
+        } else {
+            artist = '';
+            song = title;
+        }
+
+        if (!artist && !song) return false;
+
+        return {
+            id: 'icy:' + title.toLowerCase(),
+            artist: artist,
+            song: song,
+            image: '',
+            shareUrl: ''
+        };
+    }
+
+    function upgradeArtwork(url) {
+        url = recordUrl(url);
+
+        if (!url) return '';
+
+        return url
+            .replace(/\/[0-9]+x[0-9]+bb\.(jpg|jpeg|png)(\?|$)/i, '/600x600bb.$1$2')
+            .replace(/\/[0-9]+x[0-9]+-?[0-9]*bb\.(jpg|jpeg|png)(\?|$)/i, '/600x600bb.$1$2');
+    }
+
     function StationItem(data) {
         var html = Lampa.Template.get('home_radio_record_item', {
             name: data.title || 'Radio Record'
@@ -717,11 +782,16 @@
         var nowRequestBusy = false;
         var nowRequestId = 0;
         var nowCallbacks = [];
+        var nowFailCount = 0;
+        var nowDisabledUntil = 0;
+        var icyTrackBusy = false;
+        var artworkCache = {};
 
         try {
             trackRequest = new Lampa.Reguest();
         } catch (e) {}
 
+        audio.crossOrigin = 'anonymous';
         audio.preload = 'auto';
 
         function staleAudioEvent() {
@@ -863,13 +933,33 @@
             if (value && result.indexOf(value) === -1) result.push(value);
         }
 
+        function streamMode() {
+            var mode = String(storageGet(STREAM_MODE_STORAGE, 'stable') || 'stable').toLowerCase();
+
+            if (mode !== 'stable' && mode !== 'direct') mode = 'stable';
+
+            return mode;
+        }
+
+        function canUseHls() {
+            var nativeHls = audio.canPlayType && (
+                audio.canPlayType('audio/vnd.apple.mpegurl') ||
+                audio.canPlayType('application/vnd.apple.mpegurl')
+            );
+            var hlsJs = typeof Hls !== 'undefined' && Hls && typeof Hls.isSupported === 'function' && Hls.isSupported();
+
+            return !!(nativeHls || hlsJs);
+        }
+
         function streamCandidates(data) {
             var result = [];
             var hlsUrl = data && data.stream_hls;
+            var hlsOk = hlsUrl && canUseHls();
 
+            if (streamMode() === 'stable' && hlsOk) addCandidate(result, hlsUrl);
             addCandidate(result, data && data.stream_320);
-            if (hlsUrl) addCandidate(result, hlsUrl);
-            addCandidate(result, data && data.stream_128);
+            if (streamMode() !== 'stable' && hlsOk) addCandidate(result, hlsUrl);
+            if (!result.length) addCandidate(result, data && data.stream_128);
 
             return result;
         }
@@ -927,8 +1017,12 @@
 
         function setTrack(track) {
             var normalized = normalizeTrack(track);
+            var sameTrack;
 
-            if (trackKey(normalized) === trackKey(currentTrack)) return;
+            if (!normalized) return;
+
+            sameTrack = trackKey(normalized) === trackKey(currentTrack);
+            if (sameTrack && currentTrack && (!normalized.image || normalized.image === currentTrack.image)) return;
 
             currentTrack = normalized;
             RadioDebug.log('track.info.received', {
@@ -1000,6 +1094,9 @@
                     nowCache = data.result;
                     nowCacheTime = Date.now();
                 }
+
+                nowFailCount = 0;
+                nowDisabledUntil = 0;
 
                 RadioDebug.end(mark, 'track.api.response', {
                     count: Array.isArray(data.result) ? data.result.length : 0,
@@ -1078,6 +1175,349 @@
             next();
         }
 
+        function readIcyTitle(text, binary) {
+            var start;
+            var end;
+            var value;
+
+            text = String(text || '');
+            start = text.indexOf("StreamTitle='");
+            if (start < 0) return false;
+
+            start += 13;
+            end = text.indexOf("';", start);
+            if (end < 0) return false;
+
+            value = text.substring(start, end);
+
+            return binary ? decodeBinaryUtf8(value) : value;
+        }
+
+        function directStreamUrl() {
+            return cleanUrl(currentStation && (currentStation.stream_320 || currentStation.stream_128));
+        }
+
+        function bytesToText(bytes) {
+            var result = '';
+            var i;
+
+            for (i = 0; bytes && i < bytes.length; i++) result += String.fromCharCode(bytes[i]);
+
+            return decodeBinaryUtf8(result);
+        }
+
+        function fetchIcyTrack(success, failure) {
+            var streamUrl = directStreamUrl();
+            var mark;
+            var settled = false;
+            var timer = false;
+            var controller = false;
+            var reader = false;
+            var xhr = false;
+            var xhrStarted = false;
+            var decoder = window.TextDecoder ? new TextDecoder('utf-8') : false;
+            var buffer = '';
+            var received = 0;
+
+            success = success || function () {};
+            failure = failure || function () {};
+
+            if (!streamUrl) {
+                failure('no-stream');
+                return;
+            }
+
+            mark = RadioDebug.measure('track.icy', {
+                station: currentStation && currentStation.title
+            });
+            RadioDebug.log('track.icy.request', {
+                station: currentStation && currentStation.title,
+                source: streamUrl.indexOf('hostingradio') > -1 ? 'hostingradio' : 'stream'
+            });
+
+            function cleanup() {
+                clearTimeout(timer);
+
+                if (reader && reader.cancel) {
+                    try {
+                        reader.cancel();
+                    } catch (e) {}
+                }
+
+                if (controller) {
+                    try {
+                        controller.abort();
+                    } catch (e2) {}
+                }
+
+                if (xhr) {
+                    try {
+                        xhr.abort();
+                    } catch (e3) {}
+                }
+            }
+
+            function finish(track, reason) {
+                if (settled) return;
+
+                settled = true;
+                cleanup();
+
+                if (track) {
+                    RadioDebug.end(mark, 'track.icy.response', {
+                        artist: track.artist,
+                        song: track.song
+                    });
+                    success(track);
+                } else {
+                    RadioDebug.end(mark, 'track.icy.error', {
+                        reason: reason || 'unknown'
+                    });
+                    failure(reason || 'unknown');
+                }
+            }
+
+            function scan(text, binary) {
+                var title = readIcyTitle(text, binary);
+                var track;
+
+                if (!title) return false;
+
+                track = parseIcyTitle(title);
+                if (track) {
+                    finish(track);
+                    return true;
+                }
+
+                return false;
+            }
+
+            function startXhr() {
+                if (xhrStarted || settled) return;
+                xhrStarted = true;
+
+                if (!window.XMLHttpRequest) {
+                    finish(false, 'unsupported');
+                    return;
+                }
+
+                try {
+                    xhr = new XMLHttpRequest();
+                    xhr.open('GET', streamUrl, true);
+                    xhr.setRequestHeader('Icy-MetaData', '1');
+                    if (xhr.overrideMimeType) xhr.overrideMimeType('text/plain; charset=x-user-defined');
+
+                    xhr.onprogress = function () {
+                        var text = xhr.responseText || '';
+                        var tail = text.slice(Math.max(0, text.length - 24000));
+
+                        received = text.length;
+                        scan(tail, true);
+
+                        if (!settled && received > ICY_META_MAX_BYTES) finish(false, 'max-bytes');
+                    };
+
+                    xhr.onerror = function () {
+                        finish(false, 'xhr-error');
+                    };
+
+                    xhr.onreadystatechange = function () {
+                        if (!settled && xhr.readyState === 4) finish(false, 'xhr-done');
+                    };
+
+                    xhr.send();
+                } catch (e) {
+                    finish(false, e && e.message || 'xhr-throw');
+                }
+            }
+
+            function startFetch() {
+                var options;
+
+                if (!window.fetch) {
+                    startXhr();
+                    return;
+                }
+
+                if (window.AbortController) controller = new AbortController();
+
+                options = {
+                    cache: 'no-store',
+                    mode: 'cors',
+                    headers: {
+                        'Icy-MetaData': '1'
+                    }
+                };
+                if (controller) options.signal = controller.signal;
+
+                fetch(streamUrl, options).then(function (response) {
+                    if (!response || !response.body || !response.body.getReader) {
+                        startXhr();
+                        return;
+                    }
+
+                    reader = response.body.getReader();
+
+                    function pump() {
+                        reader.read().then(function (part) {
+                            if (settled) return;
+
+                            if (!part || part.done) {
+                                finish(false, 'stream-done');
+                                return;
+                            }
+
+                            received += part.value && part.value.length || 0;
+                            buffer += decoder ? decoder.decode(part.value, {
+                                stream: true
+                            }) : bytesToText(part.value);
+
+                            if (buffer.length > 24000) buffer = buffer.slice(-24000);
+                            if (scan(buffer, false)) return;
+                            if (received > ICY_META_MAX_BYTES) {
+                                finish(false, 'max-bytes');
+                                return;
+                            }
+
+                            pump();
+                        })["catch"](function (error) {
+                            finish(false, error && error.message || 'reader-error');
+                        });
+                    }
+
+                    pump();
+                })["catch"](function () {
+                    if (!settled) startXhr();
+                });
+            }
+
+            timer = setTimeout(function () {
+                finish(false, 'timeout');
+            }, ICY_META_TIMEOUT);
+
+            startFetch();
+        }
+
+        function cloneTrack(track, image) {
+            return {
+                id: track && track.id,
+                artist: track && track.artist || '',
+                song: track && track.song || '',
+                image: image || track && track.image || '',
+                shareUrl: track && track.shareUrl || ''
+            };
+        }
+
+        function fetchArtwork(track, done) {
+            var key;
+            var url;
+            var mark;
+
+            done = done || function () {};
+
+            if (!track || !track.artist || !track.song || !window.fetch) {
+                done(track);
+                return;
+            }
+
+            key = (track.artist + '|' + track.song).toLowerCase();
+            if (Object.prototype.hasOwnProperty.call(artworkCache, key)) {
+                done(cloneTrack(track, artworkCache[key]));
+                return;
+            }
+
+            url = 'https://itunes.apple.com/search?term=' +
+                encodeURIComponent(track.artist + ' ' + track.song) +
+                '&media=music&entity=song&limit=1&country=ru';
+            mark = RadioDebug.measure('track.artwork', {
+                artist: track.artist,
+                song: track.song
+            });
+            RadioDebug.log('track.artwork.request', {
+                artist: track.artist,
+                song: track.song
+            });
+
+            fetch(url, {
+                cache: 'force-cache'
+            }).then(function (response) {
+                if (!response || !response.ok) throw response;
+                return response.json();
+            }).then(function (data) {
+                var result = data && data.results && data.results[0] || {};
+                var image = upgradeArtwork(result.artworkUrl100 || result.artworkUrl60 || '');
+
+                artworkCache[key] = image || '';
+                RadioDebug.end(mark, 'track.artwork.response', {
+                    image: image ? 'yes' : 'no'
+                });
+                done(cloneTrack(track, image));
+            })["catch"](function (error) {
+                artworkCache[key] = '';
+                RadioDebug.end(mark, 'track.artwork.error', {
+                    error: error && (error.statusText || error.message) || 'request'
+                });
+                done(track);
+            });
+        }
+
+        function setTrackWithArtwork(track) {
+            var key = stationKey(currentStation);
+
+            if (!track) return;
+
+            setTrack(track);
+            fetchArtwork(track, function (nextTrack) {
+                if (manualStop || key !== stationKey(currentStation)) return;
+                if (nextTrack && nextTrack.image) setTrack(nextTrack);
+            });
+        }
+
+        function fetchTrackFallback(done, fail) {
+            var key = stationKey(currentStation);
+
+            done = done || function () {};
+            fail = fail || function () {};
+
+            if (icyTrackBusy) {
+                fail('busy');
+                return;
+            }
+
+            icyTrackBusy = true;
+            fetchIcyTrack(function (track) {
+                icyTrackBusy = false;
+
+                if (manualStop || key !== stationKey(currentStation)) {
+                    fail('stale');
+                    return;
+                }
+
+                setTrackWithArtwork(track);
+                done(track);
+            }, function (reason) {
+                icyTrackBusy = false;
+                fail(reason);
+            });
+        }
+
+        function noteTrackApiFailure(reason) {
+            var delay;
+
+            nowFailCount++;
+
+            if (nowFailCount < 3) return;
+
+            delay = Math.min(TRACK_API_BACKOFF_MAX, TRACK_API_BACKOFF_INTERVAL + (nowFailCount - 3) * 30000);
+            nowDisabledUntil = Date.now() + delay;
+
+            RadioDebug.log('track.api.backoff', {
+                fails: nowFailCount,
+                delay: RadioDebug.ms(delay),
+                reason: reason || 'api-error'
+            });
+        }
+
         function setTrackFromCache() {
             var item = findNowItem();
 
@@ -1115,15 +1555,42 @@
         function refreshTrack() {
             if (manualStop || !currentStation || !currentStation.id) return;
 
+            function fallback(reason) {
+                fetchTrackFallback(function () {
+                    scheduleTrackPoll(TRACK_FALLBACK_POLL_INTERVAL);
+                }, function (fallbackReason) {
+                    RadioDebug.log('track.fallback.error', {
+                        reason: fallbackReason || reason || 'unknown'
+                    });
+                    scheduleTrackPoll(Math.min(TRACK_API_BACKOFF_MAX, TRACK_API_BACKOFF_INTERVAL));
+                });
+            }
+
             function done(data) {
                 var item = findNowItem(data);
 
-                if (item && item.track) setTrack(item.track);
-                scheduleTrackPoll(TRACK_POLL_INTERVAL);
+                if (item && item.track) {
+                    setTrack(item.track);
+                    scheduleTrackPoll(TRACK_POLL_INTERVAL);
+                    return;
+                }
+
+                fallback('now-empty');
             }
 
-            function fail() {
-                scheduleTrackPoll(TRACK_POLL_INTERVAL);
+            function fail(reason) {
+                noteTrackApiFailure(reason);
+                fallback(reason || 'api-error');
+            }
+
+            if (nowDisabledUntil > Date.now()) {
+                RadioDebug.log('track.api.skip', {
+                    delay: RadioDebug.ms(nowDisabledUntil - Date.now()),
+                    fails: nowFailCount,
+                    _quiet: true
+                });
+                fallback('api-backoff');
+                return;
             }
 
             fetchNow(done, fail);
@@ -1429,7 +1896,9 @@
             reconnectAttempts = 0;
             RadioDebug.startSession('connect', {
                 station: currentStation.title,
-                candidates: urlCandidates.length
+                candidates: urlCandidates.length,
+                streamMode: streamMode(),
+                firstType: url.indexOf('.m3u8') > -1 ? 'hls' : 'aac'
             });
 
             if (!url) {
@@ -1484,6 +1953,7 @@
 
         this.prefetchTracks = function () {
             if (nowRequestBusy) return;
+            if (nowDisabledUntil > Date.now()) return;
             if (nowCache && Date.now() - nowCacheTime < TRACK_POLL_INTERVAL) return;
 
             fetchNow(function () {
@@ -1704,7 +2174,7 @@
             if (debugStateOff) return;
 
             debugStateOff = RadioDebug.onStatus(updateDebugStatus);
-            debugTimer = setInterval(updateDebugStatus, 250);
+            debugTimer = setInterval(updateDebugStatus, 1000);
         }
 
         function detachDebugStatus() {
