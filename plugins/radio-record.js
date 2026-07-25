@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.18
+ * version: 1.1.19
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -672,6 +672,48 @@
         return url
             .replace(/\/[0-9]+x[0-9]+bb\.(jpg|jpeg|png)(\?|$)/i, '/600x600bb.$1$2')
             .replace(/\/[0-9]+x[0-9]+-?[0-9]*bb\.(jpg|jpeg|png)(\?|$)/i, '/600x600bb.$1$2');
+    }
+
+    function compactArtworkText(value) {
+        return String(value || '')
+            .replace(/^["'\s]*(by|ву)\s+/i, '')
+            .replace(/[\/\\|,;:_]+/g, ' ')
+            .replace(/["'`]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function latinArtworkText(value) {
+        return (' ' + compactArtworkText(value) + ' ')
+            .replace(/(\s)ХСНО(?=\s)/gi, '$1XCHO')
+            .replace(/(\s)ИНДИЯ(?=\s)/gi, '$1INDIA')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function addArtworkQuery(result, value) {
+        value = String(value || '').replace(/\s+/g, ' ').trim();
+
+        if (value && result.indexOf(value) === -1) result.push(value);
+    }
+
+    function artworkQueries(track) {
+        var result = [];
+        var artist = track && track.artist || '';
+        var song = track && track.song || '';
+        var cleanArtist = compactArtworkText(artist);
+        var cleanSong = compactArtworkText(song);
+        var latinArtist = latinArtworkText(artist);
+        var latinSong = latinArtworkText(song);
+
+        addArtworkQuery(result, latinSong + ' ' + latinArtist);
+        addArtworkQuery(result, latinArtist + ' ' + latinSong);
+        addArtworkQuery(result, cleanSong + ' ' + cleanArtist);
+        addArtworkQuery(result, cleanArtist + ' ' + cleanSong);
+        addArtworkQuery(result, artist + ' ' + song);
+        addArtworkQuery(result, song + ' ' + artist);
+
+        return result;
     }
 
     function StationItem(data) {
@@ -1463,8 +1505,9 @@
 
         function fetchArtwork(track, done) {
             var key;
-            var url;
             var mark;
+            var queries;
+            var index = 0;
 
             done = done || function () {};
 
@@ -1479,39 +1522,112 @@
                 return;
             }
 
-            url = 'https://itunes.apple.com/search?term=' +
-                encodeURIComponent(track.artist + ' ' + track.song) +
-                '&media=music&entity=song&limit=1&country=ru';
+            queries = artworkQueries(track).slice(0, 6);
             mark = RadioDebug.measure('track.artwork', {
                 artist: track.artist,
                 song: track.song
             });
             RadioDebug.log('track.artwork.request', {
                 artist: track.artist,
-                song: track.song
+                song: track.song,
+                queries: queries.length
             });
 
-            fetch(url, {
-                cache: 'force-cache'
-            }).then(function (response) {
-                if (!response || !response.ok) throw response;
-                return response.json();
-            }).then(function (data) {
-                var result = data && data.results && data.results[0] || {};
-                var image = upgradeArtwork(result.artworkUrl100 || result.artworkUrl60 || '');
-
+            function finish(image, provider, query) {
                 artworkCache[key] = image || '';
-                RadioDebug.end(mark, 'track.artwork.response', {
-                    image: image ? 'yes' : 'no'
+                RadioDebug.end(mark, image ? 'track.artwork.response' : 'track.artwork.empty', {
+                    image: image ? 'yes' : 'no',
+                    provider: provider || 'none',
+                    query: query || ''
                 });
                 done(cloneTrack(track, image));
-            })["catch"](function (error) {
-                artworkCache[key] = '';
-                RadioDebug.end(mark, 'track.artwork.error', {
-                    error: error && (error.statusText || error.message) || 'request'
+            }
+
+            function requestJson(url, success, failure) {
+                fetch(url, {
+                    cache: 'force-cache'
+                }).then(function (response) {
+                    if (!response || !response.ok) throw response;
+                    return response.json();
+                }).then(success)["catch"](failure);
+            }
+
+            function requestJsonp(url, success, failure) {
+                var callback = 'home_radio_record_jsonp_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+                var script = document.createElement('script');
+                var timer;
+
+                function cleanup() {
+                    clearTimeout(timer);
+                    try {
+                        delete window[callback];
+                    } catch (e) {
+                        window[callback] = undefined;
+                    }
+                    if (script && script.parentNode) script.parentNode.removeChild(script);
+                }
+
+                window[callback] = function (data) {
+                    cleanup();
+                    success(data);
+                };
+                script.onerror = function () {
+                    cleanup();
+                    failure();
+                };
+                timer = setTimeout(function () {
+                    cleanup();
+                    failure();
+                }, 8000);
+                script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + 'output=jsonp&callback=' + encodeURIComponent(callback);
+                (document.head || document.body || document.documentElement).appendChild(script);
+            }
+
+            function tryDeezer(query) {
+                requestJsonp('https://api.deezer.com/search?q=' + encodeURIComponent(query) + '&limit=1', function (data) {
+                    var result = data && data.data && data.data[0] || {};
+                    var album = result.album || {};
+                    var image = upgradeArtwork(album.cover_xl || album.cover_big || album.cover_medium || '');
+
+                    if (image) finish(image, 'deezer', query);
+                    else next();
+                }, next);
+            }
+
+            function tryItunes(query) {
+                requestJson('https://itunes.apple.com/search?term=' +
+                    encodeURIComponent(query) +
+                    '&media=music&entity=song&limit=1&country=ru', function (data) {
+                    var result = data && data.results && data.results[0] || {};
+                    var image = upgradeArtwork(result.artworkUrl100 || result.artworkUrl60 || '');
+
+                    if (image) finish(image, 'itunes', query);
+                    else tryDeezer(query);
+                }, function () {
+                    tryDeezer(query);
                 });
-                done(track);
-            });
+            }
+
+            function next(error) {
+                var query = queries[index++];
+
+                if (!query) {
+                    artworkCache[key] = '';
+                    RadioDebug.end(mark, 'track.artwork.error', {
+                        error: error && (error.statusText || error.message) || 'not-found'
+                    });
+                    done(track);
+                    return;
+                }
+
+                RadioDebug.log('track.artwork.try', {
+                    query: query,
+                    _quiet: true
+                });
+                tryItunes(query);
+            }
+
+            next();
         }
 
         function setTrackWithArtwork(track) {
