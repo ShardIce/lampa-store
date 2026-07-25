@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.17
+ * version: 1.1.18
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -24,6 +24,7 @@
     var STREAM_START_TIMEOUT = 3000;
     var TRACK_POLL_INTERVAL = 12000;
     var TRACK_FALLBACK_POLL_INTERVAL = 20000;
+    var TRACK_API_BACKOFF_THRESHOLD = 1;
     var TRACK_API_BACKOFF_INTERVAL = 90000;
     var TRACK_API_BACKOFF_MAX = 180000;
     var ICY_META_TIMEOUT = 18000;
@@ -1034,7 +1035,7 @@
                 id: track.id,
                 artist: track.artist || '',
                 song: track.song || '',
-                image: recordUrl(track.image200 || track.image100 || track.image600 || ''),
+                image: recordUrl(track.image || track.image200 || track.image100 || track.image600 || ''),
                 shareUrl: recordUrl(track.shareUrl || '')
             };
         }
@@ -1084,7 +1085,7 @@
             callbacks.forEach(function (callback) {
                 try {
                     if (success) callback.done(data);
-                    else callback.fail();
+                    else callback.fail(data);
                 } catch (e) {}
             });
         }
@@ -1151,7 +1152,7 @@
 
                 if (!method) {
                     RadioDebug.end(mark, 'track.api.error');
-                    runNowCallbacks(false);
+                    runNowCallbacks(false, 'api-error');
                     return;
                 }
 
@@ -1558,9 +1559,9 @@
 
             nowFailCount++;
 
-            if (nowFailCount < 3) return;
+            if (nowFailCount < TRACK_API_BACKOFF_THRESHOLD) return;
 
-            delay = Math.min(TRACK_API_BACKOFF_MAX, TRACK_API_BACKOFF_INTERVAL + (nowFailCount - 3) * 30000);
+            delay = Math.min(TRACK_API_BACKOFF_MAX, TRACK_API_BACKOFF_INTERVAL + Math.max(0, nowFailCount - TRACK_API_BACKOFF_THRESHOLD) * 30000);
             nowDisabledUntil = Date.now() + delay;
 
             RadioDebug.log('track.api.backoff', {
@@ -1611,6 +1612,14 @@
                 fetchTrackFallback(function () {
                     scheduleTrackPoll(TRACK_FALLBACK_POLL_INTERVAL);
                 }, function (fallbackReason) {
+                    if (fallbackReason === 'busy') {
+                        RadioDebug.log('track.fallback.busy', {
+                            _quiet: true
+                        });
+                        scheduleTrackPoll(TRACK_FALLBACK_POLL_INTERVAL);
+                        return;
+                    }
+
                     RadioDebug.log('track.fallback.error', {
                         reason: fallbackReason || reason || 'unknown'
                     });
@@ -2025,6 +2034,8 @@
 
             fetchNow(function () {
                 if (currentStation) setTrackFromCache();
+            }, function (reason) {
+                noteTrackApiFailure(reason || 'prefetch-error');
             });
         };
     }
