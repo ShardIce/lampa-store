@@ -1,7 +1,7 @@
 /*
  * name: Radio Record
  * author: shardice
- * version: 1.1.16
+ * version: 1.1.17
  * description: Добавляет пункт Радио в левое меню Lampa, полный список каналов Radio Record и плеер с текущим треком.
  */
 
@@ -26,8 +26,12 @@
     var TRACK_FALLBACK_POLL_INTERVAL = 20000;
     var TRACK_API_BACKOFF_INTERVAL = 90000;
     var TRACK_API_BACKOFF_MAX = 180000;
-    var ICY_META_TIMEOUT = 6500;
-    var ICY_META_MAX_BYTES = 320 * 1024;
+    var ICY_META_TIMEOUT = 18000;
+    var ICY_META_MAX_BYTES = 1024 * 1024;
+    var STREAM_RETRY_DELAY = 5000;
+    var STREAM_RETRY_MAX_DELAY = 30000;
+    var STREAM_START_WAITING_TIMEOUT = 18000;
+    var STREAM_BUFFERING_NOTICE_TIMEOUT = 16000;
     var ACTION_LOCK_DELAY = 650;
     var STATIONS_CACHE_KEY = 'radio_record_stations_cache_v5';
     var STATIONS_CACHE_KEYS = [STATIONS_CACHE_KEY, 'radio_record_stations_cache_v3', 'radio_record_stations_cache_v2'];
@@ -45,15 +49,15 @@
         if ($('#home-radio-record-style').length) return;
 
         $('body').append('<style id="home-radio-record-style">' +
-            '.home-radio-record-panel{display:flex;align-items:center;margin:0 1.22em 1.15em 1.22em;min-height:5.35em;padding:.7em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.18),rgba(38,38,38,.96) 28%,rgba(28,28,28,.96));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
-            '.home-radio-record-panel__cover{width:4.15em;height:4.15em;border-radius:.3em;background-color:rgba(0,0,0,.24);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}' +
-            '.home-radio-record-panel__cover img{width:100%;height:100%;object-fit:cover;opacity:.96;}' +
+            '.home-radio-record-panel{display:flex;align-items:center;margin:0 1.22em 1.15em 1.22em;min-height:4.95em;padding:.62em .85em;border-radius:.34em;background:linear-gradient(90deg,rgba(246,73,0,.16),rgba(36,36,36,.97) 22%,rgba(25,25,25,.97));box-shadow:inset 0 0 0 .08em rgba(255,255,255,.07);box-sizing:border-box;}' +
+            '.home-radio-record-panel__cover{width:3.75em;height:3.75em;border-radius:.24em;background-color:rgba(0,0,0,.26);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}' +
+            '.home-radio-record-panel__cover img{width:100%;height:100%;object-fit:cover;opacity:1;}' +
             '.home-radio-record-panel__cover.is-icon img{width:78%;height:78%;object-fit:contain;opacity:1;}' +
-            '.home-radio-record-panel__meta{min-width:0;margin-left:1em;flex:1;}' +
-            '.home-radio-record-panel__station{font-size:.9em;color:#F64900;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-panel__track{font-size:1.24em;color:#fff;font-weight:700;line-height:1.12;margin-top:.12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-panel__artist{font-size:.95em;color:rgba(255,255,255,.62);margin-top:.18em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
-            '.home-radio-record-panel__debug{font-size:.78em;color:rgba(255,255,255,.45);margin-top:.22em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__meta{min-width:0;margin-left:.95em;flex:1;}' +
+            '.home-radio-record-panel__station{font-size:.78em;color:#F64900;font-weight:700;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__track{font-size:1.18em;color:#fff;font-weight:700;line-height:1.12;margin-top:.16em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__artist{font-size:.9em;color:rgba(255,255,255,.58);line-height:1.12;margin-top:.18em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.home-radio-record-panel__debug{display:none;}' +
             '.home-radio-record-panel__actions{display:flex;align-items:center;margin-left:.8em;}' +
             '.home-radio-record-panel__btn{width:3.05em;height:3.05em;margin-left:.45em;border-radius:.28em;background-color:rgba(255,255,255,.07);box-shadow:inset 0 0 0 .08em rgba(255,255,255,.09);position:relative;flex-shrink:0;transition:background-color .12s ease,box-shadow .12s ease;}' +
             '.home-radio-record-panel__btn.focus,.home-radio-record-panel__btn.hover,.home-radio-record-panel__btn.radio-record-focus{background-color:rgba(246,73,0,.22);box-shadow:0 0 0 .1em rgba(255,255,255,.88),0 .22em .9em rgba(246,73,0,.22);}' +
@@ -769,6 +773,7 @@
         var trackTimer = false;
         var playRequestId = 0;
         var reconnectAttempts = 0;
+        var reconnectCycles = 0;
         var lastToggleAt = 0;
         var lastPlayAt = 0;
         var lastPlayKey = '';
@@ -818,6 +823,7 @@
         audio.addEventListener('loadedmetadata', function () {
             if (staleAudioEvent()) return;
 
+            clearTimeout(waitingTimer);
             RadioDebug.log('audio.event.loadedmetadata', {
                 station: currentStation && currentStation.title
             });
@@ -826,6 +832,7 @@
         audio.addEventListener('canplay', function () {
             if (staleAudioEvent()) return;
 
+            clearTimeout(waitingTimer);
             RadioDebug.log('audio.event.canplay', {
                 station: currentStation && currentStation.title
             });
@@ -872,8 +879,28 @@
             });
             clearTimeout(waitingTimer);
             waitingTimer = setTimeout(function () {
-                if (!manualStop && !audio.paused && audio.readyState < 3) scheduleReconnect('waiting-long');
-            }, 12000);
+                if (manualStop || audio.paused || audio.readyState >= 3) return;
+
+                if (!played) {
+                    scheduleReconnect('startup-waiting-long');
+                    return;
+                }
+
+                RadioDebug.log('audio.buffering.long', {
+                    station: currentStation && currentStation.title,
+                    readyState: audio.readyState,
+                    candidate: urlIndex + 1
+                });
+
+                if (hls && typeof hls.startLoad === 'function') {
+                    try {
+                        hls.startLoad(-1);
+                        RadioDebug.log('hls.buffering.resume', {
+                            station: currentStation && currentStation.title
+                        });
+                    } catch (e) {}
+                }
+            }, played ? STREAM_BUFFERING_NOTICE_TIMEOUT : STREAM_START_WAITING_TIMEOUT);
         });
 
         audio.addEventListener('playing', function () {
@@ -888,6 +915,7 @@
             played = true;
             loading = false;
             reconnectAttempts = 0;
+            reconnectCycles = 0;
             clearTimeout(waitingTimer);
             clearTimeout(startTimer);
             clearReconnect();
@@ -1302,6 +1330,9 @@
                 }
 
                 try {
+                    RadioDebug.log('track.icy.method', {
+                        method: 'xhr'
+                    });
                     xhr = new XMLHttpRequest();
                     xhr.open('GET', streamUrl, true);
                     xhr.setRequestHeader('Icy-MetaData', '1');
@@ -1322,7 +1353,16 @@
                     };
 
                     xhr.onreadystatechange = function () {
-                        if (!settled && xhr.readyState === 4) finish(false, 'xhr-done');
+                        if (settled || xhr.readyState !== 4) return;
+
+                        if (scan(xhr.responseText || '', true)) return;
+
+                        RadioDebug.log('track.icy.xhr.done', {
+                            status: xhr.status,
+                            bytes: (xhr.responseText || '').length,
+                            _quiet: true
+                        });
+                        finish(false, 'xhr-done');
                     };
 
                     xhr.send();
@@ -1339,6 +1379,9 @@
                     return;
                 }
 
+                RadioDebug.log('track.icy.method', {
+                    method: 'fetch'
+                });
                 if (window.AbortController) controller = new AbortController();
 
                 options = {
@@ -1352,6 +1395,10 @@
 
                 fetch(streamUrl, options).then(function (response) {
                     if (!response || !response.body || !response.body.getReader) {
+                        RadioDebug.log('track.icy.fetch.no-stream', {
+                            status: response && response.status,
+                            _quiet: true
+                        });
                         startXhr();
                         return;
                     }
@@ -1386,8 +1433,13 @@
                     }
 
                     pump();
-                })["catch"](function () {
-                    if (!settled) startXhr();
+                })["catch"](function (error) {
+                    if (settled) return;
+                    RadioDebug.log('track.icy.fetch.error', {
+                        error: error && error.message || 'request',
+                        _quiet: true
+                    });
+                    startXhr();
                 });
             }
 
@@ -1721,19 +1773,32 @@
         }
 
         function scheduleReconnect(reason) {
-            var maxAttempts = Math.max(1, urlCandidates.length - 1);
+            var maxAttempts = Math.max(0, urlCandidates.length - 1);
+            var retryDelay;
 
             if (manualStop || !urlCandidates.length || reconnectTimer) return;
 
             if (reconnectAttempts >= maxAttempts) {
-                loading = false;
+                reconnectCycles++;
+                reconnectAttempts = 0;
+                urlIndex = 0;
+                url = urlCandidates[0] || '';
+                played = false;
+                loading = true;
                 updateControls();
-                RadioDebug.finishSession('stream.fallback.giveup', {
+                retryDelay = Math.min(STREAM_RETRY_MAX_DELAY, STREAM_RETRY_DELAY * reconnectCycles);
+                RadioDebug.log('stream.reconnect.retry', {
                     station: currentStation && currentStation.title,
                     reason: reason || 'unknown',
-                    attempts: reconnectAttempts,
+                    delay: RadioDebug.ms(retryDelay),
+                    cycle: reconnectCycles,
                     total: urlCandidates.length
                 });
+                reconnectTimer = setTimeout(function () {
+                    reconnectTimer = false;
+                    if (manualStop || !urlCandidates.length) return;
+                    startCurrent('retry-' + (reason || 'fallback'));
+                }, retryDelay);
                 return;
             }
 
@@ -1843,6 +1908,7 @@
             manualStop = true;
             playRequestId++;
             reconnectAttempts = 0;
+            reconnectCycles = 0;
             played = false;
             loading = false;
             clearTrackPoll(cancelRequest !== false);
@@ -1894,6 +1960,7 @@
             urlIndex = 0;
             url = urlCandidates[0] || '';
             reconnectAttempts = 0;
+            reconnectCycles = 0;
             RadioDebug.startSession('connect', {
                 station: currentStation.title,
                 candidates: urlCandidates.length,
@@ -2172,6 +2239,7 @@
 
         function attachDebugStatus() {
             if (debugStateOff) return;
+            if (!panelDebug.length || panelDebug.css('display') === 'none') return;
 
             debugStateOff = RadioDebug.onStatus(updateDebugStatus);
             debugTimer = setInterval(updateDebugStatus, 1000);
